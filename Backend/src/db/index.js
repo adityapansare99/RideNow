@@ -6,7 +6,7 @@ const connectdb = async () => {
     const dbinstance = await mongoose.connect(`${process.env.dblink}${dbname}`);
 
     console.log(
-      ` \n mongodb connect to hostname:${dbinstance.connection.host}`
+      `mongodb connect to hostname:${dbinstance.connection.host}`
     );
   } catch (error) {
     console.log("error is found", error);
