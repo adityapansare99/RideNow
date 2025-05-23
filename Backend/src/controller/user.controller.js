@@ -40,7 +40,7 @@ const registeruser = asynchandler(async (req, res) => {
     .json(new ApiResponse(200, user, "User created successfully"));
 });
 
-const Generatingaccessandrefreshtoken = async (userId) => {
+const Generatingaccessandrefreshtoken = (async (userId) => {
   try {
     console.log(userId);
     const user = await User.findById(userId);
@@ -60,7 +60,7 @@ const Generatingaccessandrefreshtoken = async (userId) => {
   } catch (err) {
     throw new ApiError(404, "NOT able to generate the tokens");
   }
-};
+});
 
 const userLogin = asynchandler(async (req, res) => {
   const {email, password } = req.body;

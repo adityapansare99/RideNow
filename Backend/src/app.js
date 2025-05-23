@@ -17,4 +17,7 @@ app.use("/", router);
 import { userrouter } from "./route/user.route.js";
 app.use("/users", userrouter);
 
+import { caprouter } from "./route/captain.route.js";
+app.use("/captains", caprouter);
+
 export { app };
