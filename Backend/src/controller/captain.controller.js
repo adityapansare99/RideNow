@@ -2,7 +2,6 @@ import { Captain } from "../model/captain.model.js";
 import { asynchandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
-import { authc } from "../middleware/auth.middleware.js";
 
 //register captain
 const registercaptain = asynchandler(async (req, res) => {
