@@ -6,6 +6,7 @@ import { authc } from "../middleware/auth.middleware.js";
 
 //register captain
 const registercaptain = asynchandler(async (req, res) => {
+  console.log("Received body:", req.body);
   const { fullname, email, password, vehicle } = req.body;
 
   const exists = await Captain.findOne({ email });
@@ -15,21 +16,27 @@ const registercaptain = asynchandler(async (req, res) => {
   }
 
   const captain = await Captain.create({
-    firstname: fullname.firstname,
-    lastname: fullname.lastname,
+    fullname: {
+      firstname: fullname.firstname,
+      lastname: fullname.lastname,
+    },
     email,
     password,
-    color: vehicle.color,
-    plate: vehicle.plate,
-    capacity: vehicle.capacity,
-    vechiletype: vehicle.vechiletype,
+    vehicle: {
+      color: vehicle.color,
+      plate: vehicle.plate,
+      capacity: vehicle.capacity,
+      vehicletype: vehicle.vehicletype,
+    },
   });
 
   if (!captain) {
     throw new ApiError(400, "Captain not created");
   }
 
-  const captainid = await Captain.findById(captain._id);
+  const captainid = await Captain.findById(captain._id).select(
+    "-password -refershtoken"
+  );
 
   if (!captainid) {
     throw new ApiError(400, "Captain not created");
@@ -40,7 +47,7 @@ const registercaptain = asynchandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        { accesstoken, refreshtoken },
+        { captain: captainid },
         "captain registered successfully"
       )
     );
@@ -72,7 +79,7 @@ const logincaptain = asynchandler(async (req, res) => {
   };
 
   const loggeduser = await Captain.findOne(captain._id).select(
-    "-password -refershtoken"
+    "-password -refreshtoken"
   );
 
   if (!loggeduser) {
@@ -116,7 +123,10 @@ const Generatingaccessandrefreshtoken = async (capid) => {
 
 //get captain profile
 const profile = asynchandler(async (req, res) => {
-  res.status(200).json(new ApiResponse(200, req.captain, "captain profile"));
+  const captainid = await Captain.findById(req.captain).select(
+    "-password -refreshtoken"
+  );
+  res.status(200).json(new ApiResponse(200, { captainid }, "captain profile"));
 });
 
 //logout captain
@@ -143,8 +153,4 @@ const logout = asynchandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "logged out successfully"));
 });
 
-export{
-    registercaptain,
-    logincaptain,
-    profile,
-    logout}
+export { registercaptain, logincaptain, profile, logout };
