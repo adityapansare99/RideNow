@@ -1,30 +1,44 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { UserDataContext } from "../context/userContext";
+import Home from "./Home.jsx";
 
 const UserSignup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [firstname, setFirstname] = useState("");
-  const [lastname, setLastname] = useState("");
+  const [firstname, setFirstName] = useState("");
+  const [lastname, setLastName] = useState("");
   const [userData, setUserData] = useState({});
 
-  const submitHandler = (e) => {
-    e.preventDefault();
-    setUserData({
-        fullname:{
-            firstname:firstname,
-            lastname:lastname
-        },
-        email:email,
-        password:password
-    })
+  const navigate = useNavigate();
 
-    console.log(userData);
+  const { user, setUser } = useContext(UserDataContext);
+
+  const submitHandler = async (e) => {
+    e.preventDefault();
+    const newUser = {
+      firstname: firstname,
+      lastname: lastname,
+      email: email,
+      password: password,
+    };
+
+    const resopnse = await axios.post(
+      `${import.meta.env.VITE_BASE_URL}/users/register`,
+      newUser
+    );
+
+    if (resopnse.status === 200) {
+      const data = resopnse.data;
+      setUser(data.user);
+      navigate("/home");
+    }
 
     setEmail("");
     setPassword("");
-    setFirstname("");
-    setLastname("");
+    setFirstName("");
+    setLastName("");
   };
   return (
     <div>
@@ -45,7 +59,7 @@ const UserSignup = () => {
                 placeholder="First name"
                 value={firstname}
                 onChange={(e) => {
-                  setFirstname(e.target.value);
+                  setFirstName(e.target.value);
                 }}
               />
 
@@ -55,7 +69,7 @@ const UserSignup = () => {
                 placeholder="Last name"
                 value={lastname}
                 onChange={(e) => {
-                  setLastname(e.target.value);
+                  setLastName(e.target.value);
                 }}
               />
             </div>
@@ -85,7 +99,7 @@ const UserSignup = () => {
             />
 
             <button className="bg-[#111] text-white font-semibold mb-3 w-full rounded px-4 py-2 text-lg placeholder:text-base">
-              Login
+              Create account
             </button>
           </form>
           <p className="text-center">
