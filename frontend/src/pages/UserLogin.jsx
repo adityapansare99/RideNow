@@ -22,8 +22,9 @@ const UserLogin = () => {
     const resopnse =await axios.post(`${import.meta.env.VITE_BASE_URL}/users/login`,userData); 
     
     if(resopnse.status===200){
-      const data=resopnse.data;
+      const data=resopnse.data.data;
       setUser(data.user);
+      localStorage.setItem('token',data.accesstoken);
       navigate("/home");
     }
     
