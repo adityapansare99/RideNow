@@ -103,4 +103,4 @@ function getOtp(num) {
   return generateOtp(num);
 }
 
-export { createRide };
+export { createRide, getFare};

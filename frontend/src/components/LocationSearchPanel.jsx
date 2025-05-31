@@ -1,31 +1,30 @@
-import React from "react";
-import "remixicon/fonts/remixicon.css";
+import React from 'react';
 
 const LocationSearchPanel = (props) => {
+  const handleSuggestionClick = (suggestion) => {
+    if (props.activeField === 'pickup') {
+      props.setPickup(suggestion);
+    } else if (props.activeField === 'destination') {
+      props.setDestination(suggestion);
+    }
+    props.setPanelOpen(true);
+    props.setvehicleFound(false);
+  };
 
-  const location = [
-    "24B, Near Kapoor's Cafe, Sheryians Coding School, Bhopal",
-    "22B,Near BOM Bank, Disha Coding School,Baramati",
-    "1690A Near VP College Rui Goverment Hospital, Baramati",
-    "24B, Near pansare's Cafe, Sheryians Coding School, Bhopal",
-  ]
   return (
-    //this is the sample data
     <div>
-      {location.map(function (lem,inx) {
-        return <div key={inx} onClick={()=>{
-            props.setVehiclePanel(true);
-            props.setPanelOpen(false);
-        }} 
-        className="gap-4 flex items-center border-2 p-3 rounded-xl border-gray-50 active:border-black justify-start my-2">
+      {props.suggestions.map((elem, idx) => (
+        <div
+          key={idx}
+          onClick={() => handleSuggestionClick(elem.description)}
+          className="flex gap-4 border-2 p-3 border-gray-50 active:border-black rounded-xl items-center my-2 justify-start"
+        >
           <h2 className="bg-[#eee] h-8 flex items-center justify-center w-12 rounded-full">
             <i className="ri-map-pin-fill"></i>
           </h2>
-          <h4 className="font-medium">
-            {lem}
-          </h4>
-        </div>;
-      })}
+          <h4 className="font-medium">{elem.description}</h4>
+        </div>
+      ))}
     </div>
   );
 };
