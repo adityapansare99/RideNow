@@ -23,4 +23,7 @@ app.use("/users", userrouter);
 import { caprouter } from "./route/captain.route.js";
 app.use("/captains", caprouter);
 
+import {maprouter} from "./route/map.route.js"
+app.use("/maps",maprouter)
+
 export { app };
