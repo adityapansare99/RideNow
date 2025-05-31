@@ -26,4 +26,7 @@ app.use("/captains", caprouter);
 import {maprouter} from "./route/map.route.js"
 app.use("/maps",maprouter)
 
+import {riderrouter} from "./route/ride.route.js"
+app.use("/rides",riderrouter)
+
 export { app };

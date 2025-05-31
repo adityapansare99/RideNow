@@ -42,8 +42,8 @@ const get_distance_time=async(origin,destination)=>{
                 throw new ApiError(400, 'Unable to fetch distance and time');
             }
 
-            const distance = response.data.rows[ 0 ].elements[ 0 ].distance.text;
-            const time = response.data.rows[ 0 ].elements[ 0 ].duration.text;
+            const distance = response.data.rows[ 0 ].elements[ 0 ].distance.value;
+            const time = response.data.rows[ 0 ].elements[ 0 ].duration.value;
             return {
                 distance,
                 time

@@ -78,7 +78,7 @@ const captainschema = new mongoose.Schema({
     type: String,
   },
   
-});
+},{timestamps : true});
 
 captainschema.pre("save", async function (next) {
   if (!this.isModified("password")) {
