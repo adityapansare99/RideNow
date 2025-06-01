@@ -10,6 +10,8 @@ import LookingForDriver from "../components/LookingForDriver.jsx";
 import WaitForDriver from "../components/WaitForDriver.jsx";
 import { useNavigate } from "react-router-dom";
 import { UserDataContext } from "../context/userContext";
+import { SocketContext } from "../context/SocketContext.jsx";
+import { useEffect } from "react";
 
 const Home = () => {
   const [pickup, setPickup] = useState("");
@@ -33,6 +35,14 @@ const Home = () => {
   const [ride, setRide] = useState(null);
 
   const navigate = useNavigate();
+
+  const {socket}=useContext(SocketContext);
+  const {user}=useContext(UserDataContext);
+
+  useEffect(() => {
+    console.log("Emitting join with:", { userType: "user", userId: user._id });
+    socket.emit("join",{userType:"user",userId:user._id})
+  },[user])
 
   const handlePickupChange = async (e) => {
     setPickup(e.target.value);
@@ -280,7 +290,6 @@ const Home = () => {
             setDestination={setDestination}
             activeField={activeField}
             setvehicleFound={setvehicleFound}
-            
           />
         </div>
       </div>
@@ -301,7 +310,7 @@ const Home = () => {
         ref={confirmridepanelref}
         className="fixed w-full bg-white bottom-0 translate-y-full px-3 py-6 pt-12"
       >
-        <ConfirmRide    
+        <ConfirmRide
           createRide={createRide}
           pickup={pickup}
           destination={destination}
