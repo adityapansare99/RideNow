@@ -1,10 +1,21 @@
 import React, { use } from "react";
 import {Link, useLocation} from "react-router-dom"
+import { useEffect,useContext } from "react";
+import {SocketContext} from "../context/SocketContext.jsx";
+import { useNavigate } from "react-router-dom";
 
 
-const Riding = () => {
+const Riding = () => {      
   const location=useLocation();
   const ride=location.state?.ride;
+  const {socket}=useContext(SocketContext);
+
+  const navigate=useNavigate();
+
+  socket.on("ride-ended",()=>{
+    navigate("/home")
+  })
+
   return (
     <div className="h-screen">
         <Link to={"/home"} className="fixed right-2 top-2 h-10 w-10 bg-white flex items-center justify-center rounded-full"> 
@@ -45,7 +56,7 @@ const Riding = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-5 p-3">
+            <div className="flex items-center gap-5 p-3 -mb-2">
               <i className="text-lg ri-currency-line"></i>
               <div>
                 <h3 className="text-lg font-medium">₹{ride?.fare}</h3>
@@ -54,7 +65,7 @@ const Riding = () => {
             </div>
           </div>
         </div>
-        <button className="w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg">
+        <button className=" w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg">
           Make a Payment
         </button>
       </div>

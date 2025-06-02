@@ -1,7 +1,7 @@
 import { asynchandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
-import { createRide, getFare,confirmride,startride} from "../service/ride.service.js";
+import { createRide, getFare,confirmride,startride,endride} from "../service/ride.service.js";
 import { validationResult } from "express-validator";
 import{getAddressCoordinate,getCaptaininTheRadius} from "../service/map.service.js"
 import {sendMessageToSocketId} from "../socket.js"
@@ -123,6 +123,26 @@ const startRide=asynchandler(async(req,res)=>{
     }
 })
 
+const endRide=asynchandler(async(req,res)=>{
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json(new ApiResponse(400,errors.array(),"Validation Error"));
+    }
 
+    const { rideId } = req.body;
 
-export {createride, farevalue,confirmRide,startRide}
+    try {
+        const ride = await endride({ rideId, captain: req.captain });
+
+        sendMessageToSocketId(ride.user.socketId, {
+            event: 'ride-ended',
+            data: ride
+        })
+
+        return res.status(200).json(new ApiResponse(200, ride, "Ride ended successfully"));
+    } catch (err) {
+        return res.status(400).json(new ApiResponse(400, err, "Unable to end ride"));
+    }
+})
+
+export {createride, farevalue,confirmRide,startRide,endRide}

@@ -108,7 +108,7 @@ const confirmride = async ({ rideId, captain }) => {
     throw new Error("Ride id is required");
   }
 
-  console.log(captain)
+  console.log(captain);
 
   await Ride.findOneAndUpdate(
     {
@@ -120,10 +120,9 @@ const confirmride = async ({ rideId, captain }) => {
     }
   );
 
-  const ride = await Ride
-    .findOne({
-      _id: rideId,
-    })
+  const ride = await Ride.findOne({
+    _id: rideId,
+  })
     .populate("user")
     .populate("captain")
     .select("+otp");
@@ -137,31 +136,71 @@ const confirmride = async ({ rideId, captain }) => {
 
 const startride = async ({ rideId, otp, captain }) => {
   if (!rideId || !otp) {
-        throw new Error('Ride id and OTP are required');
+    throw new Error("Ride id and OTP are required");
+  }
+
+  const ride = await Ride.findOne({
+    _id: rideId,
+  })
+    .populate("user")
+    .populate("captain")
+    .select("+otp");
+
+  if (!ride) {
+    throw new Error("Ride not found");
+  }
+
+  if (ride.status !== "accepted") {
+    throw new Error("Ride not accepted");
+  }
+
+  if (ride.otp !== otp) {
+    throw new Error("Invalid OTP");
+  }
+
+  await Ride.findOneAndUpdate(
+    {
+      _id: rideId,
+    },
+    {
+      status: "ongoing",
     }
+  );
 
-    const ride = await Ride.findOne({
-        _id: rideId
-    }).populate('user').populate('captain').select('+otp');
+  return ride;
+};
 
-    if (!ride) {
-        throw new Error('Ride not found');
-    }
+const endride = async ({ rideId, captain }) => {
+  if (!rideId) {
+    throw new Error("Ride id is required");
+  }
 
-    if (ride.status !== 'accepted') {
-        throw new Error('Ride not accepted');
-    }
-
-    if (ride.otp !== otp) {
-        throw new Error('Invalid OTP');
-    }
-
-    await Ride.findOneAndUpdate({
-        _id: rideId
-    }, {
-        status: 'ongoing'
+  const ride = await Ride
+    .findOne({
+      _id: rideId,
+      captain: captain._id,
     })
+    .populate("user")
+    .populate("captain")
+    .select("+otp");
 
-    return ride;
-}
-export { createRide, getFare, confirmride,startride };
+  if (!ride) {
+    throw new Error("Ride not found");
+  }
+
+  if (ride.status !== "ongoing") {
+    throw new Error("Ride not ongoing");
+  }
+
+  await Ride.findOneAndUpdate(
+    {
+      _id: rideId,
+    },
+    {
+      status: "completed",
+    }
+  );
+
+  return ride;
+};
+export { createRide, getFare, confirmride, startride,endride };

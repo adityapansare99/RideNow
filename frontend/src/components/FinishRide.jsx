@@ -1,7 +1,28 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const FinishRide = (props) => {
+  const navigate = useNavigate();
+  const endRide = async () => {
+    const response = await axios.post(
+      `${import.meta.env.VITE_BASE_URL}/rides/end-ride`,
+      {
+        rideId: props.rideData?._id,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      navigate("/captain-home");
+    }
+  };
+
   return (
     <div>
       <h5
@@ -21,7 +42,11 @@ const FinishRide = (props) => {
             src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8dXNlcnxlbnwwfHwwfHx8MA%3D%3D"
             alt=""
           />
-          <h2 className="text-lg font-medium capitalize">{props.rideData?.user.fullname.firstname+" "+props.rideData?.user.fullname.lastname}</h2>
+          <h2 className="text-lg font-medium capitalize">
+            {props.rideData?.user.fullname.firstname +
+              " " +
+              props.rideData?.user.fullname.lastname}
+          </h2>
         </div>
         <h5 className="text-lg font-semibold">2.2 KM</h5>
       </div>
@@ -58,14 +83,14 @@ const FinishRide = (props) => {
         </div>
 
         <div className="mt-10 w-full">
-          
-            <Link
-              to={"/captain-home"}
-              className="w-full mt-2 flex text-lg justify-center bg-green-600 text-white font-semibold p-3 rounded-lg"
-            >
-              Finish Ride
-            </Link>
-
+          <button
+            onClick={() => {
+              endRide();
+            }}
+            className="w-full mt-2 flex text-lg justify-center bg-green-600 text-white font-semibold p-3 rounded-lg"
+          >
+            Finish Ride
+          </button>
         </div>
       </div>
     </div>
