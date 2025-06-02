@@ -5,6 +5,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import FinishRide from "../components/FinishRide";
 import { useRef } from "react";
+import LiveTracking from "../components/LiveTracking";
 
 const CaptainRiding = () => {
     const[FinishRidePanel,setFinishRidePanel]=useState(false);
@@ -42,11 +43,7 @@ const CaptainRiding = () => {
         </Link>
       </div>
       <div className="h-4/5">
-        <img
-          className="w-full h-full object-cover"
-          src="https://miro.medium.com/v2/resize:fit:1400/0*gwMx05pqII5hbfmX.gif"
-          alt=""
-        />
+        <LiveTracking/>
       </div>
       <div className="h-1/5 flex items-center justify-between relative p-6 bg-yellow-400"
       onClick={() => {setFinishRidePanel(true)}}>

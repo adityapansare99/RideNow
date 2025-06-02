@@ -9,6 +9,7 @@ import { SocketContext } from "../context/SocketContext";
 import { CaptainDataContext } from "../context/CaptainContext";
 import { useEffect } from "react";
 import axios from "axios";
+import LiveTracking from "../components/LiveTracking";
 
 const CaptainHome = () => {
   const [RidePopupPanel, setRidePopupPanel] = useState(false);
@@ -119,10 +120,7 @@ const CaptainHome = () => {
         </Link>
       </div>
       <div className="h-3/5">
-        <img
-          className="w-full h-full object-cover"
-          src="https://miro.medium.com/v2/resize:fit:1400/0*gwMx05pqII5hbfmX.gif"
-          alt=""
+        <LiveTracking
         />
       </div>
 
