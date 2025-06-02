@@ -51,6 +51,12 @@ const Home = () => {
     setRide(ride);
   })
 
+  socket.on('ride-started',ride=>{
+    setWaitForDriverPanel(false);
+    console.log("test"+ride);
+    navigate(`/riding`,{state:{ride:ride}});
+  })
+
   const handlePickupChange = async (e) => {
     setPickup(e.target.value);
 

@@ -3,6 +3,7 @@ import {
   createride,
   farevalue,
   confirmRide,
+  startRide,
 } from "../controller/ride.controller.js";
 import { body, query } from "express-validator";
 import { auth, authc } from "../middleware/auth.middleware.js";
@@ -47,5 +48,19 @@ riderrouter
     body("rideId").isMongoId().withMessage("Invalid rideId"),
     confirmRide
   );
+
+riderrouter
+  .route("/start-ride")
+  .get(
+    authc,
+    query("rideId").isMongoId().withMessage("Invalid rideId"),
+    query("otp")
+      .isString()
+      .isLength({ min: 6, max: 6 })
+      .withMessage("Invalid otp"),
+    startRide
+  );
+
+       
 
 export { riderrouter };

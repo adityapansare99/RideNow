@@ -21,7 +21,7 @@ const FinishRide = (props) => {
             src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8dXNlcnxlbnwwfHwwfHx8MA%3D%3D"
             alt=""
           />
-          <h2 className="text-lg font-medium">Harshi Patel</h2>
+          <h2 className="text-lg font-medium capitalize">{props.rideData?.user.fullname.firstname+" "+props.rideData?.user.fullname.lastname}</h2>
         </div>
         <h5 className="text-lg font-semibold">2.2 KM</h5>
       </div>
@@ -33,7 +33,7 @@ const FinishRide = (props) => {
             <div>
               <h3 className="text-lg font-medium">562/11-A</h3>
               <p className="text-small -mt-1 text-gray-600">
-                Kankariya Talab, Baramati
+                {props.rideData?.pickup}
               </p>
             </div>
           </div>
@@ -43,7 +43,7 @@ const FinishRide = (props) => {
             <div>
               <h3 className="text-lg font-medium">562/11-A</h3>
               <p className="text-small -mt-1 text-gray-600">
-                Kankariya Talab, Baramati
+                {props.rideData?.destination}
               </p>
             </div>
           </div>
@@ -51,7 +51,7 @@ const FinishRide = (props) => {
           <div className="flex items-center gap-5 p-3">
             <i className="text-lg ri-currency-line"></i>
             <div>
-              <h3 className="text-lg font-medium">₹193.20</h3>
+              <h3 className="text-lg font-medium">₹{props.rideData?.fare}</h3>
               <p className="text-small -mt-1 text-gray-600">Cash Cash</p>
             </div>
           </div>

@@ -144,7 +144,7 @@ const CaptainHome = () => {
 
       <div
         ref={ConfirmRidePopupPanelref}
-        className="fixed h-screen w-full z-10 bg-white bottom-0 translate-y-full   px-3 py-6 pt-12"
+        className="fixed h-screen w-full z-10 bg-white bottom-0 translate-y-full overflow-y-scroll  px-3 py-6 pt-12"
       >
         <ConfirmRidePopup
           ride={ride}
