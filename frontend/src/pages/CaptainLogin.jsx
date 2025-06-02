@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import {CaptainDataContext} from "../context/CaptainContext.jsx";
+import { CaptainDataContext } from "../context/CaptainContext.jsx";
+
 const UserLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -10,21 +11,24 @@ const UserLogin = () => {
   const { captain, setCaptain } = React.useContext(CaptainDataContext);
   const navigate = useNavigate();
 
-  const submitHandler = async(e) => {
+  const submitHandler = async (e) => {
     e.preventDefault();
-    const captain=({
+    const captain = {
       email: email,
       password: password,
-    });
+    };
 
-    const resopnse =await axios.post(`${import.meta.env.VITE_BASE_URL}/captains/login`,captain); 
-    if(resopnse.status===200){
-      const data=resopnse.data.data;
+    const resopnse = await axios.post(
+      `${import.meta.env.VITE_BASE_URL}/captains/login`,
+      captain
+    );
+    if (resopnse.status === 200) {
+      const data = resopnse.data.data;
       setCaptain(data.user);
-      localStorage.setItem('token',data.accesstoken);
+      localStorage.setItem("token", data.accesstoken);
       navigate("/captain-home");
     }
-    
+
     setEmail("");
     setPassword("");
   };
@@ -61,8 +65,10 @@ const UserLogin = () => {
           </button>
         </form>
         <p className="text-center">
-          Join a fleet? 
-          <Link to="/captain-signup" className="text-blue-600"> Register as a Captain
+          Join a fleet?
+          <Link to="/captain-signup" className="text-blue-600">
+            {" "}
+            Register as a Captain
           </Link>
         </p>
       </div>
@@ -71,7 +77,8 @@ const UserLogin = () => {
         <Link
           to="/login"
           className="flex item-center justify-center bg-[#d5622d] text-white font-semibold mb-5 w-full rounded px-4 py-2 text-lg placeholder:text-base"
-        >Sign in as User
+        >
+          Sign in as User
         </Link>
       </div>
     </div>

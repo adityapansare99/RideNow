@@ -26,7 +26,7 @@ const CaptainLogout = () => {
         }
       } catch (err) {
         console.error("Logout failed", err);
-        navigate("/captain-login"); 
+        navigate("/captain-login");
       }
     };
 

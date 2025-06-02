@@ -22,7 +22,7 @@ const CaptainSignup = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    const captainData = ({
+    const captainData = {
       fullname: {
         firstname: firstname,
         lastname: lastname,
@@ -35,9 +35,9 @@ const CaptainSignup = () => {
         capacity: vehicleCapacity,
         vehicletype: vehicleType,
       },
-    });
+    };
 
-    const response=await axios.post(
+    const response = await axios.post(
       `${import.meta.env.VITE_BASE_URL}/captains/register`,
       captainData
     );

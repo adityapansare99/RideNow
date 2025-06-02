@@ -1,4 +1,4 @@
-import React, { useState,useContext } from "react";
+import React, { useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { UserDataContext } from "../context/userContext";
 import { useNavigate } from "react-router-dom";
@@ -12,22 +12,25 @@ const UserLogin = () => {
   const { user, setUser } = useContext(UserDataContext);
   const navigate = useNavigate();
 
-  const submitHandler = async(e) => {
+  const submitHandler = async (e) => {
     e.preventDefault();
-    const userData={
+    const userData = {
       email: email,
       password: password,
-    }
+    };
 
-    const resopnse =await axios.post(`${import.meta.env.VITE_BASE_URL}/users/login`,userData); 
-    
-    if(resopnse.status===200){
-      const data=resopnse.data.data;
+    const resopnse = await axios.post(
+      `${import.meta.env.VITE_BASE_URL}/users/login`,
+      userData
+    );
+
+    if (resopnse.status === 200) {
+      const data = resopnse.data.data;
       setUser(data.user);
-      localStorage.setItem('token',data.accesstoken);
+      localStorage.setItem("token", data.accesstoken);
       navigate("/home");
     }
-    
+
     setEmail("");
     setPassword("");
   };
@@ -65,7 +68,9 @@ const UserLogin = () => {
         </form>
         <p className="text-center">
           New here?
-          <Link to="/signup" className="text-blue-600"> Create new Account
+          <Link to="/signup" className="text-blue-600">
+            {" "}
+            Create new Account
           </Link>
         </p>
       </div>
@@ -74,7 +79,8 @@ const UserLogin = () => {
         <Link
           to="/captain-login"
           className="flex item-center justify-center bg-[#10b461] text-white font-semibold mb-5 w-full rounded px-4 py-2 text-lg placeholder:text-base"
-        >Sign in as Captain
+        >
+          Sign in as Captain
         </Link>
       </div>
     </div>

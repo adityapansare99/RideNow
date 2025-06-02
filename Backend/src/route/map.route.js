@@ -22,8 +22,12 @@ maprouter
     getdistancetime
   );
 
-  maprouter.route("/get-suggestions").get(
+maprouter
+  .route("/get-suggestions")
+  .get(
     query("input").isString().isLength({ min: 3 }),
-    auth,autocompletesuggestions);
+    auth,
+    autocompletesuggestions
+  );
 
 export { maprouter };

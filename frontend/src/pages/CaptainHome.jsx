@@ -22,17 +22,11 @@ const CaptainHome = () => {
   const { captain } = useContext(CaptainDataContext);
 
   useEffect(() => {
-    console.log("Emitting join with:", {
-      userType: "captain",
-      userId: captain._id,
-    });
     socket.emit("join", { userType: "captain", userId: captain._id });
 
     const updateLocation = () => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
-          console.log(position.coords.latitude, position.coords.longitude);
-
           socket.emit("update-location-captain", {
             userId: captain._id,
             location: {
@@ -51,7 +45,6 @@ const CaptainHome = () => {
   }, []);
 
   socket.on("new-ride", (data) => {
-    console.log(data);
     setRide(data);
     setRidePopupPanel(true);
   });
@@ -68,7 +61,7 @@ const CaptainHome = () => {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       }
-    )
+    );
 
     setRidePopupPanel(false);
     setConfirmRidePopupPanel(true);
@@ -120,8 +113,7 @@ const CaptainHome = () => {
         </Link>
       </div>
       <div className="h-3/5">
-        <LiveTracking
-        />
+        <LiveTracking />
       </div>
 
       <div className="h-2/5 p-6">

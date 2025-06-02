@@ -3,9 +3,7 @@ import { asynchandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
 
-//register captain
 const registercaptain = asynchandler(async (req, res) => {
-  console.log("Received body:", req.body);
   const { fullname, email, password, vehicle } = req.body;
 
   const exists = await Captain.findOne({ email });
@@ -52,7 +50,6 @@ const registercaptain = asynchandler(async (req, res) => {
     );
 });
 
-//login captain
 const logincaptain = asynchandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -98,13 +95,12 @@ const logincaptain = asynchandler(async (req, res) => {
     );
 });
 
-//token generation
 const Generatingaccessandrefreshtoken = async (capid) => {
   try {
     const captain = await Captain.findById(capid);
 
     if (!captain) {
-      console.log("Captain not found in data base , first register to app");
+      res.status(404).json(new ApiResponse(404, null, "Captain not found"));
       return null;
     }
     const refreshtoken = captain.Generatingrefershtoken();
@@ -120,7 +116,6 @@ const Generatingaccessandrefreshtoken = async (capid) => {
   }
 };
 
-//get captain profile
 const profile = asynchandler(async (req, res) => {
   const captainid = await Captain.findById(req.captain).select(
     "-password -refreshtoken"
@@ -128,7 +123,6 @@ const profile = asynchandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, { captainid }, "captain profile"));
 });
 
-//logout captain
 const logout = asynchandler(async (req, res) => {
   await Captain.findOneAndUpdate(
     req.captain._id,

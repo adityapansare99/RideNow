@@ -1,7 +1,6 @@
 import { body, validationResult } from "express-validator";
 import { ApiResponse } from "../utils/apiResponse.js";
 
-//Register route for user
 const ValidationRules = [
   body("email").isEmail().withMessage("Invalid Email"),
   body("password")
@@ -16,16 +15,16 @@ const validatorresult = (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    res.status(400).json(new ApiResponse(400,errors.array(),"Validation Error"));
+    res
+      .status(400)
+      .json(new ApiResponse(400, errors.array(), "Validation Error"));
   }
 
   next();
 };
 
-//... are used to unpack the array of rules
 const uservalidation = [...ValidationRules, validatorresult];
 
-//login route validation for user 
 const ValidationError = [
   body("email").isEmail().withMessage("Invalid Email"),
   body("password")
@@ -33,21 +32,20 @@ const ValidationError = [
     .withMessage("Password must be at least 6 characters long"),
 ];
 
-const loginvalidation=(req,res,next)=>{
-  const errors=validationResult(req);
+const loginvalidation = (req, res, next) => {
+  const errors = validationResult(req);
 
-  if(!errors.isEmpty()){
-    res.status(400).json(new ApiResponse(400,errors.array(),"Validation Error"));
+  if (!errors.isEmpty()) {
+    res
+      .status(400)
+      .json(new ApiResponse(400, errors.array(), "Validation Error"));
   }
 
   next();
-}
+};
 
-const loginvalidationresult=[...ValidationError,loginvalidation];
+const loginvalidationresult = [...ValidationError, loginvalidation];
 
-
-//middle ware for the captain route
-//register
 const validationRulesforcaptain = [
   body("email").isEmail().withMessage("Invalid Email"),
   body("password")
@@ -65,23 +63,27 @@ const validationRulesforcaptain = [
   body("vehicle.capacity")
     .isInt({ min: 1 })
     .withMessage("Capacity must be at least 1"),
-  body("vehicle.vehicletype") 
+  body("vehicle.vehicletype")
     .isIn(["car", "auto", "motorcycle"])
     .withMessage("Vehicle type must be car, auto or motorcycle"),
 ];
-
 
 const validatorresultcaptain = (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    return res.status(400).json(new ApiResponse(400,errors.array(),"Validation Error"));
+    return res
+      .status(400)
+      .json(new ApiResponse(400, errors.array(), "Validation Error"));
   }
 
   next();
 };
 
-const captainvalidation = [...validationRulesforcaptain, validatorresultcaptain];
+const captainvalidation = [
+  ...validationRulesforcaptain,
+  validatorresultcaptain,
+];
 
 const caploginrule = [
   body("email").isEmail().withMessage("Invalid Email"),
@@ -90,17 +92,23 @@ const caploginrule = [
     .withMessage("Password must be at least 6 characters long"),
 ];
 
-const caplogin=(req,res,next)=>{
-  const errors=validationResult(req);
+const caplogin = (req, res, next) => {
+  const errors = validationResult(req);
 
-  if(!errors.isEmpty()){
-    res.status(400).json(new ApiResponse(400,errors.array(),"Validation Error"));
+  if (!errors.isEmpty()) {
+    res
+      .status(400)
+      .json(new ApiResponse(400, errors.array(), "Validation Error"));
   }
 
   next();
-}
+};
 
-const caploginresult=[...caploginrule,caplogin];
+const caploginresult = [...caploginrule, caplogin];
 
-
-export { uservalidation, loginvalidationresult, captainvalidation, caploginresult };
+export {
+  uservalidation,
+  loginvalidationresult,
+  captainvalidation,
+  caploginresult,
+};

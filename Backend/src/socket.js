@@ -13,8 +13,6 @@ const initializeSocket = (server) => {
   });
 
   io.on("connection", (socket) => {
-    console.log(`Client connected: ${socket.id}`);
-
     socket.on("join", async (data) => {
       const { userId, userType } = data;
 
@@ -23,7 +21,6 @@ const initializeSocket = (server) => {
           await User.findByIdAndUpdate(userId, { socketId: socket.id });
         } else if (userType === "captain") {
           await Captain.findByIdAndUpdate(userId, { socketId: socket.id });
-          console.log("captain socket id added")
         }
       } catch (error) {
         console.error("Join error:", error);

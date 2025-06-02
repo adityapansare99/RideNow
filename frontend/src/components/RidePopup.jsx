@@ -20,7 +20,11 @@ const RidePopup = (props) => {
             src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8dXNlcnxlbnwwfHwwfHx8MA%3D%3D"
             alt=""
           />
-          <h2 className="text-lg font-medium">{props.ride?.user.fullname.firstname+" "+props.ride?.user.fullname.lastname}</h2>
+          <h2 className="text-lg font-medium">
+            {props.ride?.user.fullname.firstname +
+              " " +
+              props.ride?.user.fullname.lastname}
+          </h2>
         </div>
         <h5 className="text-lg font-semibold">2.2 KM</h5>
       </div>
@@ -58,24 +62,24 @@ const RidePopup = (props) => {
 
         <div className="flex mt-5 items-center justify-between w-full">
           <button
-          onClick={() => {
-            props.setRidePopupPanel(false);
-          }}
-          className=" bg-gray-300 text-gray-700 font-semibold p-3 px-10 rounded-lg"
-        >
-          Ignore
-        </button>
+            onClick={() => {
+              props.setRidePopupPanel(false);
+            }}
+            className=" bg-gray-300 text-gray-700 font-semibold p-3 px-10 rounded-lg"
+          >
+            Ignore
+          </button>
 
           <button
-          onClick={() => {
-            props.setConfirmRidePopupPanel(true);
-            props.setRidePopupPanel(false);
-            props.confirmRide()
-          }}
-          className=" bg-green-600 text-white font-semibold p-3 px-10 rounded-lg"
-        >
-          Accept
-        </button>
+            onClick={() => {
+              props.setConfirmRidePopupPanel(true);
+              props.setRidePopupPanel(false);
+              props.confirmRide();
+            }}
+            className=" bg-green-600 text-white font-semibold p-3 px-10 rounded-lg"
+          >
+            Accept
+          </button>
         </div>
       </div>
     </div>

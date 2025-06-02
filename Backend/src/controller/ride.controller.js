@@ -1,148 +1,169 @@
 import { asynchandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
-import { createRide, getFare,confirmride,startride,endride} from "../service/ride.service.js";
+import {
+  createRide,
+  getFare,
+  confirmride,
+  startride,
+  endride,
+} from "../service/ride.service.js";
 import { validationResult } from "express-validator";
-import{getAddressCoordinate,getCaptaininTheRadius} from "../service/map.service.js"
-import {sendMessageToSocketId} from "../socket.js"
+import {
+  getAddressCoordinate,
+  getCaptaininTheRadius,
+} from "../service/map.service.js";
+import { sendMessageToSocketId } from "../socket.js";
 import { Ride } from "../model/ride.model.js";
 
+const createride = asynchandler(async (req, res) => {
+  const errors = validationResult(req);
 
-const createride=asynchandler(async(req,res)=>{
-    const errors=validationResult(req);
+  if (!errors.isEmpty()) {
+    res
+      .status(400)
+      .json(new ApiResponse(400, errors.array(), "Validation Error"));
+  }
 
-    if(!errors.isEmpty()){
-        res.status(400).json(new ApiResponse(400,errors.array(),"Validation Error"));
-    }
+  const user = req.user;
 
-    const user=req.user;
+  const { pickup, destination, vehicleType } = req.body;
 
-    const {pickup,destination,vehicleType}=req.body;
+  try {
+    const ride = await createRide({
+      user: user._id,
+      pickup,
+      destination,
+      vehicleType,
+    });
+    res
+      .status(200)
+      .json(new ApiResponse(200, ride, "Ride created successfully"));
 
-    try{
-        const ride=await createRide({user:user._id,pickup,destination,vehicleType});
-        res.status(200).json(new ApiResponse(200,ride,"Ride created successfully"));
+    const pickupCoordinate = await getAddressCoordinate(pickup);
+    const captainsInRadius = await getCaptaininTheRadius(
+      pickupCoordinate.ltd,
+      pickupCoordinate.lng,
+      100
+    );
 
-        const pickupCoordinate=await getAddressCoordinate(pickup);
-        // console.log(pickupCoordinate);
-        const captainsInRadius=await getCaptaininTheRadius(pickupCoordinate.ltd,pickupCoordinate.lng,100);
-        
-        ride.otp=""
+    ride.otp = "";
 
-        const rideWithUser=await Ride.findOne({_id:ride._id}).populate("user");
-        // console.log(rideWithUser);
+    const rideWithUser = await Ride.findOne({ _id: ride._id }).populate("user");
 
-        captainsInRadius.map(captain=>{
-            // console.log(captain.ride);
-            sendMessageToSocketId(captain.socketId,{
-                event:"new-ride",
-                data:rideWithUser
-            });
-        })
+    captainsInRadius.map((captain) => {
+      sendMessageToSocketId(captain.socketId, {
+        event: "new-ride",
+        data: rideWithUser,
+      });
+    });
+  } catch (err) {
+    res.status(400).json(new ApiResponse(400, err, "Unable to create ride"));
+  }
+});
 
-        // console.log(captainsInRadius);
-    }
+const farevalue = asynchandler(async (req, res) => {
+  const errors = validationResult(req);
 
-    catch(err){
-        res.status(400).json(new ApiResponse(400,err,"Unable to create ride"));
-    }
+  if (!errors.isEmpty()) {
+    res
+      .status(400)
+      .json(new ApiResponse(400, errors.array(), "Validation Error"));
+  }
 
-})
+  const { pickup, destination } = req.query;
 
-const farevalue=asynchandler(async(req,res)=>{
-    const errors=validationResult(req);
+  try {
+    const fare = await getFare(pickup, destination);
 
-    if(!errors.isEmpty()){
-        res.status(400).json(new ApiResponse(400,errors.array(),"Validation Error"));
-    }    
+    res
+      .status(200)
+      .json(new ApiResponse(200, fare, "Fare fetched successfully"));
+  } catch (err) {
+    res.status(400).json(new ApiResponse(400, err, "Unable to fetch fare"));
+  }
+});
 
-    const {pickup,destination}=req.query;
+const confirmRide = asynchandler(async (req, res) => {
+  const errors = validationResult(req);
 
-    try{
-        const fare=await getFare(pickup,destination);
+  if (!errors.isEmpty()) {
+    res
+      .status(400)
+      .json(new ApiResponse(400, errors.array(), "Validation Error"));
+  }
 
-        res.status(200).json(new ApiResponse(200,fare,"Fare fetched successfully"));
-    }
+  const { rideId } = req.body;
 
-    catch(err){
-        res.status(400).json(new ApiResponse(400,err,"Unable to fetch fare"));
-    }
+  try {
+    const ride = await confirmride({ rideId, captain: req.captain });
 
-})
+    sendMessageToSocketId(ride.user.socketId, {
+      event: "ride-confirmed",
+      data: ride,
+    });
 
-const confirmRide=asynchandler(async(req,res)=>{
-    const errors=validationResult(req);
+    res
+      .status(200)
+      .json(new ApiResponse(200, ride, "Ride confirmed successfully"));
+  } catch (err) {
+    res.status(400).json(new ApiResponse(400, err, "Unable to confirm ride"));
+  }
+});
 
-    if(!errors.isEmpty()){
-        res.status(400).json(new ApiResponse(400,errors.array(),"Validation Error"));
-    }
+const startRide = asynchandler(async (req, res) => {
+  const errors = validationResult(req);
 
-    const {rideId}=req.body;
+  if (!errors.isEmpty()) {
+    res
+      .status(400)
+      .json(new ApiResponse(400, errors.array(), "Validation Error"));
+  }
 
-    try{
-        const ride=await confirmride({rideId,captain:req.captain});
+  const { rideId, otp } = req.query;
 
-        sendMessageToSocketId(ride.user.socketId,{
-            event:"ride-confirmed",
-            data:ride
-        })
+  try {
+    const ride = await startride({ rideId, otp, captain: req.captain });
 
-        res.status(200).json(new ApiResponse(200,ride,"Ride confirmed successfully"));
-    }
+    sendMessageToSocketId(ride.user.socketId, {
+      event: "ride-started",
+      data: ride,
+    });
 
-    catch(err){
-        console.log(err)
-        res.status(400).json(new ApiResponse(400,err,"Unable to confirm ride"));
-    }
+    res
+      .status(200)
+      .json(new ApiResponse(200, ride, "Ride started successfully"));
+  } catch (err) {
+    res.status(400).json(new ApiResponse(400, err, "Unable to start ride"));
+  }
+});
 
-})
+const endRide = asynchandler(async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json(new ApiResponse(400, errors.array(), "Validation Error"));
+  }
 
-const startRide=asynchandler(async(req,res)=>{
-    const errors=validationResult(req);
+  const { rideId } = req.body;
 
-    if(!errors.isEmpty()){
-        res.status(400).json(new ApiResponse(400,errors.array(),"Validation Error"));
-    }
+  try {
+    const ride = await endride({ rideId, captain: req.captain });
 
-    const {rideId,otp}=req.query;
+    sendMessageToSocketId(ride.user.socketId, {
+      event: "ride-ended",
+      data: ride,
+    });
 
-    try{
-        const ride=await startride({rideId,otp,captain:req.captain});
+    return res
+      .status(200)
+      .json(new ApiResponse(200, ride, "Ride ended successfully"));
+  } catch (err) {
+    return res
+      .status(400)
+      .json(new ApiResponse(400, err, "Unable to end ride"));
+  }
+});
 
-        sendMessageToSocketId(ride.user.socketId,{
-            event:"ride-started",
-            data:ride
-        })
-
-        res.status(200).json(new ApiResponse(200,ride,"Ride started successfully"));
-    }
-
-    catch(err){
-        console.log(err)
-        res.status(400).json(new ApiResponse(400,err,"Unable to start ride"));
-    }
-})
-
-const endRide=asynchandler(async(req,res)=>{
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json(new ApiResponse(400,errors.array(),"Validation Error"));
-    }
-
-    const { rideId } = req.body;
-
-    try {
-        const ride = await endride({ rideId, captain: req.captain });
-
-        sendMessageToSocketId(ride.user.socketId, {
-            event: 'ride-ended',
-            data: ride
-        })
-
-        return res.status(200).json(new ApiResponse(200, ride, "Ride ended successfully"));
-    } catch (err) {
-        return res.status(400).json(new ApiResponse(400, err, "Unable to end ride"));
-    }
-})
-
-export {createride, farevalue,confirmRide,startRide,endRide}
+export { createride, farevalue, confirmRide, startRide, endRide };

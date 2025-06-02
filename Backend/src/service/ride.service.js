@@ -108,8 +108,6 @@ const confirmride = async ({ rideId, captain }) => {
     throw new Error("Ride id is required");
   }
 
-  console.log(captain);
-
   await Ride.findOneAndUpdate(
     {
       _id: rideId,
@@ -175,11 +173,10 @@ const endride = async ({ rideId, captain }) => {
     throw new Error("Ride id is required");
   }
 
-  const ride = await Ride
-    .findOne({
-      _id: rideId,
-      captain: captain._id,
-    })
+  const ride = await Ride.findOne({
+    _id: rideId,
+    captain: captain._id,
+  })
     .populate("user")
     .populate("captain")
     .select("+otp");
@@ -203,4 +200,4 @@ const endride = async ({ rideId, captain }) => {
 
   return ride;
 };
-export { createRide, getFare, confirmride, startride,endride };
+export { createRide, getFare, confirmride, startride, endride };

@@ -98,7 +98,7 @@ const getCaptaininTheRadius = async (ltd, lng, radius) => {
   });
 
   return captains;
-}; 
+};
 
 export {
   getAddressCoordinate,

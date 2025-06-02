@@ -40,13 +40,12 @@ const registeruser = asynchandler(async (req, res) => {
     .json(new ApiResponse(200, user, "User created successfully"));
 });
 
-const Generatingaccessandrefreshtoken = (async (userId) => {
+const Generatingaccessandrefreshtoken = async (userId) => {
   try {
-    console.log(userId);
     const user = await User.findById(userId);
 
     if (!user) {
-      console.log("user not found in data base , first register to app");
+      res.status(404).json(new ApiResponse(404, null, "User not found"));
       return null;
     }
     const refreshtoken = user.Generatingrefershtoken();
@@ -60,11 +59,11 @@ const Generatingaccessandrefreshtoken = (async (userId) => {
   } catch (err) {
     throw new ApiError(404, "NOT able to generate the tokens");
   }
-});
+};
 
 const userLogin = asynchandler(async (req, res) => {
-  const {email, password } = req.body;
-  
+  const { email, password } = req.body;
+
   if (
     [email, password].some((field) => {
       field?.trim() === "";
@@ -100,10 +99,12 @@ const userLogin = asynchandler(async (req, res) => {
     .status(200)
     .cookie("accesstoken", accesstoken, options)
     .cookie("refreshtoken", refreshtoken, options)
-    .json(new ApiResponse(
-      200,
-      { user: loggeduser, accesstoken, refreshtoken },
-      "successfully logged in")
+    .json(
+      new ApiResponse(
+        200,
+        { user: loggeduser, accesstoken, refreshtoken },
+        "successfully logged in"
+      )
     );
 });
 
@@ -147,7 +148,6 @@ const refreshaccesstoken = asynchandler(async (req, res) => {
         )
       );
   } catch (error) {
-    console.log("error in decoding", error);
     throw new ApiError(500, "fail to decode");
   }
 });
@@ -176,7 +176,9 @@ const logout = asynchandler(async (req, res) => {
 });
 
 const profile = asynchandler(async (req, res) => {
-  const user = await User.findById(req.user._id).select("-password -refreshtoken");
+  const user = await User.findById(req.user._id).select(
+    "-password -refreshtoken"
+  );
 
   if (!user) {
     return res.status(404).json(new ApiResponse(404, null, "User not found"));
@@ -184,6 +186,5 @@ const profile = asynchandler(async (req, res) => {
 
   res.status(200).json(new ApiResponse(200, { user }, "User profile"));
 });
-
 
 export { registeruser, userLogin, refreshaccesstoken, logout, profile };

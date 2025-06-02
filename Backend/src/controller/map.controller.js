@@ -1,76 +1,94 @@
 import { asynchandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
-import { getAddressCoordinate, get_distance_time,autosuggestion } from "../service/map.service.js";
+import {
+  getAddressCoordinate,
+  get_distance_time,
+  autosuggestion,
+} from "../service/map.service.js";
 import { validationResult } from "express-validator";
 
-const getcoordinates=asynchandler(async(req,res)=>{
-    const errors=validationResult(req);
+const getcoordinates = asynchandler(async (req, res) => {
+  const errors = validationResult(req);
 
-    if(!errors.isEmpty()){
-        return res.status(400).json(new ApiResponse(400,errors.array(),"Validation Error"));
-    }
-    const {address}=req.query;
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json(new ApiResponse(400, errors.array(), "Validation Error"));
+  }
+  const { address } = req.query;
 
-    try{
-        const coordinates=await getAddressCoordinate(address);
+  try {
+    const coordinates = await getAddressCoordinate(address);
 
-        if(!coordinates){
-            throw new ApiError(400,"Unable to fetch coordinates");
-        }
-
-        res.status(200).json(new ApiResponse(200,coordinates,"Coordinates fetched successfully"));
-    }
-
-    catch(err){
-        res.status(400).json(new ApiResponse(400,err,"Unable to fetch coordinates"));
-    }
-})
-
-const getdistancetime=asynchandler(async(req,res)=>{
-    const errors=validationResult(req);
-
-    if(!errors.isEmpty()){
-        return res.status(400).json(new ApiResponse(400,errors.array(),"Validation Error"));
+    if (!coordinates) {
+      throw new ApiError(400, "Unable to fetch coordinates");
     }
 
-    const {origin,destination}=req.query;
+    res
+      .status(200)
+      .json(
+        new ApiResponse(200, coordinates, "Coordinates fetched successfully")
+      );
+  } catch (err) {
+    res
+      .status(400)
+      .json(new ApiResponse(400, err, "Unable to fetch coordinates"));
+  }
+});
 
-    try{
-        const response=await get_distance_time(origin,destination);
+const getdistancetime = asynchandler(async (req, res) => {
+  const errors = validationResult(req);
 
-        res.status(200).json(new ApiResponse(200,response,"Distance and time fetched successfully"));
-    }
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json(new ApiResponse(400, errors.array(), "Validation Error"));
+  }
 
-    catch(err){
-        res.status(400).json(new ApiResponse(400,err,"Unable to fetch distance and time"));
-    }
+  const { origin, destination } = req.query;
 
-})
+  try {
+    const response = await get_distance_time(origin, destination);
 
-const autocompletesuggestions=asynchandler(async(req,res)=>{
-    const errors=validationResult(req);
+    res
+      .status(200)
+      .json(
+        new ApiResponse(200, response, "Distance and time fetched successfully")
+      );
+  } catch (err) {
+    res
+      .status(400)
+      .json(new ApiResponse(400, err, "Unable to fetch distance and time"));
+  }
+});
 
-    if(!errors.isEmpty()){
-        return res.status(400).json(new ApiResponse(400,errors.array(),"Validation Error"));
-    }
+const autocompletesuggestions = asynchandler(async (req, res) => {
+  const errors = validationResult(req);
 
-    const {input}=req.query;
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json(new ApiResponse(400, errors.array(), "Validation Error"));
+  }
 
-    if(!input){
-        throw new ApiError(400,"query is required");
-    }
+  const { input } = req.query;
 
-    try{
-        const response=await autosuggestion(input);
+  if (!input) {
+    throw new ApiError(400, "query is required");
+  }
 
-        res.status(200).json(new ApiResponse(200,response,"Suggestions fetched successfully"));
-    }
+  try {
+    const response = await autosuggestion(input);
 
-    catch(err){
-        res.status(400).json(new ApiResponse(400,err,"Unable to fetch suggestions"));
-    }
-})
+    res
+      .status(200)
+      .json(new ApiResponse(200, response, "Suggestions fetched successfully"));
+  } catch (err) {
+    res
+      .status(400)
+      .json(new ApiResponse(400, err, "Unable to fetch suggestions"));
+  }
+});
 
-
-export {getcoordinates,getdistancetime,autocompletesuggestions};
+export { getcoordinates, getdistancetime, autocompletesuggestions };

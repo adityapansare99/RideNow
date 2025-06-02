@@ -1,10 +1,10 @@
-import React from 'react';
+import React from "react";
 
 const LocationSearchPanel = (props) => {
   const handleSuggestionClick = (suggestion) => {
-    if (props.activeField === 'pickup') {
+    if (props.activeField === "pickup") {
       props.setPickup(suggestion);
-    } else if (props.activeField === 'destination') {
+    } else if (props.activeField === "destination") {
       props.setDestination(suggestion);
     }
     props.setPanelOpen(true);

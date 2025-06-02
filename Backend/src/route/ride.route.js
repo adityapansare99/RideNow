@@ -4,7 +4,7 @@ import {
   farevalue,
   confirmRide,
   startRide,
-  endRide
+  endRide,
 } from "../controller/ride.controller.js";
 import { body, query } from "express-validator";
 import { auth, authc } from "../middleware/auth.middleware.js";
@@ -62,9 +62,12 @@ riderrouter
     startRide
   );
 
-  riderrouter.route("/end-ride").post(authc,
+riderrouter
+  .route("/end-ride")
+  .post(
+    authc,
     body("rideId").isMongoId().withMessage("Invalid rideId"),
-    endRide);
-       
+    endRide
+  );
 
 export { riderrouter };

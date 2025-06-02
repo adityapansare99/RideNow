@@ -32,7 +32,7 @@ const UserSignup = () => {
     if (resopnse.status === 200) {
       const data = resopnse.data.data;
       setUser(data.user);
-      localStorage.setItem('token',data.accesstoken);
+      localStorage.setItem("token", data.accesstoken);
       navigate("/home");
     }
 

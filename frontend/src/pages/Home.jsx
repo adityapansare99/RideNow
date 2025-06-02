@@ -37,26 +37,24 @@ const Home = () => {
 
   const navigate = useNavigate();
 
-  const {socket}=useContext(SocketContext);
-  const {user}=useContext(UserDataContext);
+  const { socket } = useContext(SocketContext);
+  const { user } = useContext(UserDataContext);
 
   useEffect(() => {
-    console.log("Emitting join with:", { userType: "user", userId: user._id });
-    socket.emit("join",{userType:"user",userId:user._id})
-  },[user])
+    socket.emit("join", { userType: "user", userId: user._id });
+  }, [user]);
 
-  socket.on('ride-confirmed',ride=>{
+  socket.on("ride-confirmed", (ride) => {
     setvehicleFound(false);
     setVehiclePanel(false);
-    setWaitForDriverPanel(true)
+    setWaitForDriverPanel(true);
     setRide(ride);
-  })
+  });
 
-  socket.on('ride-started',ride=>{
+  socket.on("ride-started", (ride) => {
     setWaitForDriverPanel(false);
-    console.log("test"+ride);
-    navigate(`/riding`,{state:{ride:ride}});
-  })
+    navigate(`/riding`, { state: { ride: ride } });
+  });
 
   const handlePickupChange = async (e) => {
     setPickup(e.target.value);
@@ -221,8 +219,6 @@ const Home = () => {
         },
       }
     );
-
-    console.log(response);
   }
 
   return (
@@ -234,7 +230,7 @@ const Home = () => {
       />
 
       <div className="h-[70%] w-screen">
-        <LiveTracking/>
+        <LiveTracking />
       </div>
 
       <div className=" flex flex-col justify-end absolute h-screen top-0 w-full">
@@ -352,7 +348,7 @@ const Home = () => {
         className="fixed w-full z-10 bg-white bottom-0 px-3 py-6 pt-12"
       >
         <WaitForDriver
-        ride={ride}
+          ride={ride}
           setvehicleFound={setvehicleFound}
           WaitForDriverPanel={WaitForDriverPanel}
           setWaitForDriverPanel={setWaitForDriverPanel}

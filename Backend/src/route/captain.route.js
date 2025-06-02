@@ -13,10 +13,9 @@ import {
 
 const caprouter = Router();
 
-caprouter.route('/register').post(captainvalidation, registercaptain);
-caprouter.route('/login').post(caploginresult, logincaptain);
-caprouter.route('/logout').post(authc, logout);
-caprouter.route('/profile').get(authc, profile);
-
+caprouter.route("/register").post(captainvalidation, registercaptain);
+caprouter.route("/login").post(caploginresult, logincaptain);
+caprouter.route("/logout").post(authc, logout);
+caprouter.route("/profile").get(authc, profile);
 
 export { caprouter };
