@@ -1,13 +1,18 @@
 import express from "express";
-import { createride,farevalue } from "../controller/ride.controller.js";
-import { body,query } from "express-validator";
-import { auth } from "../middleware/auth.middleware.js";
+import {
+  createride,
+  farevalue,
+  confirmRide,
+} from "../controller/ride.controller.js";
+import { body, query } from "express-validator";
+import { auth, authc } from "../middleware/auth.middleware.js";
 
 const riderrouter = express.Router();
 
 riderrouter
   .route("/create-ride")
-  .post(auth,
+  .post(
+    auth,
     body("pickup")
       .isString()
       .isLength({ min: 3 })
@@ -23,15 +28,24 @@ riderrouter
     createride
   );
 
-  riderrouter.route("/get-fare")
-  .get(auth,
+riderrouter
+  .route("/get-fare")
+  .get(
+    auth,
     query("pickup")
       .isString()
       .isLength({ min: 3 })
       .withMessage("Invalid pickup"),
-    query("destination")
-      .isString()
-      .isLength({ min: 3 }),farevalue
+    query("destination").isString().isLength({ min: 3 }),
+    farevalue
+  );
+
+riderrouter
+  .route("/confirm")
+  .post(
+    authc,
+    body("rideId").isMongoId().withMessage("Invalid rideId"),
+    confirmRide
   );
 
 export { riderrouter };

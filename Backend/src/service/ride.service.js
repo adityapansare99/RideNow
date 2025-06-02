@@ -103,4 +103,36 @@ function getOtp(num) {
   return generateOtp(num);
 }
 
-export { createRide, getFare};
+const confirmride = async ({ rideId, captain }) => {
+  if (!rideId) {
+    throw new Error("Ride id is required");
+  }
+
+  console.log(captain)
+
+  await Ride.findOneAndUpdate(
+    {
+      _id: rideId,
+    },
+    {
+      status: "accepted",
+      captain: captain._id,
+    }
+  );
+
+  const ride = await Ride
+    .findOne({
+      _id: rideId,
+    })
+    .populate("user")
+    .populate("captain")
+    .select("+otp");
+
+  if (!ride) {
+    throw new Error("Ride not found");
+  }
+
+  return ride;
+};
+
+export { createRide, getFare, confirmride };

@@ -44,6 +44,13 @@ const Home = () => {
     socket.emit("join",{userType:"user",userId:user._id})
   },[user])
 
+  socket.on('ride-confirmed',ride=>{
+    setvehicleFound(false);
+    setVehiclePanel(false);
+    setWaitForDriverPanel(true)
+    setRide(ride);
+  })
+
   const handlePickupChange = async (e) => {
     setPickup(e.target.value);
 
@@ -207,6 +214,8 @@ const Home = () => {
         },
       }
     );
+
+    console.log(response);
   }
 
   return (
@@ -340,6 +349,7 @@ const Home = () => {
         className="fixed w-full z-10 bg-white bottom-0 px-3 py-6 pt-12"
       >
         <WaitForDriver
+        ride={ride}
           setvehicleFound={setvehicleFound}
           WaitForDriverPanel={WaitForDriverPanel}
           setWaitForDriverPanel={setWaitForDriverPanel}
