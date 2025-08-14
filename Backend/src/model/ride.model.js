@@ -59,6 +59,12 @@ const rideschema = new mongoose.Schema(
       select: false,
       required: true,
     },
+
+    paymentStatus:{
+      type:Boolean,
+      default:false
+    }
+    
   },
   { timestamps: true }
 );

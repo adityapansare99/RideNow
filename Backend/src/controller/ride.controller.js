@@ -15,6 +15,7 @@ import {
 } from "../service/map.service.js";
 import { sendMessageToSocketId } from "../socket.js";
 import { Ride } from "../model/ride.model.js";
+import razorpay from "razorpay";
 
 const createride = asynchandler(async (req, res) => {
   const errors = validationResult(req);
@@ -44,7 +45,8 @@ const createride = asynchandler(async (req, res) => {
     const captainsInRadius = await getCaptaininTheRadius(
       pickupCoordinate.ltd,
       pickupCoordinate.lng,
-      5
+      100,
+      vehicleType
     );
 
     ride.otp = "";
@@ -166,4 +168,71 @@ const endRide = asynchandler(async (req, res) => {
   }
 });
 
-export { createride, farevalue, confirmRide, startRide, endRide };
+const razorpayinstance = new razorpay({
+  key_id: process.env.RazorPayKey,
+  key_secret: process.env.RazorPaySecretKey,
+});
+
+const makepayment = asynchandler(async (req, res) => {
+  const { rideId } = req.body;
+
+  if (!rideId) {
+    throw new ApiError(400, "Ride id is required");
+  }
+
+  try {
+    const ride = await Ride.findById(rideId);
+
+    if (!ride) {
+      throw new ApiError(400, "Ride not found");
+    }
+
+    const options = {
+      amount: ride.fare * 100,
+      currency: process.env.Currency,
+      receipt: rideId,
+    };
+
+    const paymentresponse = await razorpayinstance.orders.create(options);
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, paymentresponse, "Payment successful"));
+  } catch (error) {
+    return res
+      .status(500)
+      .json(new ApiResponse(500, error, "Payment failed! Please try again"));
+  }
+});
+
+const verifypayment = asynchandler(async (req, res) => {
+  try {
+    const { order_id } = req.body;
+
+    const data = await razorpayinstance.orders.fetch(order_id);
+
+    if (!data) {
+      return res
+        .status(400)
+        .json(new ApiResponse(400, null, "Payment failed! Please try again"));
+    }
+
+    if (data.status === "paid") {
+      await Ride.findByIdAndUpdate(data.receipt,{
+        paymentID:data.receipt,
+        paymentStatus:true
+      })
+
+      console.log(data);  
+      return res
+        .status(200)
+        .json(new ApiResponse(200, data, "Payment successful"));
+    }
+  } catch (error) {
+    return res
+      .status(500)
+      .json(new ApiResponse(500, error, "Payment failed! Please try again"));
+  }
+});
+
+export { createride, farevalue, confirmRide, startRide, endRide, makepayment, verifypayment};

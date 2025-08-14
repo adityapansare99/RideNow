@@ -88,13 +88,15 @@ const autosuggestion = async (input) => {
   }
 };
 
-const getCaptaininTheRadius = async (ltd, lng, radius) => {
+const getCaptaininTheRadius = async (ltd, lng, radius,vehicleType) => {
   const captains = await Captain.find({
     location: {
       $geoWithin: {
         $centerSphere: [[ltd, lng], radius / 6371],
       },
     },
+    
+    "vehicle.vehicletype": vehicleType
   });
 
   return captains;

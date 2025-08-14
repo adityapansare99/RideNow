@@ -1,20 +1,76 @@
 import React, { use } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useEffect, useContext } from "react";
+import { useEffect, useContext, useState } from "react";
 import { SocketContext } from "../context/SocketContext.jsx";
 import { useNavigate } from "react-router-dom";
 import LiveTracking from "../components/LiveTracking.jsx";
+import axios from "axios";
 
 const Riding = () => {
   const location = useLocation();
   const ride = location.state?.ride;
   const { socket } = useContext(SocketContext);
+  const [paymentstatus, setPaymentStatus] = useState(false);
+  const token = localStorage.getItem("token");
 
   const navigate = useNavigate();
 
   socket.on("ride-ended", () => {
     navigate("/home");
   });
+
+  const initpay = (order) => {
+    const options = {
+      key: import.meta.env.VITE_RazorPayKey,
+      amount: order.amount,
+      currency: order.currency,
+      name: "Uber",
+      description: "Uber Payment",
+      order_id: order.id,
+      receipt: order.receipt,
+      handler: async (response) => {
+        try {
+          const { data } = await axios.post(
+            `${import.meta.env.VITE_BASE_URL}/rides/verifypayment`,
+            { order_id: response.razorpay_order_id },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+
+          if (data.success) {
+            setPaymentStatus(true);
+          }
+        } catch (error) {
+          console.error("error in payment", error);
+        }
+      },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+  };
+
+  const makepayment = async () => {
+    const response = await axios.post(
+      `${import.meta.env.VITE_BASE_URL}/rides/makepayment`,
+      {
+        rideId: ride._id,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    if(response.data.success){
+      await initpay(response.data.data);
+    }
+
+    if (!response) {
+      alert("Payment failed");
+      return;
+    }
+  };
 
   return (
     <div className="h-screen">
@@ -74,8 +130,21 @@ const Riding = () => {
             </div>
           </div>
         </div>
-        <button className=" w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg">
-          Make a Payment
+        <button
+          onClick={()=>makepayment()}
+          className={`w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg ${
+            paymentstatus && "hidden"
+          }`}
+        >
+          Make Payment
+        </button>
+
+        <button
+          className={`w-full mt-5 bg-indigo-100 text-stone-500 font-semibold p-2 rounded-lg ${
+            !paymentstatus && "hidden"
+          }`}
+        >
+          Payment Successful
         </button>
       </div>
     </div>
