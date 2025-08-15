@@ -21,6 +21,8 @@ const CaptainHome = () => {
   const { socket } = useContext(SocketContext);
   const { captain } = useContext(CaptainDataContext);
 
+  const [hist,sethist]=useState()
+
   useEffect(() => {
     socket.emit("join", { userType: "captain", userId: captain._id });
 
@@ -40,6 +42,7 @@ const CaptainHome = () => {
 
     const locationInterval = setInterval(updateLocation, 10000);
     updateLocation();
+    histroy()
 
     // return () => clearInterval(locationInterval)
   }, []);
@@ -66,6 +69,21 @@ const CaptainHome = () => {
     setRidePopupPanel(false);
     setConfirmRidePopupPanel(true);
   };
+
+  const histroy = async () => {
+  const response = await axios.get(
+    `${import.meta.env.VITE_BASE_URL}/captains/history`,
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }
+  );
+
+  if (response.status === 200) {
+    sethist(response.data.data); 
+  }
+};
 
   useGSAP(
     function () {
@@ -117,7 +135,7 @@ const CaptainHome = () => {
       </div>
 
       <div className="h-2/5 p-6">
-        <CaptainDetails />
+        <CaptainDetails hist={hist}/>
       </div>
 
       <div

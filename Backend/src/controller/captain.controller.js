@@ -2,6 +2,7 @@ import { Captain } from "../model/captain.model.js";
 import { asynchandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
+import Histroy from "../model/captainHistroy.model.js";
 
 const registercaptain = asynchandler(async (req, res) => {
   const { fullname, email, password, vehicle } = req.body;
@@ -25,6 +26,13 @@ const registercaptain = asynchandler(async (req, res) => {
       capacity: vehicle.capacity,
       vehicletype: vehicle.vehicletype,
     },
+  });
+
+  const hist = await Histroy.create({
+    captain_id: captain._id,
+    dist: [0],
+    time: [0],
+    earning: [0],
   });
 
   if (!captain) {
@@ -146,4 +154,28 @@ const logout = asynchandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "logged out successfully"));
 });
 
-export { registercaptain, logincaptain, profile, logout };
+const captainHistroy=asynchandler(async(req,res)=>{
+ const captainid = await Captain.findById(req.captain).select(
+    "-password -refreshtoken"
+  );
+
+  const captain_id=captainid._id  
+
+  if(!captain_id){
+    throw new ApiError(400,"captain not found")
+  }
+
+  const histroy=await Histroy.findOne({captain_id}).select("-captain_id")
+
+  if(!histroy){
+    throw new ApiError(400,"histroy not found")
+  }
+
+  const totalDist = Number(histroy.dist.reduce((sum, val) => sum + val, 0).toFixed(2));
+  const totalTime = Number(histroy.time.reduce((sum, val) => sum + val, 0).toFixed(2));
+  const totalEarning = Number(histroy.earning.reduce((sum, val) => sum + val, 0).toFixed(2));
+
+  res.status(200).json(new ApiResponse(200,{totalDist,totalTime,totalEarning},"histroy"))
+})
+
+export { registercaptain, logincaptain, profile, logout, captainHistroy};

@@ -7,6 +7,7 @@ import {
   confirmride,
   startride,
   endride,
+  data_for_history,
 } from "../service/ride.service.js";
 import { validationResult } from "express-validator";
 import {
@@ -16,6 +17,7 @@ import {
 import { sendMessageToSocketId } from "../socket.js";
 import { Ride } from "../model/ride.model.js";
 import razorpay from "razorpay";
+import Histroy from "../model/captainHistroy.model.js";
 
 const createride = asynchandler(async (req, res) => {
   const errors = validationResult(req);
@@ -124,6 +126,26 @@ const startRide = asynchandler(async (req, res) => {
 
   const { rideId, otp } = req.query;
 
+  const ride_data = await Ride.findById(rideId);
+
+  if (!ride_data) {
+    return res.status(400).json(new ApiResponse(400, err, "Ride not found"));
+  }
+
+  const hist = await Histroy.updateOne(
+    { captain_id: ride_data.captain },
+    {
+      $push: {
+        dist: ride_data.distance / 1000,
+        time: ride_data.duration / 3600,
+        earning: ride_data.fare,
+      },
+    },
+    { upsert: true }
+  );
+
+  console.log(hist,Date.now());
+
   try {
     const ride = await startride({ rideId, otp, captain: req.captain });
 
@@ -218,12 +240,12 @@ const verifypayment = asynchandler(async (req, res) => {
     }
 
     if (data.status === "paid") {
-      await Ride.findByIdAndUpdate(data.receipt,{
-        paymentID:data.receipt,
-        paymentStatus:true
-      })
+      await Ride.findByIdAndUpdate(data.receipt, {
+        paymentID: data.receipt,
+        paymentStatus: true,
+      });
 
-      console.log(data);  
+      console.log(data);
       return res
         .status(200)
         .json(new ApiResponse(200, data, "Payment successful"));
@@ -235,4 +257,12 @@ const verifypayment = asynchandler(async (req, res) => {
   }
 });
 
-export { createride, farevalue, confirmRide, startRide, endRide, makepayment, verifypayment};
+export {
+  createride,
+  farevalue,
+  confirmRide,
+  startRide,
+  endRide,
+  makepayment,
+  verifypayment,
+};
