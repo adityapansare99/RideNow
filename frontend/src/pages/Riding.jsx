@@ -114,7 +114,7 @@ const Riding = () => {
             <div className="flex items-center gap-5 p-3 border-b-1 border-gray-500">
               <i className="text-lg ri-map-pin-2-fill"></i>
               <div>
-                <h3 className="text-lg font-medium">562/11-A</h3>
+                <h3 className="text-lg font-medium">Destination</h3>
                 <p className="text-small -mt-1 text-gray-600">
                   {ride?.destination}
                 </p>
@@ -125,7 +125,7 @@ const Riding = () => {
               <i className="text-lg ri-currency-line"></i>
               <div>
                 <h3 className="text-lg font-medium">₹{ride?.fare}</h3>
-                <p className="text-small -mt-1 text-gray-600">Cash Cash</p>
+                <p className="text-small -mt-1 text-gray-600">Total amount</p>
               </div>
             </div>
           </div>
