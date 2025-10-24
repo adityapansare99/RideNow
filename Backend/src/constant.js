@@ -1,3 +1,3 @@
-const dbname = "Uber";
+const dbname = "RideNow";
 
 export { dbname };

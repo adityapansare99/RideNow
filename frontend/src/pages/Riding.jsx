@@ -24,8 +24,8 @@ const Riding = () => {
       key: import.meta.env.VITE_RazorPayKey,
       amount: order.amount,
       currency: order.currency,
-      name: "Uber",
-      description: "Uber Payment",
+      name: "RideNow",
+      description: "RideNow Payment",
       order_id: order.id,
       receipt: order.receipt,
       handler: async (response) => {

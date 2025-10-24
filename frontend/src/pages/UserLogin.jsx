@@ -38,7 +38,7 @@ const UserLogin = () => {
   return (
     <div className="p-7 h-screen flex flex-col justify-between">
       <div>
-        <h2 className="w-16 mb-8 text-4xl font-medium text-black">Uber</h2>
+        <h2 className="w-16 mb-8 text-3xl font-medium text-black">RideNow</h2>
         <form
           onSubmit={(e) => {
             submitHandler(e);
