@@ -4,7 +4,7 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
 
 const registeruser = asynchandler(async (req, res) => {
-  const { firstname, lastname, email, password } = req.body;
+  const { firstname, lastname, email, password,mobile } = req.body;
 
   if ([firstname, email, password].some((field) => field?.trim() === "")) {
     throw new ApiError(400, "All fields are required");
@@ -23,6 +23,7 @@ const registeruser = asynchandler(async (req, res) => {
     },
     email,
     password,
+    mobile
   });
 
   if (!user) {
@@ -187,4 +188,18 @@ const profile = asynchandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, { user }, "User profile"));
 });
 
-export { registeruser, userLogin, refreshaccesstoken, logout, profile };
+const generateOtp=asynchandler(async(req,res)=>{
+  const {mobile}=req.body;
+
+  if(mobile.length!==10){
+    throw new ApiError(400,"Enter valid mobile number");
+  }
+
+  const otp=Math.floor(100000+Math.random()*900000);
+
+  //TODO: logic to send otp to mobile number
+
+  res.status(200).json(new ApiResponse(200,otp,"otp generated successfully"));
+})
+
+export { registeruser, userLogin, refreshaccesstoken, logout, profile, generateOtp};

@@ -34,6 +34,12 @@ const userSchema = new mongoose.Schema(
     refreshtoken: {
       type: String,
     },
+
+    mobile:{
+      type: String,
+      required: true,
+      unique: true,
+    }
   },
   { timestamps: true }
 );
