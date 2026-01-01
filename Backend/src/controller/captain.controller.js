@@ -3,9 +3,10 @@ import { asynchandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
 import Histroy from "../model/captainHistroy.model.js";
+import twilio from "twilio";
 
 const registercaptain = asynchandler(async (req, res) => {
-  const { fullname, email, password, vehicle } = req.body;
+  const { fullname, email, password, vehicle, mobile } = req.body;
 
   const exists = await Captain.findOne({ email });
 
@@ -26,6 +27,7 @@ const registercaptain = asynchandler(async (req, res) => {
       capacity: vehicle.capacity,
       vehicletype: vehicle.vehicletype,
     },
+    mobile,
   });
 
   const hist = await Histroy.create({
@@ -154,28 +156,71 @@ const logout = asynchandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "logged out successfully"));
 });
 
-const captainHistroy=asynchandler(async(req,res)=>{
- const captainid = await Captain.findById(req.captain).select(
+const captainHistroy = asynchandler(async (req, res) => {
+  const captainid = await Captain.findById(req.captain).select(
     "-password -refreshtoken"
   );
 
-  const captain_id=captainid._id  
+  const captain_id = captainid._id;
 
-  if(!captain_id){
-    throw new ApiError(400,"captain not found")
+  if (!captain_id) {
+    throw new ApiError(400, "captain not found");
   }
 
-  const histroy=await Histroy.findOne({captain_id}).select("-captain_id")
+  const histroy = await Histroy.findOne({ captain_id }).select("-captain_id");
 
-  if(!histroy){
-    throw new ApiError(400,"histroy not found")
+  if (!histroy) {
+    throw new ApiError(400, "histroy not found");
   }
 
-  const totalDist = Number(histroy.dist.reduce((sum, val) => sum + val, 0).toFixed(2));
-  const totalTime = Number(histroy.time.reduce((sum, val) => sum + val, 0).toFixed(2));
-  const totalEarning = Number(histroy.earning.reduce((sum, val) => sum + val, 0).toFixed(2));
+  const totalDist = Number(
+    histroy.dist.reduce((sum, val) => sum + val, 0).toFixed(2)
+  );
+  const totalTime = Number(
+    histroy.time.reduce((sum, val) => sum + val, 0).toFixed(2)
+  );
+  const totalEarning = Number(
+    histroy.earning.reduce((sum, val) => sum + val, 0).toFixed(2)
+  );
 
-  res.status(200).json(new ApiResponse(200,{totalDist,totalTime,totalEarning},"histroy"))
-})
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, { totalDist, totalTime, totalEarning }, "histroy")
+    );
+});
 
-export { registercaptain, logincaptain, profile, logout, captainHistroy};
+const client = twilio(process.env.Twilio_SID, process.env.Twilio_AUTH_TOKEN);
+
+const sendOtpToMobile = async (mobile, otp) => {
+  const response = await client.messages.create({
+    body: `RideNow OTP: ${otp}\n\nUse this code to verify your phone number. Valid for 5 minutes. Do not share it with anyone.`,
+    from: process.env.Twilio_PHONE_NUMBER,
+    to: `+91${mobile}`,
+  });
+
+  console.log("Twilio response:", response);
+};
+
+const generateOtp = asynchandler(async (req, res) => {
+  const { mobile } = req.body;
+
+  if (mobile.length !== 10) {
+    throw new ApiError(400, "Enter valid mobile number");
+  }
+
+  const otp = Math.floor(100000 + Math.random() * 900000);
+
+  await sendOtpToMobile(mobile, otp);
+
+  res.status(200).json(new ApiResponse(200, otp, "otp generated successfully"));
+});
+
+export {
+  registercaptain,
+  logincaptain,
+  profile,
+  logout,
+  captainHistroy,
+  generateOtp,
+};

@@ -2,9 +2,10 @@ import { User } from "../model/user.model.js";
 import { asynchandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
+import twilio from "twilio";
 
 const registeruser = asynchandler(async (req, res) => {
-  const { firstname, lastname, email, password,mobile } = req.body;
+  const { firstname, lastname, email, password, mobile } = req.body;
 
   if ([firstname, email, password].some((field) => field?.trim() === "")) {
     throw new ApiError(400, "All fields are required");
@@ -23,7 +24,7 @@ const registeruser = asynchandler(async (req, res) => {
     },
     email,
     password,
-    mobile
+    mobile,
   });
 
   if (!user) {
@@ -188,18 +189,37 @@ const profile = asynchandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, { user }, "User profile"));
 });
 
-const generateOtp=asynchandler(async(req,res)=>{
-  const {mobile}=req.body;
+const client = twilio(process.env.Twilio_SID, process.env.Twilio_AUTH_TOKEN);
 
-  if(mobile.length!==10){
-    throw new ApiError(400,"Enter valid mobile number");
+const sendOtpToMobile = async (mobile, otp) => {
+  const response=await client.messages.create({
+    body: `RideNow OTP: ${otp}\n\nUse this code to verify your phone number. Valid for 5 minutes. Do not share it with anyone.`,
+    from: process.env.Twilio_PHONE_NUMBER,
+    to: `+91${mobile}`,
+  });
+
+  console.log("Twilio response:", response);
+};
+
+const generateOtp = asynchandler(async (req, res) => {
+  const { mobile } = req.body;
+
+  if (mobile.length !== 10) {
+    throw new ApiError(400, "Enter valid mobile number");
   }
 
-  const otp=Math.floor(100000+Math.random()*900000);
+  const otp = Math.floor(100000 + Math.random() * 900000);
 
-  //TODO: logic to send otp to mobile number
+  await sendOtpToMobile(mobile, otp);
 
-  res.status(200).json(new ApiResponse(200,otp,"otp generated successfully"));
-})
+  res.status(200).json(new ApiResponse(200, otp, "otp generated successfully"));
+});
 
-export { registeruser, userLogin, refreshaccesstoken, logout, profile, generateOtp};
+export {
+  registeruser,
+  userLogin,
+  refreshaccesstoken,
+  logout,
+  profile,
+  generateOtp,
+};
