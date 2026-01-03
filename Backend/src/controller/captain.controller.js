@@ -194,7 +194,7 @@ const client = twilio(process.env.Twilio_SID, process.env.Twilio_AUTH_TOKEN);
 
 const sendOtpToMobile = async (mobile, otp) => {
   const response = await client.messages.create({
-    body: `RideNow OTP: ${otp}\n\nUse this code to verify your phone number. Valid for 5 minutes. Do not share it with anyone.`,
+    body: `RideNow Rider OTP: ${otp}\n\nUse this code to verify your phone number. Valid for 5 minutes. Do not share it with anyone.`,
     from: process.env.Twilio_PHONE_NUMBER,
     to: `+91${mobile}`,
   });
