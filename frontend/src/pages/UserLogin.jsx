@@ -7,7 +7,6 @@ import axios from "axios";
 const UserLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [userData, setUserData] = useState({});
 
   const { user, setUser } = useContext(UserDataContext);
   const navigate = useNavigate();
@@ -19,13 +18,13 @@ const UserLogin = () => {
       password: password,
     };
 
-    const resopnse = await axios.post(
+    const response = await axios.post(
       `${import.meta.env.VITE_BASE_URL}/users/login`,
       userData
     );
 
-    if (resopnse.status === 200) {
-      const data = resopnse.data.data;
+    if (response.status === 200) {
+      const data = response.data.data;
       setUser(data.user);
       localStorage.setItem("token", data.accesstoken);
       navigate("/home");
@@ -36,52 +35,97 @@ const UserLogin = () => {
   };
 
   return (
-    <div className="p-7 h-screen flex flex-col justify-between">
-      <div>
-        <h2 className="w-16 mb-8 text-3xl font-medium text-black">RideNow</h2>
-        <form
-          onSubmit={(e) => {
-            submitHandler(e);
-          }}
-        >
-          <h3 className="text-lg font-medium mb-2">What's your email</h3>
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="bg-[#eeeeee] mb-7 w-full rounded px-4 py-2 text-lg placeholder:text-base"
-            required
-            type="email"
-            placeholder="email@example.com"
-          />
-          <h3 className="text-lg font-medium mb-2">Enter password</h3>
-          <input
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="bg-[#eeeeee] mb-7  w-full rounded px-4 py-2 text-lg placeholder:text-base"
-            required
-            type="password"
-            placeholder="password"
-          />
-          <button className="bg-[#111] text-white font-semibold mb-3 w-full rounded px-4 py-2 text-lg placeholder:text-base">
-            Login
-          </button>
-        </form>
-        <p className="text-center">
-          New here?
-          <Link to="/signup" className="text-blue-600">
-            {" "}
-            Create new Account
-          </Link>
-        </p>
+    <div className="min-h-screen w-full flex bg-gradient-to-b from-gray-50 to-white flex-col">
+      <div className="relative h-15 sm:h-20 md:h-20 mb-4 bg-cover bg-center ">
+        {/* <div className="absolute inset-0 bg-black/40"></div> */}
+
+        <div className="relative z-10 pt-6 px-4 sm:pt-8 sm:px-6 md:px-8">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 tracking-tight">
+            RideNow
+          </h1>
+          <p className=" text-gray-900 text-xs sm:text-sm mt-1 font-light">
+            Your ride, your way
+          </p>
+        </div>
       </div>
 
-      <div>
-        <Link
-          to="/captain-login"
-          className="flex item-center justify-center bg-[#10b461] text-white font-semibold mb-5 w-full rounded px-4 py-2 text-lg placeholder:text-base"
-        >
-          Sign in as Captain
-        </Link>
+      <div className="flex-1 bg-gradient-to-b from-gray-50 to-white px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12">
+        <div className="max-w-md mx-auto">
+          <div className="space-y-3 mb-8">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+              Welcome Back
+            </h2>
+            <p className="text-gray-500 text-sm sm:text-base font-light">
+              Sign in to continue your journey
+            </p>
+          </div>
+
+          <form onSubmit={submitHandler} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address
+              </label>
+              <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                required
+                type="email"
+                placeholder="email@example.com"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                required
+                type="password"
+                placeholder="Enter your password"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="group w-full flex items-center justify-center bg-black hover:bg-gray-900 text-white font-semibold py-3.5 sm:py-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 mt-6"
+            >
+              <span className="group-hover:translate-x-0.5 transition-transform duration-200">
+                Sign In
+              </span>
+            </button>
+          </form>
+
+          <div className="flex items-center space-x-3 pt-6">
+            <div className="flex-1 h-px bg-gray-200"></div>
+            <span className="text-gray-400 text-xs font-medium">or</span>
+            <div className="flex-1 h-px bg-gray-200"></div>
+          </div>
+
+          <p className="text-center text-gray-500 text-xs sm:text-sm font-light mt-6">
+            New here?{" "}
+            <Link
+              to="/signup"
+              className="text-black font-semibold hover:underline transition-all"
+            >
+              Create new Account
+            </Link>
+          </p>
+
+          <div className="mt-8 pt-8 border-t border-gray-200">
+            <Link
+              to="/captain-login"
+              className="group w-full flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
+            >
+              <span className="group-hover:translate-x-0.5 transition-transform duration-200">
+                Sign in as Captain
+              </span>
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
