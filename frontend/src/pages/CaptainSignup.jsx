@@ -88,7 +88,6 @@ const CaptainSignup = () => {
         setotp(response.data.data);
         setOtpField(true);
         console.log("generated otp:", response.data.data);
-
         return;
       }
     } catch (error) {
@@ -99,110 +98,120 @@ const CaptainSignup = () => {
   };
 
   return (
-    <div>
-      <div className="p-7 h-screen flex flex-col justify-between">
-        <div>
-          <h2 className="w-16 mb-8 text-3xl font-medium text-black">RideNow</h2>
-          <form
-            onSubmit={(e) => {
-              submitHandler(e);
-            }}
-          >
-            <h3 className="text-lg font-medium mb-2">
-              What's our Captain's name
-            </h3>
-            <div className="flex gap-4 mb-6">
-              <input
-                className="bg-[#eeeeee] w-1/2 rounded px-4 py-2 text-lg placeholder:text-base"
-                type="text"
-                required
-                placeholder="First name"
-                value={firstname}
-                onChange={(e) => {
-                  setFirstname(e.target.value);
-                }}
-              />
+    <div className="min-h-screen w-full flex bg-gradient-to-b from-gray-50 to-white flex-col">
+      <div className="relative h-15 sm:h-20 md:h-20 mb-4 bg-cover bg-center">
+        <div className="relative z-10 pt-6 px-4 sm:pt-8 sm:px-6 md:px-8">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 tracking-tight">
+            RideNow
+          </h1>
+          <p className="text-gray-900 text-xs sm:text-sm mt-1 font-light">
+            Your ride, your way
+          </p>
+        </div>
+      </div>
 
-              <input
-                className="bg-[#eeeeee] w-1/2 rounded px-4 py-2 text-lg placeholder:text-base"
-                type="text"
-                placeholder="Last name"
-                value={lastname}
-                onChange={(e) => {
-                  setLastname(e.target.value);
-                }}
-              />
-            </div>
+      <div className="flex-1 bg-gradient-to-b from-gray-50 to-white px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12">
+        <div className="max-w-md mx-auto">
+          <div className="space-y-3 mb-8">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+              Become a Captain
+            </h2>
+            <p className="text-gray-500 text-sm sm:text-base font-light">
+              Join our driver network today
+            </p>
+          </div>
 
-            <h3 className="text-lg font-medium mb-2">
-              What's our Captain's email
-            </h3>
-            <input
-              className="bg-[#eeeeee] mb-6 w-full rounded px-4 py-2 text-lg placeholder:text-base"
-              required
-              type="email"
-              placeholder="email@example.com"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-              }}
-            />
-
-            <h3 className="text-lg font-medium mb-2">Enter password</h3>
-            <input
-              className="bg-[#eeeeee] mb-6  w-full rounded px-4 py-2 text-lg placeholder:text-base"
-              required
-              type="password"
-              placeholder="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-              }}
-            />
-
-            <h3 className="text-lg font-medium mb-2">Vehicle Information</h3>
-            <div className="flex gap-4 mb-7">
-              <input
-                required
-                className="bg-[#eeeeee] w-1/2 rounded-lg px-4 py-2 border text-lg placeholder:text-base"
-                type="text"
-                placeholder="Vehicle Color"
-                value={vehicleColor}
-                onChange={(e) => {
-                  setVehicleColor(e.target.value);
-                }}
-              />
-              <input
-                required
-                className="bg-[#eeeeee] w-1/2 rounded-lg px-4 py-2 border text-lg placeholder:text-base"
-                type="text"
-                placeholder="Vehicle Plate"
-                value={vehiclePlate}
-                onChange={(e) => {
-                  setvehiclePlate(e.target.value);
-                }}
-              />
-            </div>
-            <div className="flex gap-4 mb-7">
-              <input
-                required
-                className="bg-[#eeeeee] w-1/2 rounded-lg px-4 py-2 border text-lg placeholder:text-base"
-                type="number"
-                placeholder="Vehicle Capacity"
-                value={vehicleCapacity}
-                onChange={(e) => {
-                  setVehicleCapacity(e.target.value);
-                }}
-              />
-              <div className="w-1/2 px-4">
-                <select
+          <form onSubmit={submitHandler} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Full Name
+              </label>
+              <div className="flex gap-3">
+                <input
+                  value={firstname}
+                  onChange={(e) => setFirstname(e.target.value)}
+                  className="w-1/2 bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                  type="text"
                   required
-                  className="w-full rounded-xl bg-[#eeeeee] px-1 py-3 border border-gray-300 text-base placeholder:text-sm "
+                  placeholder="First name"
+                />
+                <input
+                  value={lastname}
+                  onChange={(e) => setLastname(e.target.value)}
+                  className="w-1/2 bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                  type="text"
+                  placeholder="Last name"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address
+              </label>
+              <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                type="email"
+                required
+                placeholder="email@example.com"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                type="password"
+                required
+                placeholder="Enter your password"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Vehicle Information
+              </label>
+              <div className="flex gap-3 mb-3">
+                <input
+                  value={vehicleColor}
+                  onChange={(e) => setVehicleColor(e.target.value)}
+                  className="w-1/2 bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                  type="text"
+                  required
+                  placeholder="Vehicle Color"
+                />
+                <input
+                  value={vehiclePlate}
+                  onChange={(e) => setvehiclePlate(e.target.value)}
+                  className="w-1/2 bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                  type="text"
+                  required
+                  placeholder="Vehicle Plate"
+                />
+              </div>
+              <div className="flex gap-3">
+                <input
+                  value={vehicleCapacity}
+                  onChange={(e) => setVehicleCapacity(e.target.value)}
+                  className="w-1/2 bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                  type="number"
+                  required
+                  placeholder="Capacity"
+                />
+                <select
                   value={vehicleType}
                   onChange={(e) => setVehicleType(e.target.value)}
+                  className="w-1/2 bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                  required
                 >
                   <option value="" disabled>
-                    Select Vehicle Type
+                    Vehicle Type
                   </option>
                   <option value="car">Car</option>
                   <option value="auto">Auto</option>
@@ -211,58 +220,77 @@ const CaptainSignup = () => {
               </div>
             </div>
 
-            <h3 className="text-lg font-medium mb-2">Enter phone number</h3>
-            <input
-              className="bg-[#eeeeee]  w-full rounded px-4 py-2 text-lg placeholder:text-base"
-              required
-              type="number"
-              placeholder="9xxxxxxxx"
-              value={mobile}
-              onChange={(e) => {
-                setmobile(e.target.value);
-              }}
-            />
-
-            <p
-              onClick={() => {
-                otpHandler();
-              }}
-              className="px-2 py-2 text-right text-blue-600"
-            >
-              Send otp
-            </p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phone Number
+              </label>
+              <div className="flex gap-2">
+                <input
+                  value={mobile}
+                  onChange={(e) => setmobile(e.target.value)}
+                  className="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                  type="number"
+                  required
+                  placeholder="9xxxxxxxx"
+                />
+                <button
+                  type="button"
+                  onClick={otpHandler}
+                  className="px-4 py-3 bg-black hover:bg-gray-900 text-white font-semibold rounded-lg transition-all duration-200 text-sm whitespace-nowrap"
+                >
+                  Send OTP
+                </button>
+              </div>
+            </div>
 
             {otpField && (
               <div>
-                <h3 className="text-lg font-medium mb-2">Enter otp</h3>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Enter OTP
+                </label>
                 <input
-                  className="bg-[#eeeeee]  w-full mb-8 rounded px-4 py-2 text-lg placeholder:text-base"
-                  required
-                  type="number"
-                  placeholder="xxxxxx"
                   value={userOtp}
-                  onChange={(e) => {
-                    setUserOtp(e.target.value);
-                  }}
+                  onChange={(e) => setUserOtp(e.target.value)}
+                  className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                  type="number"
+                  required
+                  placeholder="Enter OTP"
                 />
               </div>
             )}
 
-            <button className="bg-[#111] text-white font-semibold mb-3 w-full rounded px-4 py-2 text-lg placeholder:text-base">
-              Create Captain Account
+            <button
+              type="submit"
+              className="group w-full flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3.5 sm:py-4 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 mt-6"
+            >
+              <span className="group-hover:translate-x-0.5 transition-transform duration-200">
+                Create Captain Account
+              </span>
             </button>
           </form>
-          <p className="text-center mb-10">
-            Already have an account?
-            <Link to="/captain-login" className="text-blue-600">
-              {" "}
-              Login here
+
+          <p className="text-center text-gray-500 text-xs sm:text-sm font-light mt-6">
+            Already have an account?{" "}
+            <Link
+              to="/captain-login"
+              className="text-black font-semibold hover:underline transition-all"
+            >
+              Sign in
             </Link>
           </p>
-        </div>
 
-        <div>
-          <p className="text-[10px] leading-tight mb-4">
+          <div className="mt-8 pt-8 border-t border-gray-200">
+            <Link
+              to="/signup"
+              className="group w-full flex items-center justify-center bg-black hover:bg-gray-900 text-white font-semibold py-3.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
+            >
+              <span className="group-hover:translate-x-0.5 transition-transform duration-200">
+                Sign up as User
+              </span>
+            </Link>
+          </div>
+
+          <p className="text-[10px] leading-tight mt-6 text-gray-400">
             This site is protected by reCAPTCHA and the{" "}
             <span className="underline">Google Privacy Policy</span> and{" "}
             <span className="underline">Terms of Service apply</span>.
