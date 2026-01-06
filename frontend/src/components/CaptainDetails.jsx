@@ -1,10 +1,19 @@
 import React, { useContext } from "react";
 import { CaptainDataContext } from "../context/CaptainContext.jsx";
 
-const CaptainDetails = ({hist}) => {
+const CaptainDetails = ({ hist }) => {
   const { captain } = useContext(CaptainDataContext);
   return (
     <div>
+      <div>
+        <div className="mb-4 inline-flex items-center gap-2 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-gray-100">
+          <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+          </span>
+          <span className="text-sm font-medium text-gray-700">Online</span>
+        </div>
+      </div>
       <div className="flex items-center justify-between">
         <div className="flex items-center  justify-start gap-3">
           <img
@@ -17,12 +26,14 @@ const CaptainDetails = ({hist}) => {
           </h4>
         </div>
         <div>
-          <h4 className="text-xl font-semibold">₹{hist?.totalEarning || 0.0}</h4>
+          <h4 className="text-xl font-semibold">
+            ₹{hist?.totalEarning || 0.0}
+          </h4>
           <p className="text-sm text-gray-600">Earned</p>
         </div>
       </div>
-      <div className="flex p-3 mt-8 bg-gray-100 rounded-xl justify-center gap-15 items-start">
-        <div className="text-center ">
+      <div className="flex p-3 mt-8 bg-gray-100 rounded-xl justify-around">
+        <div className="text-center">
           <i className="text-3xl mb-2 font-extralight ri-speed-up-line"></i>
           <h5 className="text-lg font-medium">{hist?.totalTime || 0.0} Hr</h5>
           <p className="text-sm text-gray-600">Hours Online</p>

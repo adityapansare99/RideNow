@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useState } from "react";
+import React, { useContext, useRef, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import CaptainDetails from "../components/CaptainDetails";
 import RidePopup from "../components/RidePopup";
@@ -7,7 +7,6 @@ import gsap from "gsap";
 import ConfirmRidePopup from "../components/ConfirmRidePopup";
 import { SocketContext } from "../context/SocketContext";
 import { CaptainDataContext } from "../context/CaptainContext";
-import { useEffect } from "react";
 import axios from "axios";
 import LiveTracking from "../components/LiveTracking";
 
@@ -21,7 +20,7 @@ const CaptainHome = () => {
   const { socket } = useContext(SocketContext);
   const { captain } = useContext(CaptainDataContext);
 
-  const [hist,sethist]=useState()
+  const [hist, sethist] = useState();
 
   useEffect(() => {
     socket.emit("join", { userType: "captain", userId: captain._id });
@@ -42,7 +41,7 @@ const CaptainHome = () => {
 
     const locationInterval = setInterval(updateLocation, 10000);
     updateLocation();
-    histroy()
+    histroy();
 
     // return () => clearInterval(locationInterval)
   }, []);
@@ -71,19 +70,25 @@ const CaptainHome = () => {
   };
 
   const histroy = async () => {
-  const response = await axios.get(
-    `${import.meta.env.VITE_BASE_URL}/captains/history`,
-    {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    }
-  );
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/captains/history`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
-  if (response.status === 200) {
-    sethist(response.data.data); 
-  }
-};
+      if (response.status === 200) {
+        sethist(response.data.data);
+        console.log(response.data.data);
+        return;
+      }
+    } catch (error) {
+      console.error("Error fetching history:", error);
+    }
+  };
 
   useGSAP(
     function () {
@@ -116,50 +121,129 @@ const CaptainHome = () => {
   );
 
   return (
-    <div className="h-screen">
-      <div className="fixed p-6 t-0 flex items-center justify-between w-screen">
-        <img
-          className="w-16 "
-          src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Uber_logo_2018.png"
-          alt=""
-        />
-        <Link
-          to={"/captain-login"}
-          className=" h-10 w-10 bg-white flex items-center justify-center rounded-full"
-        >
-          <i className="text-lg font-medium ri-logout-box-r-line"></i>
-        </Link>
-      </div>
-      <div className="h-3/5">
-        <LiveTracking />
+    <div className="min-h-screen w-full bg-gradient-to-b from-gray-50 to-white flex flex-col">
+      <div className="relative z-20 bg-white border-b border-gray-200">
+        <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight">
+              RideNow
+            </h1>
+            <p className="text-gray-500 text-xs sm:text-sm font-light">
+              Captain Dashboard
+            </p>
+          </div>
+          <Link
+            to="/captain/logout"
+            className="flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 sm:h-6 sm:w-6 text-gray-700"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
+            </svg>
+          </Link>
+        </div>
       </div>
 
-      <div className="h-2/5 p-6">
-        <CaptainDetails hist={hist}/>
+      <div className="flex-1 flex flex-col lg:flex-row lg:gap-6 lg:p-6">
+        <div className="relative flex-1 w-full lg:rounded-2xl lg:overflow-hidden lg:shadow-lg">
+          <div className="absolute inset-0">
+            <LiveTracking />
+          </div>
+        </div>
+
+        <div className="lg:hidden relative z-10 bg-white rounded-t-3xl shadow-2xl border-t border-gray-100 -mt-6">
+          <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mt-3"></div>
+          <div className="px-4 sm:px-6 pb-6">
+            <CaptainDetails hist={hist} />
+          </div>
+        </div>
+
+        <div className="hidden lg:flex lg:flex-col lg:w-[400px] bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="flex-shrink-0 px-6 py-6 border-b border-gray-200">
+            <CaptainDetails hist={hist} />
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            {RidePopupPanel && (
+              <div className="px-6 py-6">
+                <RidePopup
+                  ride={ride}
+                  setRidePopupPanel={setRidePopupPanel}
+                  setConfirmRidePopupPanel={setConfirmRidePopupPanel}
+                  confirmRide={confirmRide}
+                />
+              </div>
+            )}
+
+            {ConfirmRidePopupPanel && (
+              <div className="px-6 py-6">
+                <ConfirmRidePopup
+                  ride={ride}
+                  setConfirmRidePopupPanel={setConfirmRidePopupPanel}
+                  setRidePopupPanel={setRidePopupPanel}
+                />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <div
         ref={RidePopupPanelref}
-        className="fixed w-full z-10 bg-white bottom-0 translate-y-full   px-3 py-6 pt-12"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-30 translate-y-full"
       >
-        <RidePopup
-          ride={ride}
-          setRidePopupPanel={setRidePopupPanel}
-          setConfirmRidePopupPanel={setConfirmRidePopupPanel}
-          confirmRide={confirmRide}
-        />
+        <div className="bg-white rounded-t-3xl shadow-2xl border-t border-gray-100 max-h-[85vh] overflow-y-auto">
+          <div className="sticky top-0 bg-white pt-3 pb-2 z-10">
+            <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto"></div>
+          </div>
+          <div className="px-4 sm:px-6 pb-8">
+            <RidePopup
+              ride={ride}
+              setRidePopupPanel={setRidePopupPanel}
+              setConfirmRidePopupPanel={setConfirmRidePopupPanel}
+              confirmRide={confirmRide}
+            />
+          </div>
+        </div>
       </div>
 
       <div
         ref={ConfirmRidePopupPanelref}
-        className="fixed h-screen w-full z-10 bg-white bottom-0 translate-y-full overflow-y-scroll  px-3 py-6 pt-12"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 translate-y-full"
       >
-        <ConfirmRidePopup
-          ride={ride}
-          setRidePopupPanel={setRidePopupPanel}
-          setConfirmRidePopupPanel={setConfirmRidePopupPanel}
-        />
+        <div className="bg-white rounded-t-3xl shadow-2xl border-t border-gray-100 max-h-[90vh] overflow-y-auto">
+          <div className="sticky top-0 bg-white pt-3 pb-2 z-10">
+            <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto"></div>
+          </div>
+          <div className="px-4 sm:px-6 pb-8">
+            <ConfirmRidePopup
+              ride={ride}
+              setConfirmRidePopupPanel={setConfirmRidePopupPanel}
+              setRidePopupPanel={setRidePopupPanel}
+            />
+          </div>
+        </div>
       </div>
+
+      {(RidePopupPanel || ConfirmRidePopupPanel) && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-20"
+          onClick={() => {
+            setRidePopupPanel(false);
+            setConfirmRidePopupPanel(false);
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { LoadScript, GoogleMap, Marker } from "@react-google-maps/api";
 
 const containerStyle = {
   width: "100%",
+  // height: "100vh",
   height: "100%",
 };
 
@@ -56,6 +57,12 @@ const LiveTracking = () => {
         mapContainerStyle={containerStyle}
         center={currentPosition}
         zoom={15}
+        options={{
+          gestureHandling: "greedy",
+          fullscreenControl: false,
+          mapTypeControl: false,
+          streetViewControl: false,
+        }}
       >
         <Marker position={currentPosition} />
       </GoogleMap>

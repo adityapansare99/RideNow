@@ -51,13 +51,22 @@ const RidePopup = (props) => {
             </div>
           </div>
 
-          <div className="flex items-center gap-5 p-3">
+          <div className="flex items-center gap-5 p-3 border-b-1 border-gray-500">
             <i className="text-lg ri-currency-line"></i>
             <div>
               <h3 className="text-lg font-medium">₹{props.ride?.fare}</h3>
               <p className="text-small -mt-1 text-gray-600">Total amount</p>
             </div>
           </div>
+
+          <div className="flex items-center gap-5 p-3">
+            <i className="text-lg ri-phone-line"></i>
+            <div>
+              <h3 className="text-lg font-medium">{props.ride?.user?.mobile || ""}</h3>
+              <p className="text-small -mt-1 text-gray-600">Phone number</p>
+            </div>
+          </div>
+
         </div>
 
         <div className="flex mt-5 items-center justify-between w-full">
