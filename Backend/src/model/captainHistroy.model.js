@@ -1,30 +1,29 @@
 import mongoose from "mongoose";
 
-const histroy=new mongoose.Schema({
-    captain_id:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"Captain"
-    },
+const histroy = new mongoose.Schema({
+  captain_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Captain",
+  },
 
-    dist:{
-        type:[Number]
-    },
+  dist: {
+    type: [Number],
+  },
 
-    time:{
-        type:[Number]
-    },
+  time: {
+    type: [Number],
+  },
 
-    earning:{
-        type:[Number]
-    },
+  earning: {
+    type: [Number],
+  },
 
-    hist:{
-        type:Map,
-        of:[[Number]]
-    }
-})
+  hist: {
+    type: Map,
+    of: [[Number]],
+  },
+});
 
-const Histroy=new mongoose.model("Histroy",histroy)
+const Histroy = new mongoose.model("Histroy", histroy);
 
-export default Histroy
-
+export default Histroy;

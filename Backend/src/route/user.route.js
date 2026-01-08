@@ -5,7 +5,7 @@ import {
   refreshaccesstoken,
   logout,
   profile,
-  generateOtp
+  generateOtp,
 } from "../controller/user.controller.js";
 import { auth } from "../middleware/auth.middleware.js";
 import {

@@ -198,8 +198,6 @@ const sendOtpToMobile = async (mobile, otp) => {
     from: process.env.Twilio_PHONE_NUMBER,
     to: `+91${mobile}`,
   });
-
-  console.log("Twilio response:", response);
 };
 
 const generateOtp = asynchandler(async (req, res) => {

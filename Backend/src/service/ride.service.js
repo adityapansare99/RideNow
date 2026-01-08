@@ -78,7 +78,7 @@ const data_for_history = async (pickup, destination) => {
   const distance = distancetime.distance;
   const time = distancetime.time;
 
-  return {distance,time};
+  return { distance, time };
 };
 
 const createRide = async ({ user, pickup, destination, vehicleType }) => {
@@ -90,7 +90,7 @@ const createRide = async ({ user, pickup, destination, vehicleType }) => {
   }
 
   const fare = await getFare(pickup, destination);
-  const {distance,time}=await get_distance_time(pickup, destination);
+  const { distance, time } = await get_distance_time(pickup, destination);
 
   if (!fare) {
     throw new ApiError(400, "Unable to fetch fare");
@@ -103,7 +103,7 @@ const createRide = async ({ user, pickup, destination, vehicleType }) => {
     otp: getOtp(6),
     fare: fare[vehicleType],
     duration: time,
-    distance:distance
+    distance: distance,
   });
 
   if (!ride) {
@@ -221,4 +221,11 @@ const endride = async ({ rideId, captain }) => {
   return ride;
 };
 
-export { createRide, getFare, confirmride, startride, endride, data_for_history };
+export {
+  createRide,
+  getFare,
+  confirmride,
+  startride,
+  endride,
+  data_for_history,
+};

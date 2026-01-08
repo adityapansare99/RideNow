@@ -144,8 +144,6 @@ const startRide = asynchandler(async (req, res) => {
     { upsert: true }
   );
 
-  console.log(hist,Date.now());
-
   try {
     const ride = await startride({ rideId, otp, captain: req.captain });
 
@@ -245,7 +243,6 @@ const verifypayment = asynchandler(async (req, res) => {
         paymentStatus: true,
       });
 
-      console.log(data);
       return res
         .status(200)
         .json(new ApiResponse(200, data, "Payment successful"));

@@ -10,7 +10,7 @@ import {
   profile,
   logout,
   captainHistroy,
-  generateOtp
+  generateOtp,
 } from "../controller/captain.controller.js";
 
 const caprouter = Router();

@@ -60,11 +60,10 @@ const rideschema = new mongoose.Schema(
       required: true,
     },
 
-    paymentStatus:{
-      type:Boolean,
-      default:false
-    }
-    
+    paymentStatus: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
