@@ -7,44 +7,52 @@ const ConfirmRide = (props) => {
         onClick={() => {
           props.setConfirmRidePanel(false);
         }}
-        className="p-1 text-center w-[93%] absolute top-0 "
+        className="p-1 text-center w-[93%] absolute top-0"
       >
-        <i className="text-3xl text-gray-200 ri-arrow-down-wide-line"></i>
+        <i className="text-3xl text-gray-300 ri-arrow-down-wide-line"></i>
       </h5>
-      <h3 className="font-semibold text-2xl mb-5">Confirm Your Ride</h3>
+      <h3 className="font-bold text-2xl mb-6 text-gray-900">
+        Confirm Your Ride
+      </h3>
 
       <div className="flex gap-2 justify-between flex-col items-center">
         <img
-          className="h-20"
+          className="h-24"
           src="https://swyft.pl/wp-content/uploads/2023/05/how-many-people-can-a-uberx-take.jpg"
           alt=""
         />
-        <div className="w-full mt-5">
-          <div className="flex items-center gap-5 p-3 border-b-1 border-gray-500">
-            <i className="text-lg ri-map-pin-user-fill"></i>
+        <div className="w-full mt-6">
+          <div className="flex items-center gap-5 p-4 border-b border-gray-200">
+            <i className="text-xl ri-map-pin-user-fill text-gray-700"></i>
             <div>
-              <h3 className="text-lg font-medium">Pickup</h3>
-              <p className="text-small -mt-1 text-gray-600">{props.pickup}</p>
+              <h3 className="text-base font-semibold text-gray-900">Pickup</h3>
+              <p className="text-sm text-gray-500 font-light mt-1">
+                {props.pickup}
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-5 p-3 border-b-1 border-gray-500">
-            <i className="text-lg ri-map-pin-2-fill"></i>
+          <div className="flex items-center gap-5 p-4 border-b border-gray-200">
+            <i className="text-xl ri-map-pin-2-fill text-gray-700"></i>
             <div>
-              <h3 className="text-lg font-medium">Destination</h3>
-              <p className="text-small -mt-1 text-gray-600">
+              <h3 className="text-base font-semibold text-gray-900">
+                Destination
+              </h3>
+              <p className="text-sm text-gray-500 font-light mt-1">
                 {props.destination}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-5 p-3">
-            <i className="text-lg ri-currency-line"></i>
+          <div className="flex items-center gap-5 p-4">
+            <i className="text-xl ri-currency-line text-gray-700"></i>
             <div>
-              <h3 className="text-lg font-medium">
+              <h3 className="text-base font-bold text-gray-900">
                 ₹{props.fare[props.vehicleType]}
               </h3>
-              <p className="text-small -mt-1 text-gray-600">Total amount</p>
+              <p className="text-sm text-gray-500 font-light mt-1">
+                Total amount
+              </p>
             </div>
           </div>
         </div>
@@ -55,7 +63,7 @@ const ConfirmRide = (props) => {
             props.setConfirmRidePanel(false);
             props.createRide();
           }}
-          className="w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg"
+          className="w-full mt-6 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
         >
           Confirm
         </button>

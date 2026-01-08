@@ -37,8 +37,6 @@ const UserLogin = () => {
   return (
     <div className="min-h-screen w-full flex bg-gradient-to-b from-gray-50 to-white flex-col">
       <div className="relative h-15 sm:h-20 md:h-20 mb-4 bg-cover bg-center ">
-        {/* <div className="absolute inset-0 bg-black/40"></div> */}
-
         <div className="relative z-10 pt-6 px-4 sm:pt-8 sm:px-6 md:px-8">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 tracking-tight">
             RideNow

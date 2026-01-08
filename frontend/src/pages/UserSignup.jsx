@@ -28,7 +28,7 @@ const UserSignup = () => {
       lastname: lastname,
       email: email,
       password: password,
-      mobile: mobile
+      mobile: mobile,
     };
 
     const resopnse = await axios.post(
@@ -65,7 +65,6 @@ const UserSignup = () => {
         alert("otp sent successfully");
         setotp(response.data.data);
         setOtpField(true);
-        console.log("generated otp:", response.data.data);
         return;
       }
     } catch (error) {

@@ -221,16 +221,13 @@ const Home = () => {
 
   return (
     <div className="relative h-screen overflow-hidden lg:min-h-screen lg:w-full lg:bg-gradient-to-b lg:from-gray-50 lg:to-white lg:flex lg:flex-col">
-      {/* Desktop Header - Only visible on lg+ */}
       <div className="hidden lg:block relative z-20 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between px-8 py-4">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
               RideNow
             </h1>
-            <p className="text-gray-500 text-sm font-light">
-              User Dashboard
-            </p>
+            <p className="text-gray-500 text-sm font-light">User Dashboard</p>
           </div>
           <a
             href="/user/logout"
@@ -254,16 +251,13 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Mobile Logo */}
       <div className="lg:hidden">
         <div className="flex items-center justify-between px-8 py-4">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
               RideNow
             </h1>
-            <p className="text-gray-500 text-sm font-light">
-              User Dashboard
-            </p>
+            <p className="text-gray-500 text-sm font-light">User Dashboard</p>
           </div>
           <a
             href="/user/logout"
@@ -286,23 +280,25 @@ const Home = () => {
           </a>
         </div>
       </div>
-      
 
-      {/* Desktop Layout */}
       <div className="hidden lg:flex lg:flex-1 lg:gap-6 lg:p-6">
-        {/* Left: Map */}
         <div className="relative flex-1 w-full rounded-2xl overflow-hidden shadow-lg">
           <div className="absolute inset-0">
             <LiveTracking />
           </div>
         </div>
 
-        {/* Right: Panel */}
         <div className="flex flex-col w-[400px] bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-          {/* Search Section - Hidden when other panels are active */}
-          <div className={`flex-shrink-0 px-6 py-6 border-b border-gray-200 ${
-            VehiclePanel || ConfirmRidePanel || vehicleFound || WaitForDriverPanel ? 'hidden' : ''
-          }`}>
+          <div
+            className={`flex-shrink-0 px-6 py-6 border-b border-gray-200 ${
+              VehiclePanel ||
+              ConfirmRidePanel ||
+              vehicleFound ||
+              WaitForDriverPanel
+                ? "hidden"
+                : ""
+            }`}
+          >
             <h4 className="text-2xl font-semibold mb-4">Find a trip</h4>
             <form onSubmit={submitHandler}>
               <div className="relative">
@@ -341,7 +337,6 @@ const Home = () => {
             </button>
           </div>
 
-          {/* Panels Container - Only one visible at a time */}
           <div className="flex-1 overflow-y-auto">
             {panelOpen && (
               <div className="px-6 py-6">
@@ -361,16 +356,19 @@ const Home = () => {
               </div>
             )}
 
-            {VehiclePanel && !ConfirmRidePanel && !vehicleFound && !WaitForDriverPanel && (
-              <div className="px-6 py-6">
-                <VehiclePanelMain
-                  fare={fare}
-                  setVehicleType={setVehicleType}
-                  setConfirmRidePanel={setConfirmRidePanel}
-                  setVehiclePanel={setVehiclePanel}
-                />
-              </div>
-            )}
+            {VehiclePanel &&
+              !ConfirmRidePanel &&
+              !vehicleFound &&
+              !WaitForDriverPanel && (
+                <div className="px-6 py-6">
+                  <VehiclePanelMain
+                    fare={fare}
+                    setVehicleType={setVehicleType}
+                    setConfirmRidePanel={setConfirmRidePanel}
+                    setVehiclePanel={setVehiclePanel}
+                  />
+                </div>
+              )}
 
             {ConfirmRidePanel && !vehicleFound && !WaitForDriverPanel && (
               <div className="px-6 py-6">
@@ -413,12 +411,10 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Mobile Map */}
       <div className="h-[70%] w-screen lg:hidden">
         <LiveTracking />
       </div>
 
-      {/* Mobile Bottom Panel */}
       <div className="lg:hidden flex flex-col justify-end absolute h-screen top-0 w-full">
         <div className="h-[30%] p-6 bg-white relative">
           <h5
@@ -488,7 +484,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Mobile Vehicle Panel */}
       <div
         ref={vehiclepanelref}
         className="lg:hidden fixed w-full z-10 bg-white bottom-0 translate-y-full px-3 py-6 pt-12"
@@ -501,7 +496,6 @@ const Home = () => {
         />
       </div>
 
-      {/* Mobile Confirm Ride Panel */}
       <div
         ref={confirmridepanelref}
         className="lg:hidden fixed w-full bg-white bottom-0 translate-y-full px-3 py-6 pt-12"
@@ -517,7 +511,6 @@ const Home = () => {
         />
       </div>
 
-      {/* Mobile Looking for Driver Panel */}
       <div
         ref={vehicleFoundref}
         className="lg:hidden fixed w-full bg-white bottom-0 translate-y-full px-3 py-6 pt-12"
@@ -532,7 +525,6 @@ const Home = () => {
         />
       </div>
 
-      {/* Mobile Wait for Driver Panel */}
       <div
         ref={waitfordriverref}
         className="lg:hidden fixed w-full z-10 bg-white bottom-0 px-3 py-6 pt-12"

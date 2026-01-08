@@ -87,7 +87,6 @@ const CaptainSignup = () => {
         alert("otp sent successfully");
         setotp(response.data.data);
         setOtpField(true);
-        console.log("generated otp:", response.data.data);
         return;
       }
     } catch (error) {

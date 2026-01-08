@@ -82,7 +82,6 @@ const CaptainHome = () => {
 
       if (response.status === 200) {
         sethist(response.data.data);
-        console.log(response.data.data);
         return;
       }
     } catch (error) {

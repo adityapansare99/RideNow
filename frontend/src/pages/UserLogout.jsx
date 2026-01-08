@@ -22,14 +22,14 @@ const UserLogout = () => {
 
         if (res.status === 200) {
           localStorage.removeItem("token");
-          
+
           setTimeout(() => {
             navigate("/login");
           }, 400);
         }
       } catch (err) {
         console.error("Logout failed", err);
-        
+
         setTimeout(() => {
           navigate("/login");
         }, 400);
@@ -65,9 +65,7 @@ const UserLogout = () => {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Logging you out....
           </h2>
-          <p className="text-gray-500 text-sm font-light">
-            User Dashboard
-          </p>
+          <p className="text-gray-500 text-sm font-light">User Dashboard</p>
         </div>
 
         <div className="flex justify-center gap-2 mt-6">

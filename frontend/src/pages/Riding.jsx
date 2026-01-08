@@ -74,7 +74,6 @@ const Riding = () => {
 
   return (
     <div className="relative h-screen overflow-hidden lg:min-h-screen lg:w-full lg:bg-gradient-to-b lg:from-gray-50 lg:to-white lg:flex lg:flex-col">
-      {/* Desktop Header */}
       <div className="hidden lg:block relative z-20 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between px-8 py-4">
           <div>
@@ -94,65 +93,68 @@ const Riding = () => {
         </div>
       </div>
 
-      {/* Desktop Layout */}
       <div className="hidden lg:flex lg:flex-1 lg:gap-6 lg:p-6">
-        {/* Left: Map */}
         <div className="relative flex-1 w-full rounded-2xl overflow-hidden shadow-lg">
           <div className="absolute inset-0">
             <LiveTracking />
           </div>
         </div>
 
-        {/* Right: Ride Details Panel - Matching UserHome width */}
         <div className="flex flex-col w-[400px] bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200 overflow-hidden p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
             <img
-              className="h-12"
+              className="h-16"
               src="https://swyft.pl/wp-content/uploads/2023/05/how-many-people-can-a-uberx-take.jpg"
               alt=""
             />
 
             <div className="text-right">
-              <h2 className="text-lg font-medium">
+              <h2 className="text-base font-semibold text-gray-900">
                 {ride?.captain.fullname.firstname +
                   " " +
                   ride?.captain.fullname.lastname}
               </h2>
-              <h4 className="text-xl font-semibold -mt-1 -mb-1">
+              <h4 className="text-lg font-bold text-gray-900 mt-1">
                 {ride?.captain.vehicle.plate}
               </h4>
-              <p className="text-sm text-gray-600">
+              <p className="text-xs text-gray-500 font-light mt-1">
                 {ride?.captain.vehicle.vehicletype +
-                  "-" +
+                  " - " +
                   ride?.captain.vehicle.color}
               </p>
             </div>
           </div>
 
           <div className="flex gap-2 justify-between flex-col items-center">
-            <div className="w-full mt-5">
-              <div className="flex items-center gap-5 p-3 border-b-1 border-gray-500">
-                <i className="text-lg ri-map-pin-2-fill"></i>
+            <div className="w-full">
+              <div className="flex items-center gap-5 p-4 border-b border-gray-200">
+                <i className="text-xl ri-map-pin-2-fill text-gray-700"></i>
                 <div>
-                  <h3 className="text-lg font-medium">Destination</h3>
-                  <p className="text-small -mt-1 text-gray-600">
+                  <h3 className="text-base font-semibold text-gray-900">
+                    Destination
+                  </h3>
+                  <p className="text-sm text-gray-500 font-light mt-1">
                     {ride?.destination}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-5 p-3 -mb-2">
-                <i className="text-lg ri-currency-line"></i>
+              <div className="flex items-center gap-5 p-4">
+                <i className="text-xl ri-currency-line text-gray-700"></i>
                 <div>
-                  <h3 className="text-lg font-medium">₹{ride?.fare}</h3>
-                  <p className="text-small -mt-1 text-gray-600">Total amount</p>
+                  <h3 className="text-base font-bold text-gray-900">
+                    ₹{ride?.fare}
+                  </h3>
+                  <p className="text-sm text-gray-500 font-light mt-1">
+                    Total amount
+                  </p>
                 </div>
               </div>
             </div>
           </div>
           <button
             onClick={() => makepayment()}
-            className={`w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg ${
+            className={`w-full mt-6 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 ${
               paymentstatus && "hidden"
             }`}
           >
@@ -160,7 +162,7 @@ const Riding = () => {
           </button>
 
           <button
-            className={`w-full mt-5 bg-indigo-100 text-stone-500 font-semibold p-2 rounded-lg ${
+            className={`w-full mt-6 bg-emerald-50 text-emerald-700 font-semibold py-3.5 rounded-lg border border-emerald-200 ${
               !paymentstatus && "hidden"
             }`}
           >
@@ -169,9 +171,7 @@ const Riding = () => {
         </div>
       </div>
 
-      {/* Mobile View */}
       <div className="lg:hidden h-screen flex flex-col">
-        {/* Mobile Header Bar - Similar to Desktop */}
         <div className="relative z-20 bg-white border-b border-gray-200">
           <div className="flex items-center justify-between px-4 py-3">
             <div>
@@ -191,54 +191,58 @@ const Riding = () => {
           </div>
         </div>
 
-        {/* Mobile Map */}
         <div className="flex-1">
           <LiveTracking />
         </div>
 
-        {/* Mobile Ride Details */}
-        <div className="p-4 bg-white">
-          <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col w-full bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200 overflow-hidden p-6">
+          <div className="flex items-center justify-between mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
             <img
-              className="h-12"
+              className="h-16"
               src="https://swyft.pl/wp-content/uploads/2023/05/how-many-people-can-a-uberx-take.jpg"
               alt=""
             />
 
             <div className="text-right">
-              <h2 className="text-lg font-medium">
+              <h2 className="text-base font-semibold text-gray-900">
                 {ride?.captain.fullname.firstname +
                   " " +
                   ride?.captain.fullname.lastname}
               </h2>
-              <h4 className="text-xl font-semibold -mt-1 -mb-1">
+              <h4 className="text-lg font-bold text-gray-900 mt-1">
                 {ride?.captain.vehicle.plate}
               </h4>
-              <p className="text-sm text-gray-600">
+              <p className="text-xs text-gray-500 font-light mt-1">
                 {ride?.captain.vehicle.vehicletype +
-                  "-" +
+                  " - " +
                   ride?.captain.vehicle.color}
               </p>
             </div>
           </div>
 
           <div className="flex gap-2 justify-between flex-col items-center">
-            <div className="w-full mt-5">
-              <div className="flex items-center gap-5 p-3 border-b-1 border-gray-500">
-                <i className="text-lg ri-map-pin-2-fill"></i>
+            <div className="w-full">
+              <div className="flex items-center gap-5 p-4 border-b border-gray-200">
+                <i className="text-xl ri-map-pin-2-fill text-gray-700"></i>
                 <div>
-                  <h3 className="text-lg font-medium">Destination</h3>
-                  <p className="text-small -mt-1 text-gray-600">
+                  <h3 className="text-base font-semibold text-gray-900">
+                    Destination
+                  </h3>
+                  <p className="text-sm text-gray-500 font-light mt-1">
                     {ride?.destination}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-5 p-3 -mb-2">
-                <i className="text-lg ri-currency-line"></i>
+              <div className="flex items-center gap-5 p-4">
+                <i className="text-xl ri-currency-line text-gray-700"></i>
                 <div>
-                  <h3 className="text-lg font-medium">₹{ride?.fare}</h3>
-                  <p className="text-small -mt-1 text-gray-600">Total amount</p>
+                  <h3 className="text-base font-bold text-gray-900">
+                    ₹{ride?.fare}
+                  </h3>
+                  <p className="text-sm text-gray-500 font-light mt-1">
+                    Total amount
+                  </p>
                 </div>
               </div>
             </div>
@@ -246,7 +250,7 @@ const Riding = () => {
 
           <button
             onClick={() => makepayment()}
-            className={`w-full mt-5 bg-green-600 text-white font-semibold p-2 rounded-lg ${
+            className={`w-full mt-6 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 ${
               paymentstatus && "hidden"
             }`}
           >
@@ -254,7 +258,7 @@ const Riding = () => {
           </button>
 
           <button
-            className={`w-full mt-5 bg-indigo-100 text-stone-500 font-semibold p-2 rounded-lg ${
+            className={`w-full mt-6 bg-emerald-50 text-emerald-700 font-semibold py-3.5 rounded-lg border border-emerald-200 ${
               !paymentstatus && "hidden"
             }`}
           >

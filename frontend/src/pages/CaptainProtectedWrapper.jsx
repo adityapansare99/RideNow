@@ -39,15 +39,12 @@ const CaptainProtectedWrapper = ({ children }) => {
     return (
       <div className="min-h-screen w-full bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
         <div className="text-center">
-
           <div className="relative">
             <div className="w-16 h-16 mx-auto border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
           </div>
 
           <div className="mt-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              RideNow
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">RideNow</h2>
             <p className="text-gray-500 text-sm font-light">
               Loading Captain Dashboard...
             </p>

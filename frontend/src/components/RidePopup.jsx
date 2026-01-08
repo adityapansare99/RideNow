@@ -7,74 +7,87 @@ const RidePopup = (props) => {
         onClick={() => {
           props.setRidePopupPanel(false);
         }}
-        className="p-1 text-center w-[93%] absolute top-0 "
+        className="p-1 text-center w-[93%] absolute top-0"
       >
-        <i className="text-3xl text-gray-200 ri-arrow-down-wide-line"></i>
+        <i className="text-3xl text-gray-300 ri-arrow-down-wide-line"></i>
       </h5>
-      <h3 className="font-semibold text-2xl">New Ride Available!</h3>
+      <h3 className="font-bold text-2xl mb-5 text-gray-900">
+        New Ride Available!
+      </h3>
 
-      <div className="flex items-center justify-between p-3 bg-yellow-400 rounded-lg mt-4">
+      <div className="flex items-center justify-between p-4 bg-yellow-400 rounded-lg mt-4 border border-yellow-500">
         <div className="flex items-center gap-3">
           <img
-            className="h-12 w-10 rounded-full object-cover"
-            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8dXNlcnxlbnwwfHwwfHx8MA%3D%3D"
+            className="h-12 w-12 rounded-full object-cover border-2 border-yellow-500"
+            src="data:image/webp;base64,UklGRlADAABXRUJQVlA4IEQDAABwJACdASrnAOoAPp1OoEylpKMiJlKYaLATiWlu/HyYMudUxf6jvIWLbQfsvlbRIuRkqWHpu/Z/Mb5wP66oiyt0a6oiyt0a6oiyt0Va15xCADHl5wdyRj2VvIwYvUv+HqK8iS7ZlVV6GL082NdT+YUrsu9SKi7aXW6g49gmemcIuESnenVzYJ5orBx0HEwHpTv2kc8n+TwHXXFzN8bzjhNBG41IcbxkdHpX+ywGJw1JTtMAUNKW0cX2LLOhgIWc4ybEDnOwpnSBnUYMfAyiPWBqMtz6jHt3n+czWQpV6uJcGB8tbgkhpxC9bH3gPUS4CISEH/qTXKRq7QixUy90/bhVq3RqgUArdNlye/Gdi1z8G9sgPZx0a6oiyt0a6oiyt0a6oiyt0a6oiyt0VAAA/v1hgAAE9v1Nxc3zrPv1P3rD6vZBpx7lM/kdslOh8nAw1HjU/eXLM7EJ6lnXM5kFfpY72+fXRsgt1Fk50VSiWtjj4X7Cp5nLMIjn87+R6jby2r0oJeHD/HbHowTjqGxjTwUyTZzRBtTF4GMGGBV9opaUWnq681ION0bZYjggJ7twiRgSJ/+dE6FKoJqleXODh6yPhpOQGVE7+m7POSTdSROKFBorP9sZE5Aqz7R/tGdIujdh1f0sPaZGyLY3yIrAxZbU0ZOrUerupjN/zELfg4P+HR2AP38qeOIijaT15n0LnVXAnJZ4h3IP6S7pKOyeNWQ2OUb/wkDhrfTOGgRRMhpsFIFWaz45KmArd7Lr7hRuy5qhTlJ57mBn5c7BHCR/GME4I+fvIzYUZHTFQGyziRxX/v5M9ZuJtfHnaCPSvyQvbBzgViDrR16KstwYlNQoGyNDMlnAXqy6mDq3Id/vuBwKPwFGDSwmvjH6Tuu3E5hRTLLDc2YiPyalhH8ZEMS8/sS/3n4YwRCYKgibY7P5ksfqNXq7Eh7qjDUauIivNReoT0JaYHJikO4kKwMcacWCgLocgpFglFIMD/bzoH5cU47yO9Pt2hs1IRofG1cOQQvED8RYXBFel3xQrlkzi0g3MgzhwWYGWXSXnbBXyUk49AbR7Qmgjor0m78IE6i4N8txyQEseQM3EMa5DZGKASLiTLAAAAAAAA=="
             alt=""
           />
-          <h2 className="text-lg font-medium">
+          <h2 className="text-lg font-semibold text-gray-900 capitalize">
             {props.ride?.user.fullname.firstname +
               " " +
               props.ride?.user.fullname.lastname}
           </h2>
         </div>
-        <h5 className="text-lg font-semibold">{((props.ride?.distance)/1000)} KM</h5>
+        <h5 className="text-base font-bold text-gray-900">
+          {(props.ride?.distance / 1000).toFixed(1)} KM
+        </h5>
       </div>
 
       <div className="flex gap-2 justify-between flex-col items-center">
-        <div className="w-full mt-5">
-          <div className="flex items-center gap-5 p-3 border-b-1 border-gray-500">
-            <i className="text-lg ri-map-pin-user-fill"></i>
+        <div className="w-full mt-6">
+          <div className="flex items-center gap-5 p-4 border-b border-gray-200">
+            <i className="text-xl ri-map-pin-user-fill text-gray-700"></i>
             <div>
-              <h3 className="text-lg font-medium">Pickup</h3>
-              <p className="text-small -mt-1 text-gray-600">
+              <h3 className="text-base font-semibold text-gray-900">Pickup</h3>
+              <p className="text-sm text-gray-500 font-light mt-1">
                 {props.ride?.pickup}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-5 p-3 border-b-1 border-gray-500">
-            <i className="text-lg ri-map-pin-2-fill"></i>
+          <div className="flex items-center gap-5 p-4 border-b border-gray-200">
+            <i className="text-xl ri-map-pin-2-fill text-gray-700"></i>
             <div>
-              <h3 className="text-lg font-medium">Destination</h3>
-              <p className="text-small -mt-1 text-gray-600">
+              <h3 className="text-base font-semibold text-gray-900">
+                Destination
+              </h3>
+              <p className="text-sm text-gray-500 font-light mt-1">
                 {props.ride?.destination}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-5 p-3 border-b-1 border-gray-500">
-            <i className="text-lg ri-currency-line"></i>
+          <div className="flex items-center gap-5 p-4 border-b border-gray-200">
+            <i className="text-xl ri-currency-line text-gray-700"></i>
             <div>
-              <h3 className="text-lg font-medium">₹{props.ride?.fare}</h3>
-              <p className="text-small -mt-1 text-gray-600">Total amount</p>
+              <h3 className="text-base font-bold text-gray-900">
+                ₹{props.ride?.fare}
+              </h3>
+              <p className="text-sm text-gray-500 font-light mt-1">
+                Total amount
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-5 p-3">
-            <i className="text-lg ri-phone-line"></i>
+          <div className="flex items-center gap-5 p-4">
+            <i className="text-xl ri-phone-line text-gray-700"></i>
             <div>
-              <h3 className="text-lg font-medium">{props.ride?.user?.mobile || ""}</h3>
-              <p className="text-small -mt-1 text-gray-600">Phone number</p>
+              <h3 className="text-base font-semibold text-gray-900">
+                {props.ride?.user?.mobile || ""}
+              </h3>
+              <p className="text-sm text-gray-500 font-light mt-1">
+                Phone number
+              </p>
             </div>
           </div>
-
         </div>
 
-        <div className="flex mt-5 items-center justify-between w-full">
+        <div className="flex mt-6 items-center justify-between w-full gap-3">
           <button
             onClick={() => {
               props.setRidePopupPanel(false);
             }}
-            className=" bg-gray-300 text-gray-700 font-semibold p-3 px-10 rounded-lg"
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3.5 rounded-lg transition-all duration-200 active:scale-95"
           >
             Ignore
           </button>
@@ -85,7 +98,7 @@ const RidePopup = (props) => {
               props.setRidePopupPanel(false);
               props.confirmRide();
             }}
-            className=" bg-green-600 text-white font-semibold p-3 px-10 rounded-lg"
+            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
           >
             Accept
           </button>
