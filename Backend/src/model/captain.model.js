@@ -110,7 +110,7 @@ captainschema.methods.isPasswordCorrect = async function (password) {
 captainschema.methods.Generatingaccesstoken = function () {
   return jwt.sign(
     {
-      _id: this.id,
+      email: this.email,
       password: this.password,
       fullname: this.fullname,
     },
@@ -122,7 +122,7 @@ captainschema.methods.Generatingaccesstoken = function () {
 captainschema.methods.Generatingrefershtoken = function () {
   return jwt.sign(
     {
-      _id: this.id,
+      email: this.email,
     },
     process.env.refreshtoken,
     { expiresIn: process.env.refreshtime }

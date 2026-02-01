@@ -42,9 +42,9 @@ const registeruser = asynchandler(async (req, res) => {
     .json(new ApiResponse(200, user, "User created successfully"));
 });
 
-const Generatingaccessandrefreshtoken = async (userId) => {
+const Generatingaccessandrefreshtoken = async (userEmail) => {
   try {
-    const user = await User.findById(userId);
+    const user = await User.findOne({email:userEmail});
 
     if (!user) {
       res.status(404).json(new ApiResponse(404, null, "User not found"));
@@ -73,7 +73,7 @@ const userLogin = asynchandler(async (req, res) => {
   ) {
     throw new ApiError(404, "field is empty");
   }
-  const user = await User.findOne({ email });
+  const user = await User.findOne({email: email });
 
   if (!user) {
     throw new ApiError(404, "user not found");
@@ -85,10 +85,10 @@ const userLogin = asynchandler(async (req, res) => {
   }
 
   const { accesstoken, refreshtoken } = await Generatingaccessandrefreshtoken(
-    user._id
+    user.email
   );
 
-  const loggeduser = await User.findOne(user._id).select(
+  const loggeduser = await User.findOne({email:user.email}).select(
     "-password -refershtoken"
   );
 
@@ -119,7 +119,7 @@ const refreshaccesstoken = asynchandler(async (req, res) => {
   try {
     const decodetoken = jwt.verify(serversidetoken, process.env.refreshtoken);
 
-    const user = await User.findById(decodetoken?._id);
+    const user = await User.findOne({email:decodetoken?.email});
     if (!user) {
       throw new ApiError(500, "user not found");
     }
@@ -133,7 +133,7 @@ const refreshaccesstoken = asynchandler(async (req, res) => {
     };
 
     const { accesstoken, refershtoken: newrefreshtoken } =
-      await generateaccesstokenandrefreshtoken(user._id);
+      await Generatingaccessandrefreshtoken(user.email);
 
     return res
       .status(200)

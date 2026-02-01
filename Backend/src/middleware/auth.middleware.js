@@ -21,7 +21,7 @@ const auth = asynchandler(async (req, _, next) => {
       throw new ApiError(400, "invalid token");
     }
 
-    const user = await User.findById(decodedtoken._id);
+    const user = await User.findOne({email:decodedtoken.email});
     if (!user) {
       throw new ApiError(400, "user not found");
     }
@@ -48,7 +48,7 @@ const authc = asynchandler(async (req, _, next) => {
       throw new ApiError(400, "invalid token");
     }
 
-    const captain = await Captain.findById(decodedtoken._id);
+    const captain = await Captain.findOne({email:decodedtoken.email});
     if (!captain) {
       throw new ApiError(400, "user not found");
     }

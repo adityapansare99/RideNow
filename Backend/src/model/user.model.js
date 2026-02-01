@@ -61,7 +61,7 @@ userSchema.methods.isPasswordCorrect = async function (password) {
 userSchema.methods.Generatingaccesstoken = function () {
   return jwt.sign(
     {
-      _id: this.id,
+      email: this.email,
       password: this.password,
       fullname: this.fullname,
     },
@@ -73,7 +73,7 @@ userSchema.methods.Generatingaccesstoken = function () {
 userSchema.methods.Generatingrefershtoken = function () {
   return jwt.sign(
     {
-      _id: this.id,
+      email: this.email,
     },
     process.env.refreshtoken,
     { expiresIn: process.env.refreshtime }

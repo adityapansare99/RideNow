@@ -76,7 +76,7 @@ const logincaptain = asynchandler(async (req, res) => {
   }
 
   const { accesstoken, refreshtoken } = await Generatingaccessandrefreshtoken(
-    captain._id
+    captain.email
   );
 
   const options = {
@@ -84,7 +84,7 @@ const logincaptain = asynchandler(async (req, res) => {
     secure: process.env.NODE_ENV === "production",
   };
 
-  const loggeduser = await Captain.findOne(captain._id).select(
+  const loggeduser = await Captain.findOne({email:captain.email}).select(
     "-password -refreshtoken"
   );
 
@@ -105,9 +105,9 @@ const logincaptain = asynchandler(async (req, res) => {
     );
 });
 
-const Generatingaccessandrefreshtoken = async (capid) => {
+const Generatingaccessandrefreshtoken = async (capEmail) => {
   try {
-    const captain = await Captain.findById(capid);
+    const captain = await Captain.findOne({email:capEmail});
 
     if (!captain) {
       res.status(404).json(new ApiResponse(404, null, "Captain not found"));

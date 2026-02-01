@@ -33,7 +33,7 @@ const Riding = () => {
           const { data } = await axios.post(
             `${import.meta.env.VITE_BASE_URL}/rides/verifypayment`,
             { order_id: response.razorpay_order_id },
-            { headers: { Authorization: `Bearer ${token}` } }
+            { headers: { Authorization: `Bearer ${token}` } },
           );
 
           if (data.success) {
@@ -50,25 +50,29 @@ const Riding = () => {
   };
 
   const makepayment = async () => {
-    const response = await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/rides/makepayment`,
-      {
-        rideId: ride._id,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/rides/makepayment`,
+        {
+          rideId: ride._id,
         },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      if (response.data.success) {
+        await initpay(response.data.data);
       }
-    );
 
-    if (response.data.success) {
-      await initpay(response.data.data);
-    }
-
-    if (!response) {
-      alert("Payment failed");
-      return;
+      if (!response) {
+        alert("Payment failed");
+        return;
+      }
+    } catch (error) {
+      console.error("error in make payment", error);
     }
   };
 

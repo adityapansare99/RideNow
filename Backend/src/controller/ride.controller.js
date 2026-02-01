@@ -208,7 +208,7 @@ const makepayment = asynchandler(async (req, res) => {
     }
 
     const options = {
-      amount: ride.fare * 100,
+      amount: Math.round(ride.fare * 100),
       currency: process.env.Currency,
       receipt: rideId,
     };
