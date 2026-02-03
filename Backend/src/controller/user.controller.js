@@ -3,6 +3,8 @@ import { asynchandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
 import twilio from "twilio";
+import { uploadoncloudinary } from "../utils/cloudinary.js";
+import { storeOtp, verifyStoredOtp } from "../service/otpStore.js";
 
 const registeruser = asynchandler(async (req, res) => {
   const { firstname, lastname, email, password, mobile } = req.body;
@@ -44,7 +46,7 @@ const registeruser = asynchandler(async (req, res) => {
 
 const Generatingaccessandrefreshtoken = async (userEmail) => {
   try {
-    const user = await User.findOne({email:userEmail});
+    const user = await User.findOne({ email: userEmail });
 
     if (!user) {
       res.status(404).json(new ApiResponse(404, null, "User not found"));
@@ -73,7 +75,7 @@ const userLogin = asynchandler(async (req, res) => {
   ) {
     throw new ApiError(404, "field is empty");
   }
-  const user = await User.findOne({email: email });
+  const user = await User.findOne({ email: email });
 
   if (!user) {
     throw new ApiError(404, "user not found");
@@ -85,11 +87,11 @@ const userLogin = asynchandler(async (req, res) => {
   }
 
   const { accesstoken, refreshtoken } = await Generatingaccessandrefreshtoken(
-    user.email
+    user.email,
   );
 
-  const loggeduser = await User.findOne({email:user.email}).select(
-    "-password -refershtoken"
+  const loggeduser = await User.findOne({ email: user.email }).select(
+    "-password -refershtoken",
   );
 
   const options = {
@@ -105,8 +107,8 @@ const userLogin = asynchandler(async (req, res) => {
       new ApiResponse(
         200,
         { user: loggeduser, accesstoken, refreshtoken },
-        "successfully logged in"
-      )
+        "successfully logged in",
+      ),
     );
 });
 
@@ -119,7 +121,7 @@ const refreshaccesstoken = asynchandler(async (req, res) => {
   try {
     const decodetoken = jwt.verify(serversidetoken, process.env.refreshtoken);
 
-    const user = await User.findOne({email:decodetoken?.email});
+    const user = await User.findOne({ email: decodetoken?.email });
     if (!user) {
       throw new ApiError(500, "user not found");
     }
@@ -146,8 +148,8 @@ const refreshaccesstoken = asynchandler(async (req, res) => {
             accesstoken,
             refreshatoken: newrefreshtoken,
           },
-          "access token successful"
-        )
+          "access token successful",
+        ),
       );
   } catch (error) {
     throw new ApiError(500, "fail to decode");
@@ -162,7 +164,7 @@ const logout = asynchandler(async (req, res) => {
         refreshtoken: undefined,
       },
     },
-    { new: true }
+    { new: true },
   );
 
   const options = {
@@ -179,7 +181,7 @@ const logout = asynchandler(async (req, res) => {
 
 const profile = asynchandler(async (req, res) => {
   const user = await User.findById(req.user._id).select(
-    "-password -refreshtoken"
+    "-password -refreshtoken",
   );
 
   if (!user) {
@@ -197,20 +199,139 @@ const sendOtpToMobile = async (mobile, otp) => {
     from: process.env.Twilio_PHONE_NUMBER,
     to: `+91${mobile}`,
   });
+
+  return response;
 };
 
 const generateOtp = asynchandler(async (req, res) => {
   const { mobile } = req.body;
 
-  if (mobile.length !== 10) {
-    throw new ApiError(400, "Enter valid mobile number");
+  if (!mobile || mobile.length !== 10) {
+    return res
+      .status(400)
+      .json(
+        new ApiResponse(
+          400,
+          null,
+          "Mobile number is required and should be 10 digits",
+        ),
+      );
   }
 
   const otp = Math.floor(100000 + Math.random() * 900000);
 
-  await sendOtpToMobile(mobile, otp);
+  await storeOtp(mobile, otp);
 
-  res.status(200).json(new ApiResponse(200, otp, "otp generated successfully"));
+  const response = await sendOtpToMobile(mobile, otp);
+
+  if (!response) {
+    return res
+      .status(500)
+      .json(new ApiResponse(500, null, "Failed to send OTP"));
+  }
+
+  res.status(200).json(new ApiResponse(200, null, "OTP sent successfully"));
+});
+
+const verifyOtp = asynchandler(async (req, res) => {
+  const { mobile, otp } = req.body;
+
+  if (!mobile || !otp) {
+    return res
+      .status(400)
+      .json(new ApiResponse(400, null, "Mobile and OTP are required"));
+  }
+
+  const isValid = await verifyStoredOtp(mobile, otp);
+
+  if (!isValid) {
+    return res
+      .status(400)
+      .json(new ApiResponse(400, null, "Invalid or expired OTP"));
+  }
+
+  res.status(200).json(new ApiResponse(200, null, "OTP verified successfully"));
+});
+
+const editProfile = asynchandler(async (req, res) => {
+  try {
+    const { firstname, lastname, password } = req.body;
+    const imagefile = req.file;
+
+    if (!firstname || !lastname) {
+      throw new ApiError(400, "All fields are required");
+    }
+
+    const user = req.user;
+
+    const OldData = User.findById(user._id);
+
+    if (!OldData) {
+      return res
+        .status(404)
+        .json(new ApiResponse(404, null, "User not found!"));
+    }
+
+    let UpdatedUser = await User.findByIdAndUpdate(
+      user._id,
+      {
+        fullname: {
+          firstname,
+          lastname,
+        },
+      },
+      { new: true },
+    );
+
+    if (password) {
+      UpdatedUser.password = password;
+
+      await UpdatedUser.save({ validateBeforeSave: false });
+
+    }
+
+    if (imagefile) {
+      const response = await uploadoncloudinary(imagefile.path);
+
+      if (!response) {
+        return res
+          .status(400)
+          .json(new ApiResponse(400, null, "Image not uploaded"));
+      }
+
+      UpdatedUser = await User.findByIdAndUpdate(
+        user._id,
+        {
+          image: response.url,
+        },
+        { new: true },
+      );
+    }
+
+    const FinalUser = await User.findById(UpdatedUser._id).select(
+      "-password -refreshtoken",
+    );
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, FinalUser, "Profile updated successfully"));
+  } catch (error) {
+    res.status(400).json(new ApiResponse(400, null, error.message));
+  }
+});
+
+const deleteUser = asynchandler(async (req, res) => {
+  try {
+    const user = req.user;
+    const response=await User.findByIdAndDelete(user._id);
+    if(!response){
+      return res.status(404).json(new ApiResponse(404,null,"User not found"));
+    }
+
+    return res.status(200).json(new ApiResponse(200,null,"User deleted successfully"));
+  } catch (error) {
+    res.status(400).json(new ApiResponse(400, null, error.message));
+  }
 });
 
 export {
@@ -220,4 +341,7 @@ export {
   logout,
   profile,
   generateOtp,
+  editProfile,
+  verifyOtp,
+  deleteUser,
 };

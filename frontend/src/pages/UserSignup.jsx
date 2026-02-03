@@ -9,44 +9,56 @@ const UserSignup = () => {
   const [firstname, setFirstName] = useState("");
   const [lastname, setLastName] = useState("");
   const [mobile, setmobile] = useState("");
-  const [otp, setotp] = useState("");
   const [otpField, setOtpField] = useState(false);
-  const [userOtp, setUserOtp] = useState("");
+  const [otp, setUserOtp] = useState("");
 
   const navigate = useNavigate();
   const { user, setUser } = useContext(UserDataContext);
 
   const submitHandler = async (e) => {
-    if (otp.toString() !== userOtp.toString()) {
-      alert("Invalid otp");
+    try {
       e.preventDefault();
+
+      const otpResponse = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/users/verify-otp`,
+        { mobile, otp },
+      );
+
+      if (otpResponse.status !== 200) {
+        alert("OTP verification failed");
+        e.preventDefault();
+        return;
+      }
+
+      const newUser = {
+        firstname: firstname,
+        lastname: lastname,
+        email: email,
+        password: password,
+        mobile: mobile,
+      };
+
+      const resopnse = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/users/register`,
+        newUser,
+      );
+
+      if (resopnse.status === 200) {
+        const data = resopnse.data.data;
+        setUser(data.user);
+        localStorage.setItem("token", data.accesstoken);
+        navigate("/home");
+      }
+
+      setEmail("");
+      setPassword("");
+      setFirstName("");
+      setLastName("");
+    } catch (error) {
+      console.log("signup error:", error);
+      alert("Signup failed. Try again");
       return;
     }
-    e.preventDefault();
-    const newUser = {
-      firstname: firstname,
-      lastname: lastname,
-      email: email,
-      password: password,
-      mobile: mobile,
-    };
-
-    const resopnse = await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/users/register`,
-      newUser
-    );
-
-    if (resopnse.status === 200) {
-      const data = resopnse.data.data;
-      setUser(data.user);
-      localStorage.setItem("token", data.accesstoken);
-      navigate("/home");
-    }
-
-    setEmail("");
-    setPassword("");
-    setFirstName("");
-    setLastName("");
   };
 
   const otpHandler = async () => {
@@ -57,13 +69,12 @@ const UserSignup = () => {
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/users/otp`,
-        { mobile }
+        `${import.meta.env.VITE_BASE_URL}/users/Generate-otp`,
+        { mobile },
       );
 
       if (response.status === 200) {
         alert("otp sent successfully");
-        setotp(response.data.data);
         setOtpField(true);
         return;
       }
@@ -179,7 +190,7 @@ const UserSignup = () => {
                   Enter OTP
                 </label>
                 <input
-                  value={userOtp}
+                  value={otp}
                   onChange={(e) => setUserOtp(e.target.value)}
                   className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
                   type="number"
