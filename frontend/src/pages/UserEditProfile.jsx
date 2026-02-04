@@ -21,11 +21,10 @@ const UserEditProfile = () => {
 
       if (response.data.success) {
         setUserData(response.data.data.user);
-        console.log("User profile data:", response.data);
       }
 
       if (!response.data.success) {
-        console.log(response.data);
+        console.log("Failed to fetch user profile!");
         navigate("/login");
       }
     } catch (error) {
@@ -66,7 +65,6 @@ const UserEditProfile = () => {
 
   const fileInputRef = useRef(null);
 
-  // Handle profile photo change
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -96,14 +94,14 @@ const UserEditProfile = () => {
         },
       );
 
-      if (response.status !== 200) {
+      if (!response.data.success) {
         throw new Error(response.data.message);
       }
 
-      if (response.status === 200) {
+      if (response.data.success) {
         setIsOtpSent(true);
         setOtpLoading(false);
-        alert(`OTP sent to ${userData.phone}`);
+        alert(`OTP sent to ${userData.mobile}. Please check your phone.`);
       }
     } catch (error) {
       setOtpLoading(false);
@@ -112,7 +110,6 @@ const UserEditProfile = () => {
     }
   };
 
-  // Verify OTP
   const handleVerifyOtp = async () => {
     if (!otp || otp.length !== 6) {
       setOtpError("Please enter a valid 6-digit OTP");
@@ -132,11 +129,11 @@ const UserEditProfile = () => {
           },
         },
       );
-      if (response.status !== 200) {
+      if (!response.data.success) {
         throw new Error(response.data.message);
       }
 
-      if (response.status === 200) {
+      if (response.data.success) {
         setIsOtpVerified(true);
         setOtpLoading(false);
         alert("OTP verified successfully!");
@@ -148,7 +145,6 @@ const UserEditProfile = () => {
     }
   };
 
-  // Update Profile
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
 
@@ -163,15 +159,14 @@ const UserEditProfile = () => {
     }
 
     try {
+      const formData = new FormData();
+      formData.append("firstname", firstname);
+      formData.append("lastname", lastname);
+      formData.append("password", password);
+      image && formData.append("image", image);
       const response = await axios.put(
         `${import.meta.env.VITE_BASE_URL}/users/edit-profile`,
-        {
-          firstname: firstname,
-          lastname: lastname,
-          password: password,
-          mobile: userData.mobile,
-          image: image,
-        },
+        formData,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -179,15 +174,17 @@ const UserEditProfile = () => {
         },
       );
 
-      if (response.status !== 200) {
+      console.log("Update response:", response);
+
+      if (!response.data.success) {
         throw new Error(response.data.message);
       }
 
-      if (response.status === 200) {
+      if (response.data.success) {
+        setUserData(response.data.data.user);
         alert("Profile updated successfully!");
         navigate("/home");
       }
-      
     } catch (error) {
       alert("Failed to update profile");
       console.error("Profile update error:", error);
@@ -210,11 +207,11 @@ const UserEditProfile = () => {
         },
       );
 
-      if (response.status !== 200) {
+      if (!response.data.success) {
         throw new Error(response.data.message);
       }
 
-      if (response.status === 200) {
+      if (response.data.success) {
         localStorage.removeItem("token");
         alert("Account deleted successfully");
         navigate("/login");
@@ -227,7 +224,6 @@ const UserEditProfile = () => {
 
   return (
     <div className="min-h-screen w-full flex bg-gradient-to-b from-gray-50 to-white flex-col">
-      {/* Header */}
       <div className="relative h-15 sm:h-20 md:h-20 mb-4 bg-cover bg-center">
         <div className="relative z-10 pt-6 px-4 sm:pt-8 sm:px-6 md:px-8 flex items-center justify-between">
           <div>
@@ -247,7 +243,6 @@ const UserEditProfile = () => {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 bg-gradient-to-b from-gray-50 to-white px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12">
         <div className="max-w-md mx-auto">
           <div className="space-y-3 mb-8">
@@ -259,11 +254,10 @@ const UserEditProfile = () => {
             </p>
           </div>
 
-          {/* Profile Photo Section */}
           <div className="mb-8 flex flex-col items-center">
             <div className="relative">
               <img
-                src={photoPreview || image}
+                src={photoPreview || image || "/default-profile.png"}
                 alt="Profile"
                 className="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-gray-200 shadow-md"
               />
@@ -321,7 +315,7 @@ const UserEditProfile = () => {
               </label>
               <input
                 type="email"
-                value={userData?.email}
+                value={userData?.email || ""}
                 className="w-full bg-gray-100 border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-500 cursor-not-allowed"
                 disabled
               />
@@ -333,7 +327,7 @@ const UserEditProfile = () => {
               </label>
               <input
                 type="text"
-                value={userData?.mobile}
+                value={userData?.mobile || ""}
                 className="w-full bg-gray-100 border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-500 cursor-not-allowed"
                 disabled
               />

@@ -26,7 +26,6 @@ const App = () => {
         <Route path="/riding" element={<Riding />} />
         <Route path="/captain-login" element={<CaptainLogin />} />
         <Route path="/captain-signup" element={<CaptainSignup />} />
-        <Route path="/user/edit-profile" element={<UserEditProfile/>}/>
         <Route
           path="/home"
           element={
@@ -35,6 +34,16 @@ const App = () => {
             </UserProtectedWrapper>
           }
         />
+
+        <Route
+          path="/user/edit-profile"
+          element={
+            <UserProtectedWrapper>
+              <UserEditProfile/>
+            </UserProtectedWrapper>
+          }
+        />
+
         <Route
           path="/user/logout"
           element={

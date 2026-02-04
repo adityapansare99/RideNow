@@ -67,7 +67,7 @@ const Home = () => {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
       setPickupSuggestions(response.data.data);
     } catch (err) {
@@ -86,7 +86,7 @@ const Home = () => {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
       setDestinationSuggestions(response.data.data);
     } catch (err) {
@@ -119,7 +119,7 @@ const Home = () => {
         });
       }
     },
-    [panelOpen]
+    [panelOpen],
   );
 
   useGSAP(
@@ -134,7 +134,7 @@ const Home = () => {
         });
       }
     },
-    [VehiclePanel]
+    [VehiclePanel],
   );
 
   useGSAP(
@@ -151,7 +151,7 @@ const Home = () => {
         });
       }
     },
-    [ConfirmRidePanel]
+    [ConfirmRidePanel],
   );
 
   useGSAP(
@@ -168,7 +168,7 @@ const Home = () => {
         });
       }
     },
-    [vehicleFound]
+    [vehicleFound],
   );
 
   useGSAP(
@@ -183,7 +183,7 @@ const Home = () => {
         });
       }
     },
-    [WaitForDriverPanel]
+    [WaitForDriverPanel],
   );
 
   async function findTrip() {
@@ -198,7 +198,7 @@ const Home = () => {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      }
+      },
     );
     setFare(response.data.data);
   }
@@ -215,7 +215,7 @@ const Home = () => {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      }
+      },
     );
   }
 
@@ -229,6 +229,17 @@ const Home = () => {
             </h1>
             <p className="text-gray-500 text-sm font-light">User Dashboard</p>
           </div>
+
+          <div className="absolute right-24">
+            <Link
+              to="/user/edit-profile"
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
+            >
+              <i className="ri-user-settings-line text-base text-gray-700"></i>
+              <span className="text-sm font-medium text-gray-700">Profile</span>
+            </Link>
+          </div>
+
           <a
             href="/user/logout"
             className="flex items-center justify-center h-12 w-12 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
@@ -259,8 +270,20 @@ const Home = () => {
             </h1>
             <p className="text-gray-500 text-sm font-light">User Dashboard</p>
           </div>
-          <Link to="/user/logout" className="flex items-center justify-center h-12 w-12 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm">
-          <svg
+
+          <div className="absolute right-24">
+            <Link
+              to="/user/edit-profile"
+              className="flex items-center justify-center h-10 w-10 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
+            >
+              <i className="ri-user-settings-line text-lg text-gray-700"></i>
+            </Link>
+          </div>
+          <Link
+            to="/user/logout"
+            className="flex items-center justify-center h-12 w-12 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
+          >
+            <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6 text-gray-700"
               fill="none"
@@ -274,7 +297,7 @@ const Home = () => {
                 d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
               />
             </svg>
-          </Link>   
+          </Link>
         </div>
       </div>
 
