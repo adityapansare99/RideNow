@@ -1,26 +1,57 @@
 import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useEffect } from "react";
 
 const UserEditProfile = () => {
   const navigate = useNavigate();
 
-  const [userData, setUserData] = useState({
-    firstname: "John",
-    lastname: "Doe",
-    email: "john.doe@example.com",
-    phone: "+91 9876543210",
-    profilePhoto: "https://randomuser.me/api/portraits/men/1.jpg",
-  });
+  const [userData, setUserData] = useState({});
 
-  const [formData, setFormData] = useState({
-    firstname: userData.firstname,
-    lastname: userData.lastname,
-    password: "",
-    confirmPassword: "",
-  });
+  const getUserProfile = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/users/profile`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
 
-  const [profilePhoto, setProfilePhoto] = useState(userData.profilePhoto);
+      if (response.data.success) {
+        setUserData(response.data.data.user);
+        console.log("User profile data:", response.data);
+      }
+
+      if (!response.data.success) {
+        console.log(response.data);
+        navigate("/login");
+      }
+    } catch (error) {
+      console.log("Error fetching user profile:", error);
+      navigate("/login");
+    }
+  };
+
+  useEffect(() => {
+    getUserProfile();
+  }, []);
+
+  const [firstname, setFirstname] = useState("");
+  const [lastname, setLastname] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [image, setImage] = useState("");
+
+  useEffect(() => {
+    if (userData && Object.keys(userData).length > 0) {
+      setFirstname(userData?.fullname?.firstname || "");
+      setLastname(userData?.fullname?.lastname || "");
+      setImage(userData?.image || "");
+    }
+  }, [userData]);
+
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
 
@@ -35,19 +66,11 @@ const UserEditProfile = () => {
 
   const fileInputRef = useRef(null);
 
-  // Handle input changes
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
   // Handle profile photo change
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setPhotoFile(file);
+      setImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoPreview(reader.result);
@@ -56,20 +79,32 @@ const UserEditProfile = () => {
     }
   };
 
-  // Send OTP
   const handleSendOtp = async () => {
     setOtpLoading(true);
     setOtpError("");
 
     try {
-      //send otp route 
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/users/Generate-otp`,
+        {
+          mobile: userData.mobile,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
 
-      // Dummy success
-      setTimeout(() => {
+      if (response.status !== 200) {
+        throw new Error(response.data.message);
+      }
+
+      if (response.status === 200) {
         setIsOtpSent(true);
         setOtpLoading(false);
         alert(`OTP sent to ${userData.phone}`);
-      }, 1500);
+      }
     } catch (error) {
       setOtpLoading(false);
       setOtpError("Failed to send OTP. Please try again.");
@@ -88,14 +123,24 @@ const UserEditProfile = () => {
     setOtpError("");
 
     try {
-      //verify otp route
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/users/verify-otp`,
+        { mobile: userData.mobile, otp: otp },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+      if (response.status !== 200) {
+        throw new Error(response.data.message);
+      }
 
-      // Dummy success
-      setTimeout(() => {
+      if (response.status === 200) {
         setIsOtpVerified(true);
         setOtpLoading(false);
         alert("OTP verified successfully!");
-      }, 1500);
+      }
     } catch (error) {
       setOtpLoading(false);
       setOtpError("Invalid OTP. Please try again.");
@@ -112,24 +157,43 @@ const UserEditProfile = () => {
       return;
     }
 
-    if (formData.password && formData.password !== formData.confirmPassword) {
+    if (password && password !== confirmPassword) {
       alert("Passwords do not match");
       return;
     }
 
     try {
-      //update profile route
+      const response = await axios.put(
+        `${import.meta.env.VITE_BASE_URL}/users/edit-profile`,
+        {
+          firstname: firstname,
+          lastname: lastname,
+          password: password,
+          mobile: userData.mobile,
+          image: image,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
 
-      // Dummy success
-      alert("Profile updated successfully!");
-      navigate("/home");
+      if (response.status !== 200) {
+        throw new Error(response.data.message);
+      }
+
+      if (response.status === 200) {
+        alert("Profile updated successfully!");
+        navigate("/home");
+      }
+      
     } catch (error) {
       alert("Failed to update profile");
       console.error("Profile update error:", error);
     }
   };
 
-  // Delete Account
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== "DELETE") {
       alert('Please type "DELETE" to confirm');
@@ -137,12 +201,24 @@ const UserEditProfile = () => {
     }
 
     try {
+      const response = await axios.delete(
+        `${import.meta.env.VITE_BASE_URL}/users/delete-user`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
 
-      //delete account route
-      // Dummy success
-      localStorage.removeItem("token");
-      alert("Account deleted successfully");
-      navigate("/login");
+      if (response.status !== 200) {
+        throw new Error(response.data.message);
+      }
+
+      if (response.status === 200) {
+        localStorage.removeItem("token");
+        alert("Account deleted successfully");
+        navigate("/login");
+      }
     } catch (error) {
       alert("Failed to delete account");
       console.error("Account deletion error:", error);
@@ -187,7 +263,7 @@ const UserEditProfile = () => {
           <div className="mb-8 flex flex-col items-center">
             <div className="relative">
               <img
-                src={photoPreview || profilePhoto}
+                src={photoPreview || image}
                 alt="Profile"
                 className="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-gray-200 shadow-md"
               />
@@ -211,7 +287,6 @@ const UserEditProfile = () => {
             </p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleUpdateProfile} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -219,14 +294,20 @@ const UserEditProfile = () => {
               </label>
               <div className="flex gap-3">
                 <input
-                  value={formData.firstname}
+                  onChange={(e) => {
+                    setFirstname(e.target.value);
+                  }}
+                  value={firstname}
                   className="w-1/2 bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
                   type="text"
                   required
                   placeholder="First name"
                 />
                 <input
-                  value={formData.lastname}
+                  onChange={(e) => {
+                    setLastname(e.target.value);
+                  }}
+                  value={lastname}
                   className="w-1/2 bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
                   type="text"
                   placeholder="Last name"
@@ -234,63 +315,62 @@ const UserEditProfile = () => {
               </div>
             </div>
 
-            {/* Email (Read-only) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Email Address
               </label>
               <input
                 type="email"
-                value={userData.email}
+                value={userData?.email}
                 className="w-full bg-gray-100 border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-500 cursor-not-allowed"
                 disabled
               />
             </div>
 
-            {/* Phone (Read-only) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Phone Number
               </label>
               <input
                 type="text"
-                value={userData.phone}
+                value={userData?.mobile}
                 className="w-full bg-gray-100 border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-500 cursor-not-allowed"
                 disabled
               />
             </div>
 
-            {/* New Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 New Password (Optional)
               </label>
               <input
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                }}
                 type="password"
                 name="password"
-                value={formData.password}
-                onChange={handleInputChange}
+                value={password}
                 className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
                 placeholder="Leave blank to keep current password"
               />
             </div>
 
-            {/* Confirm Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Confirm New Password
               </label>
               <input
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                }}
                 type="password"
                 name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
+                value={confirmPassword}
                 className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
                 placeholder="Confirm your new password"
               />
             </div>
 
-            {/* OTP Section */}
             <div className="pt-4">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h3 className="font-semibold text-gray-900 mb-3 text-sm">
@@ -348,7 +428,6 @@ const UserEditProfile = () => {
               </div>
             </div>
 
-            {/* Update Button */}
             <button
               type="submit"
               disabled={!isOtpVerified}
@@ -360,7 +439,6 @@ const UserEditProfile = () => {
             </button>
           </form>
 
-          {/* Divider */}
           <div className="flex items-center space-x-3 pt-8">
             <div className="flex-1 h-px bg-gray-200"></div>
             <span className="text-gray-400 text-xs font-medium">
@@ -369,7 +447,6 @@ const UserEditProfile = () => {
             <div className="flex-1 h-px bg-gray-200"></div>
           </div>
 
-          {/* Delete Account Button */}
           <div className="mt-6">
             <button
               type="button"
@@ -384,7 +461,6 @@ const UserEditProfile = () => {
         </div>
       </div>
 
-      {/* Delete Account Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8">
