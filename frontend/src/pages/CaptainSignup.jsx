@@ -19,56 +19,68 @@ const CaptainSignup = () => {
   const [vehicleCapacity, setVehicleCapacity] = useState("");
 
   const [mobile, setmobile] = useState("");
-  const [otp, setotp] = useState("");
   const [otpField, setOtpField] = useState(false);
   const [userOtp, setUserOtp] = useState("");
 
   const { captain, setCaptain } = React.useContext(CaptainDataContext);
 
   const submitHandler = async (e) => {
-    if (otp.toString() !== userOtp.toString()) {
-      alert("Invalid otp");
+    try {
       e.preventDefault();
+      const otpResponse = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/captains/verify-otp`,
+        { mobile, otp:userOtp },
+      );
+
+      if (otpResponse.status !== 200) {
+        alert("OTP verification failed");
+        e.preventDefault();
+        return;
+      }
+
+      const captainData = {
+        fullname: {
+          firstname: firstname,
+          lastname: lastname,
+        },
+        email: email,
+        password: password,
+        vehicle: {
+          color: vehicleColor,
+          plate: vehiclePlate,
+          capacity: vehicleCapacity,
+          vehicletype: vehicleType,
+        },
+        mobile: mobile,
+      };
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/captains/register`,
+        captainData,
+      );
+
+      console.log("Signup response:", response);
+
+      if (response.status === 200) {
+        const data = response.data.data;
+        setCaptain(data.user);
+        localStorage.setItem("token", data.accesstoken);
+        navigate("/captain-home");
+      }
+
+      setEmail("");
+      setPassword("");
+      setFirstname("");
+      setLastname("");
+      setVehicleColor("");
+      setVehicleType("");
+      setvehiclePlate("");
+      setVehicleCapacity("");
+    } catch (error) {
+      console.log("signup error:", error);
+      alert("Signup failed. Try again");
       return;
     }
-
-    e.preventDefault();
-    const captainData = {
-      fullname: {
-        firstname: firstname,
-        lastname: lastname,
-      },
-      email: email,
-      password: password,
-      vehicle: {
-        color: vehicleColor,
-        plate: vehiclePlate,
-        capacity: vehicleCapacity,
-        vehicletype: vehicleType,
-      },
-      mobile: mobile,
-    };
-
-    const response = await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/captains/register`,
-      captainData
-    );
-
-    if (response.status === 200) {
-      const data = response.data.data;
-      setCaptain(data.user);
-      localStorage.setItem("token", data.accesstoken);
-      navigate("/captain-home");
-    }
-
-    setEmail("");
-    setPassword("");
-    setFirstname("");
-    setLastname("");
-    setVehicleColor("");
-    setVehicleType("");
-    setvehiclePlate("");
-    setVehicleCapacity("");
   };
 
   const otpHandler = async () => {
@@ -79,13 +91,12 @@ const CaptainSignup = () => {
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/captains/otp`,
-        { mobile }
+        `${import.meta.env.VITE_BASE_URL}/captains/Generate-otp`,
+        { mobile },
       );
 
       if (response.status === 200) {
         alert("otp sent successfully");
-        setotp(response.data.data);
         setOtpField(true);
         return;
       }

@@ -10,8 +10,12 @@ import {
   profile,
   logout,
   captainHistroy,
+  verifyOtp,
   generateOtp,
+  deleteCaptain,
+  editProfile
 } from "../controller/captain.controller.js";
+import { upload } from "../middleware/multer.middleware.js";
 
 const caprouter = Router();
 
@@ -20,6 +24,8 @@ caprouter.route("/login").post(caploginresult, logincaptain);
 caprouter.route("/logout").post(authc, logout);
 caprouter.route("/profile").get(authc, profile);
 caprouter.route("/history").get(authc, captainHistroy);
-caprouter.route("/otp").post(generateOtp);
-
+caprouter.route("/Generate-otp").post(generateOtp);
+caprouter.route("/verify-otp").post(verifyOtp);
+caprouter.route("/delete-captain").delete(authc, deleteCaptain);
+caprouter.route("/edit-profile").put(authc,upload.single("profilepic"),editProfile);
 export { caprouter };

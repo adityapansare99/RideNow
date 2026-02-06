@@ -4,6 +4,8 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
 import Histroy from "../model/captainHistroy.model.js";
 import twilio from "twilio";
+import { storeOtp, verifyStoredOtp } from "../service/otpStore.js";
+import { uploadoncloudinary } from "../utils/cloudinary.js";
 
 const registercaptain = asynchandler(async (req, res) => {
   const { fullname, email, password, vehicle, mobile } = req.body;
@@ -42,21 +44,32 @@ const registercaptain = asynchandler(async (req, res) => {
   }
 
   const captainid = await Captain.findById(captain._id).select(
-    "-password -refershtoken"
+    "-password -refershtoken",
   );
 
   if (!captainid) {
     throw new ApiError(400, "Captain not created");
   }
 
+  const { accesstoken, refreshtoken } = await Generatingaccessandrefreshtoken(
+    captainid.email,
+  );
+
+  const options = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+  };
+
   res
     .status(200)
+    .cookie("accesstoken", accesstoken, options)
+    .cookie("refreshtoken", refreshtoken, options)
     .json(
       new ApiResponse(
         200,
-        { captain: captainid },
-        "captain registered successfully"
-      )
+        { captain: captainid,accesstoken, refreshtoken },
+        "captain registered successfully",
+      ),
     );
 });
 
@@ -76,7 +89,7 @@ const logincaptain = asynchandler(async (req, res) => {
   }
 
   const { accesstoken, refreshtoken } = await Generatingaccessandrefreshtoken(
-    captain.email
+    captain.email,
   );
 
   const options = {
@@ -84,8 +97,8 @@ const logincaptain = asynchandler(async (req, res) => {
     secure: process.env.NODE_ENV === "production",
   };
 
-  const loggeduser = await Captain.findOne({email:captain.email}).select(
-    "-password -refreshtoken"
+  const loggeduser = await Captain.findOne({ email: captain.email }).select(
+    "-password -refreshtoken",
   );
 
   if (!loggeduser) {
@@ -100,14 +113,14 @@ const logincaptain = asynchandler(async (req, res) => {
       new ApiResponse(
         200,
         { user: loggeduser, accesstoken, refreshtoken },
-        "successfully logged in"
-      )
+        "successfully logged in",
+      ),
     );
 });
 
 const Generatingaccessandrefreshtoken = async (capEmail) => {
   try {
-    const captain = await Captain.findOne({email:capEmail});
+    const captain = await Captain.findOne({ email: capEmail });
 
     if (!captain) {
       res.status(404).json(new ApiResponse(404, null, "Captain not found"));
@@ -128,7 +141,7 @@ const Generatingaccessandrefreshtoken = async (capEmail) => {
 
 const profile = asynchandler(async (req, res) => {
   const captainid = await Captain.findById(req.captain).select(
-    "-password -refreshtoken"
+    "-password -refreshtoken",
   );
   res.status(200).json(new ApiResponse(200, { captainid }, "captain profile"));
 });
@@ -141,7 +154,7 @@ const logout = asynchandler(async (req, res) => {
         refreshtoken: undefined,
       },
     },
-    { new: true }
+    { new: true },
   );
 
   const options = {
@@ -158,7 +171,7 @@ const logout = asynchandler(async (req, res) => {
 
 const captainHistroy = asynchandler(async (req, res) => {
   const captainid = await Captain.findById(req.captain).select(
-    "-password -refreshtoken"
+    "-password -refreshtoken",
   );
 
   const captain_id = captainid._id;
@@ -174,19 +187,19 @@ const captainHistroy = asynchandler(async (req, res) => {
   }
 
   const totalDist = Number(
-    histroy.dist.reduce((sum, val) => sum + val, 0).toFixed(2)
+    histroy.dist.reduce((sum, val) => sum + val, 0).toFixed(2),
   );
   const totalTime = Number(
-    histroy.time.reduce((sum, val) => sum + val, 0).toFixed(2)
+    histroy.time.reduce((sum, val) => sum + val, 0).toFixed(2),
   );
   const totalEarning = Number(
-    histroy.earning.reduce((sum, val) => sum + val, 0).toFixed(2)
+    histroy.earning.reduce((sum, val) => sum + val, 0).toFixed(2),
   );
 
   res
     .status(200)
     .json(
-      new ApiResponse(200, { totalDist, totalTime, totalEarning }, "histroy")
+      new ApiResponse(200, { totalDist, totalTime, totalEarning }, "histroy"),
     );
 });
 
@@ -198,20 +211,138 @@ const sendOtpToMobile = async (mobile, otp) => {
     from: process.env.Twilio_PHONE_NUMBER,
     to: `+91${mobile}`,
   });
+
+  return response;
 };
 
 const generateOtp = asynchandler(async (req, res) => {
   const { mobile } = req.body;
 
-  if (mobile.length !== 10) {
-    throw new ApiError(400, "Enter valid mobile number");
+  if (!mobile || mobile.length !== 10) {
+    return res
+      .status(400)
+      .json(
+        new ApiResponse(
+          400,
+          null,
+          "Mobile number is required and should be 10 digits",
+        ),
+      );
   }
 
   const otp = Math.floor(100000 + Math.random() * 900000);
 
-  await sendOtpToMobile(mobile, otp);
+  await storeOtp(mobile, otp);
 
-  res.status(200).json(new ApiResponse(200, otp, "otp generated successfully"));
+  const response = await sendOtpToMobile(mobile, otp);
+
+  if (!response) {
+    return res
+      .status(500)
+      .json(new ApiResponse(500, null, "Failed to send OTP"));
+  }
+
+  res.status(200).json(new ApiResponse(200, null, "OTP sent successfully"));
+});
+
+const verifyOtp = asynchandler(async (req, res) => {
+  const { mobile, otp } = req.body;
+
+  if (!mobile || !otp) {
+    return res
+      .status(400)
+      .json(new ApiResponse(400, null, "Mobile and OTP are required"));
+  }
+
+  const isValid = await verifyStoredOtp(mobile, otp);
+
+  if (!isValid) {
+    return res
+      .status(400)
+      .json(new ApiResponse(400, null, "Invalid or expired OTP"));
+  }
+
+  res.status(200).json(new ApiResponse(200, null, "OTP verified successfully"));
+});
+
+const deleteCaptain = asynchandler(async (req, res) => {
+  try {
+    const captain = req.captain;
+    const response = await Captain.findByIdAndDelete(captain._id);
+    if (!response) {
+      return res
+        .status(400)
+        .json(
+          new ApiResponse(400, null, "Unable to delete the captain account"),
+        );
+    }
+
+    res
+      .status(200)
+      .json(new ApiResponse(200, null, "Captain account deleted successfully"));
+  } catch (error) {
+    return res
+      .status(400)
+      .json(new ApiResponse(400, null, "Unable to delete the captain account"));
+  }
+});
+
+const editProfile = asynchandler(async (req, res) => {
+  try {
+    const captain = req.captain;
+
+    const {
+      firstname,
+      lastname,
+      password,
+      vehicleColor,
+      vehicleType,
+      vehiclePlate,
+      vehicleCapacity,
+    } = req.body;
+
+    const profilepic = req.file;
+
+    let updatedData = await Captain.findByIdAndUpdate(captain._id, {
+      fullname: {
+        firstname,
+        lastname,
+      },
+      vehicle: {
+        color: vehicleColor,
+        plate: vehiclePlate,
+        capacity: vehicleCapacity,
+        vehicletype: vehicleType,
+      },
+    });
+
+    if (password) {
+      updatedData.password = password;
+      await updatedData.save({ validateBeforeSave: false });
+    }
+
+    if (profilepic) {
+      const response = await uploadoncloudinary(profilepic.path);
+      updatedData.profilepic = response.url;
+      await updatedData.save({ validateBeforeSave: false });
+    }
+
+    if (!updatedData) {
+      return res
+        .status(404)
+        .json(new ApiResponse(404, null, "Captain profile not updated"));
+    }
+
+    const updatedCaptain = await Captain.findById(captain._id).select(
+      "-password -refreshtoken",
+    );
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, updatedCaptain, "Profile updated successfully"),
+      );
+  } catch (error) {}
 });
 
 export {
@@ -220,5 +351,8 @@ export {
   profile,
   logout,
   captainHistroy,
+  verifyOtp,
   generateOtp,
+  deleteCaptain,
+  editProfile,
 };

@@ -15,6 +15,7 @@ import CaptainLogout from "./pages/CaptainLogout.jsx";
 import Riding from "./pages/Riding.jsx";
 import CaptainRiding from "./pages/CaptainRiding.jsx";
 import UserEditProfile from "./pages/UserEditProfile.jsx";
+import CaptainEditProfile from "./pages/CaptainEditProfile.jsx";
 
 const App = () => {
   return (
@@ -60,6 +61,16 @@ const App = () => {
             </CaptainProtectedWrapper>
           }
         />
+
+        <Route
+          path="/captain/edit-profile"
+          element={
+            <CaptainProtectedWrapper>
+              <CaptainEditProfile/>
+            </CaptainProtectedWrapper>
+          }
+        />
+
         <Route
           path="/captain/logout"
           element={

@@ -62,7 +62,7 @@ const CaptainHome = () => {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      }
+      },
     );
 
     setRidePopupPanel(false);
@@ -77,7 +77,7 @@ const CaptainHome = () => {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
 
       if (response.status === 200) {
@@ -101,7 +101,7 @@ const CaptainHome = () => {
         });
       }
     },
-    [RidePopupPanel]
+    [RidePopupPanel],
   );
 
   useGSAP(
@@ -116,7 +116,7 @@ const CaptainHome = () => {
         });
       }
     },
-    [ConfirmRidePopupPanel]
+    [ConfirmRidePopupPanel],
   );
 
   return (
@@ -130,6 +130,16 @@ const CaptainHome = () => {
             <p className="text-gray-500 text-xs sm:text-sm font-light">
               Captain Dashboard
             </p>
+          </div>
+
+          <div className="absolute right-15 sm:right-24">
+            <Link
+              to="/captain/edit-profile"
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
+            >
+              <i className="ri-user-settings-line text-base text-gray-700"></i>
+              <span className="text-sm font-medium text-gray-700">Profile</span>
+            </Link>
           </div>
           <Link
             to="/captain/logout"
