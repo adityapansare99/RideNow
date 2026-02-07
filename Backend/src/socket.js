@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import { User } from "./model/user.model.js";
 import { Captain } from "./model/captain.model.js";
+import { Ride } from "./model/ride.model.js";
 
 let io;
 
@@ -13,6 +14,8 @@ const initializeSocket = (server) => {
   });
 
   io.on("connection", (socket) => {
+    console.log(`Client connected: ${socket.id}`);
+
     socket.on("join", async (data) => {
       const { userId, userType } = data;
 
@@ -45,6 +48,36 @@ const initializeSocket = (server) => {
       } catch (error) {
         console.error("Location update error:", error);
         socket.emit("error", { message: "Location update failed", error });
+      }
+    });
+
+    socket.on("update-captain-location-ride", async (data) => {
+      const { userId, location, rideId } = data;
+
+      if (!location || !location.ltd || !location.lng) {
+        return socket.emit("error", { message: "Invalid location data" });
+      }
+
+      try {
+        await Captain.findByIdAndUpdate(userId, {
+          location: {
+            ltd: location.ltd,
+            lng: location.lng,
+          },
+        });
+
+        const ride = await Ride.findById(rideId).populate('user');
+        
+        if (ride && ride.user && ride.user.socketId) {
+          console.log(`Sending location to user ${ride.user.socketId}`); 
+          io.to(ride.user.socketId).emit("captain-location-update", {
+            location: location,
+            rideId: rideId,
+          });
+        }
+      } catch (error) {
+        console.error("Ride location update error:", error);
+        socket.emit("error", { message: "Ride location update failed", error });
       }
     });
 

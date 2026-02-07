@@ -4,6 +4,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import FinishRide from "../components/FinishRide";
 import LiveTracking from "../components/LiveTracking";
+import LiveRideTracking from "../components/LiveRideTracking.jsx";
 
 const CaptainRiding = () => {
   const [FinishRidePanel, setFinishRidePanel] = useState(false);
@@ -62,7 +63,7 @@ const CaptainRiding = () => {
 
       <div className="flex-1 flex flex-col lg:flex-row lg:gap-6 lg:p-6">
         <div className="relative w-full h-[70vh] lg:h-[84vh] flex-1 lg:rounded-2xl lg:overflow-hidden lg:shadow-lg">
-          <LiveTracking />
+         <LiveRideTracking ride={rideData} userType="captain" />
 
           <div className="absolute bottom-4 left-4 right-4 sm:left-6 sm:right-auto z-10">
             <div className="inline-flex mb-4 items-center gap-3 bg-white/90 backdrop-blur-md px-4 py-3 rounded-xl shadow-lg border border-gray-100">

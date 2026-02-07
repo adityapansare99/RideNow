@@ -5,6 +5,7 @@ import { SocketContext } from "../context/SocketContext.jsx";
 import { useNavigate } from "react-router-dom";
 import LiveTracking from "../components/LiveTracking.jsx";
 import axios from "axios";
+import LiveRideTracking from "../components/LiveRideTracking.jsx";
 
 const Riding = () => {
   const location = useLocation();
@@ -100,7 +101,7 @@ const Riding = () => {
       <div className="hidden lg:flex lg:flex-1 lg:gap-6 lg:p-6">
         <div className="relative flex-1 w-full rounded-2xl overflow-hidden shadow-lg">
           <div className="absolute inset-0">
-            <LiveTracking />
+            <LiveRideTracking ride={ride} userType="user" />
           </div>
         </div>
 
