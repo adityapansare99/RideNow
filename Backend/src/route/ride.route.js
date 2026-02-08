@@ -7,6 +7,7 @@ import {
   endRide,
   makepayment,
   verifypayment,
+  cancelRide
 } from "../controller/ride.controller.js";
 import { body, query } from "express-validator";
 import { auth, authc } from "../middleware/auth.middleware.js";
@@ -29,7 +30,7 @@ riderrouter
       .isString()
       .isIn(["car", "auto", "moto"])
       .withMessage("Invalid vehicle type"),
-    createride
+    createride,
   );
 
 riderrouter
@@ -41,7 +42,7 @@ riderrouter
       .isLength({ min: 3 })
       .withMessage("Invalid pickup"),
     query("destination").isString().isLength({ min: 3 }),
-    farevalue
+    farevalue,
   );
 
 riderrouter
@@ -49,7 +50,7 @@ riderrouter
   .post(
     authc,
     body("rideId").isMongoId().withMessage("Invalid rideId"),
-    confirmRide
+    confirmRide,
   );
 
 riderrouter
@@ -61,7 +62,7 @@ riderrouter
       .isString()
       .isLength({ min: 6, max: 6 })
       .withMessage("Invalid otp"),
-    startRide
+    startRide,
   );
 
 riderrouter
@@ -69,11 +70,13 @@ riderrouter
   .post(
     authc,
     body("rideId").isMongoId().withMessage("Invalid rideId"),
-    endRide
+    endRide,
   );
 
 riderrouter.route("/makepayment").post(auth, makepayment);
 
 riderrouter.route("/verifypayment").post(auth, verifypayment);
+
+riderrouter.route("/cancel-ride").post(authc, cancelRide);
 
 export { riderrouter };

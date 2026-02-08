@@ -240,9 +240,21 @@ const Home = () => {
             </Link>
           </div>
 
+          <div className="absolute right-53">
+            <Link
+              to="/user/ride-history"
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
+            >
+              <i className="ri-history-line text-base text-gray-700"></i>
+              <span className="text-sm font-medium text-gray-700">
+                Ride History
+              </span>
+            </Link>
+          </div>
+
           <a
             href="/user/logout"
-            className="flex items-center justify-center h-12 w-12 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
+            className="flex items-center justify-center h-10 w-12 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -271,7 +283,7 @@ const Home = () => {
             <p className="text-gray-500 text-sm font-light">User Dashboard</p>
           </div>
 
-          <div className="absolute right-24">
+          <div className="absolute right-20">
             <Link
               to="/user/edit-profile"
               className="flex items-center justify-center h-10 w-10 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
@@ -279,9 +291,19 @@ const Home = () => {
               <i className="ri-user-settings-line text-lg text-gray-700"></i>
             </Link>
           </div>
+
+          <div className="absolute right-32">
+            <Link
+              to="/user/ride-history"
+              className="flex items-center px-3 py-2 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
+            >
+              <i className="ri-history-line text-base text-gray-700"></i>
+            </Link>
+          </div>
+
           <Link
             to="/user/logout"
-            className="flex items-center justify-center h-12 w-12 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
+            className="flex items-center justify-center h-10 w-10 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

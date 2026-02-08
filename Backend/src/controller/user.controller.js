@@ -5,6 +5,7 @@ import { ApiError } from "../utils/apiError.js";
 import twilio from "twilio";
 import { uploadoncloudinary } from "../utils/cloudinary.js";
 import { storeOtp, verifyStoredOtp } from "../service/otpStore.js";
+import { Ride } from "../model/ride.model.js";
 
 const registeruser = asynchandler(async (req, res) => {
   const { firstname, lastname, email, password, mobile } = req.body;
@@ -287,7 +288,6 @@ const editProfile = asynchandler(async (req, res) => {
       UpdatedUser.password = password;
 
       await UpdatedUser.save({ validateBeforeSave: false });
-
     }
 
     if (imagefile) {
@@ -323,14 +323,44 @@ const editProfile = asynchandler(async (req, res) => {
 const deleteUser = asynchandler(async (req, res) => {
   try {
     const user = req.user;
-    const response=await User.findByIdAndDelete(user._id);
-    if(!response){
-      return res.status(404).json(new ApiResponse(404,null,"User not found"));
+    const response = await User.findByIdAndDelete(user._id);
+    if (!response) {
+      return res.status(404).json(new ApiResponse(404, null, "User not found"));
     }
 
-    return res.status(200).json(new ApiResponse(200,null,"User deleted successfully"));
+    return res
+      .status(200)
+      .json(new ApiResponse(200, null, "User deleted successfully"));
   } catch (error) {
     res.status(400).json(new ApiResponse(400, null, error.message));
+  }
+});
+
+const rideHistory = asynchandler(async (req, res) => {
+  try {
+    const user = req.user;
+
+    if (!user) {
+      return res.status(404).json(new ApiResponse(404, null, "User not found"));
+    }
+
+    const rideData = await Ride.find({ user: user._id })
+      .populate("captain")
+      .sort({ createdAt: -1 });
+
+    if (!rideData) {
+      return res
+        .status(200)
+        .json(new ApiResponse(200, null, "There is no ride data for user"));
+    }
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, rideData, "Ride history retrieved successfully"),
+      );
+  } catch (error) {
+    return res.status(400).json(new ApiResponse(400, null, error.message));
   }
 });
 
@@ -344,4 +374,5 @@ export {
   editProfile,
   verifyOtp,
   deleteUser,
+  rideHistory,
 };

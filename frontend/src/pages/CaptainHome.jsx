@@ -89,6 +89,24 @@ const CaptainHome = () => {
     }
   };
 
+  const cancelRide = async (id) => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/rides/cancel-ride`,
+        { rideId: id },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        },
+      );
+
+      if(!response.data.success){
+        alert("Unable to cancel ride");
+      }
+    } catch (error) {
+      console.error("Error canceling ride:", error);
+    }
+  };
+
   useGSAP(
     function () {
       if (RidePopupPanel) {
@@ -200,6 +218,7 @@ const CaptainHome = () => {
                   ride={ride}
                   setConfirmRidePopupPanel={setConfirmRidePopupPanel}
                   setRidePopupPanel={setRidePopupPanel}
+                  cancelRide={cancelRide}
                 />
               </div>
             )}
@@ -239,6 +258,7 @@ const CaptainHome = () => {
               ride={ride}
               setConfirmRidePopupPanel={setConfirmRidePopupPanel}
               setRidePopupPanel={setRidePopupPanel}
+              cancelRide={cancelRide}
             />
           </div>
         </div>

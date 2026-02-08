@@ -11,7 +11,7 @@ const Riding = () => {
   const location = useLocation();
   const ride = location.state?.ride;
   const { socket } = useContext(SocketContext);
-  const [paymentstatus, setPaymentStatus] = useState(false);
+  const [paymentstatus, setPaymentStatus] = useState(ride.paymentStatus);
   const token = localStorage.getItem("token");
 
   const navigate = useNavigate();

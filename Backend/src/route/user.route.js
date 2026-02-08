@@ -8,7 +8,8 @@ import {
   generateOtp,
   editProfile,
   verifyOtp,
-  deleteUser
+  deleteUser,
+  rideHistory
 } from "../controller/user.controller.js";
 import { auth } from "../middleware/auth.middleware.js";
 import {
@@ -29,5 +30,7 @@ userrouter.route("/delete-user").delete(auth, deleteUser);
 userrouter
   .route("/edit-profile")
   .put(auth, upload.single("image"), editProfile);
+
+userrouter.route("/ride-history").get(auth, rideHistory);
 
 export { userrouter };

@@ -48,7 +48,7 @@ const createride = asynchandler(async (req, res) => {
       pickupCoordinate.ltd,
       pickupCoordinate.lng,
       100,
-      vehicleType
+      vehicleType,
     );
 
     ride.otp = "";
@@ -141,7 +141,7 @@ const startRide = asynchandler(async (req, res) => {
         earning: ride_data.fare,
       },
     },
-    { upsert: true }
+    { upsert: true },
   );
 
   try {
@@ -254,6 +254,43 @@ const verifypayment = asynchandler(async (req, res) => {
   }
 });
 
+const cancelRide = asynchandler(async (req, res) => {
+  try {
+    const { rideId } = req.body;
+    if (!rideId) {
+      return res
+        .status(400)
+        .json(new ApiResponse(400, null, "Ride id is required"));
+    }
+
+    const ride = await Ride.findById(rideId);
+    if (!ride) {
+      return res.status(400).json(new ApiResponse(400, null, "Ride not found"));
+    }
+
+    const response = await Ride.findByIdAndUpdate(rideId, {
+      status: "cancelled",
+    });
+
+    sendMessageToSocketId(ride.user.socketId, {
+      event: "ride-ended",
+      data: ride,
+    });
+
+    if (!response) {
+      return res
+        .status(400)
+        .json(new ApiResponse(400, null, "Unable to cancel ride"));
+    }
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, null, "Ride cancelled successfully"));
+  } catch (error) {
+    res.status(400).json(new ApiResponse(400, null, "Unable to cancel ride"));
+  }
+});
+
 export {
   createride,
   farevalue,
@@ -262,4 +299,5 @@ export {
   endRide,
   makepayment,
   verifypayment,
+  cancelRide
 };

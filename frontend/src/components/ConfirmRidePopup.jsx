@@ -124,6 +124,7 @@ const ConfirmRidePopup = (props) => {
 
             <button
               onClick={() => {
+                props.cancelRide(props.ride._id);
                 props.setConfirmRidePopupPanel(false);
               }}
               type="button"
