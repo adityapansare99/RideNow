@@ -2,16 +2,22 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const UserRideHistory = () => {
+const CaptainRideHistory = () => {
   const [rides, setRides] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
+  const [stats, setStats] = useState({
+    totalRides: 0,
+    totalEarnings: 0,
+    completedRides: 0,
+    cancelledRides: 0,
+  });
   const navigate = useNavigate();
 
-  const RideData = async () => {
+  const rideData = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/users/ride-history`,
+        `${import.meta.env.VITE_BASE_URL}/captains/ride-history`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -19,23 +25,38 @@ const UserRideHistory = () => {
         },
       );
 
+      setRides(response.data.data);
       if(!response.data.success){
         alert("Unable to fetch your rides");
-        navigate("/home");
+        navigate("/captain-home");
       }
-
-      setRides(response.data.data);
     } catch (error) {
       console.error("Error fetching rides:", error);
+      navigate("/captain-home");
     }
   };
 
   useEffect(() => {
-    RideData();
+    rideData();
     setTimeout(() => {
       setLoading(false);
     }, 1000);
   }, []);
+
+  useEffect(() => {
+    const totalEarnings = rides
+      .filter((r) => r.status === "completed")
+      .reduce((sum, r) => sum + r.fare, 0);
+    const completedRides = rides.filter((r) => r.status === "completed").length;
+    const cancelledRides = rides.filter((r) => r.status === "cancelled").length;
+
+    setStats({
+      totalRides: rides.length,
+      totalEarnings,
+      completedRides,
+      cancelledRides,
+    });
+  }, [rides]);
 
   const getFilteredRides = () => {
     if (activeTab === "all") return rides;
@@ -97,7 +118,7 @@ const UserRideHistory = () => {
   };
 
   const handleGoToRide = (ride) => {
-    navigate("/riding", { state: { ride } });
+    navigate("/captain-riding", { state: { ride } });
   };
 
   return (
@@ -111,7 +132,7 @@ const UserRideHistory = () => {
             <p className="text-gray-500 text-xs font-light">Ride History</p>
           </div>
           <Link
-            to="/home"
+            to="/captain-home"
             className="flex items-center justify-center h-10 w-10 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
           >
             <i className="text-lg font-medium ri-home-5-line"></i>
@@ -125,18 +146,20 @@ const UserRideHistory = () => {
             <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
               RideNow
             </h1>
-            <p className="text-gray-500 text-sm font-light">Ride History</p>
+            <p className="text-gray-500 text-sm font-light">
+              Captain Dashboard
+            </p>
           </div>
           <div className="flex items-center gap-4">
             <Link
-              to="/user/edit-profile"
+              to="/captain/edit-profile"
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
             >
               <i className="ri-user-settings-line text-base text-gray-700"></i>
               <span className="text-sm font-medium text-gray-700">Profile</span>
             </Link>
             <Link
-              to="/home"
+              to="/captain-home"
               className="flex items-center justify-center h-10 w-12 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
             >
               <i className="text-lg font-medium ri-home-5-line"></i>
@@ -146,25 +169,82 @@ const UserRideHistory = () => {
       </div>
 
       <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white rounded-xl border border-gray-100 p-6 lg:p-8 mb-6 shadow-sm">
+            <div className="flex items-center justify-between mb-6 pb-6 border-b border-gray-100">
+              <div>
+                <p className="text-sm text-gray-500 font-light mb-1">
+                  Total Earnings
+                </p>
+                <h3 className="text-3xl lg:text-4xl font-bold text-gray-900">
+                  ₹{stats.totalEarnings.toFixed(2)}
+                </h3>
+              </div>
+              <div className="inline-flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-full">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                <span className="text-sm font-medium text-emerald-700">
+                  Active
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 lg:gap-6">
+              <div className="text-center">
+                <i className="text-3xl lg:text-4xl mb-2 font-extralight ri-taxi-line text-gray-700"></i>
+                <h5 className="text-xl lg:text-2xl font-semibold text-gray-900 mb-1">
+                  {stats.totalRides}
+                </h5>
+                <p className="text-xs lg:text-sm text-gray-500 font-light">
+                  Total Rides
+                </p>
+              </div>
+
+              <div className="text-center">
+                <i className="text-3xl lg:text-4xl mb-2 font-extralight ri-checkbox-circle-line text-gray-700"></i>
+                <h5 className="text-xl lg:text-2xl font-semibold text-gray-900 mb-1">
+                  {stats.completedRides}
+                </h5>
+                <p className="text-xs lg:text-sm text-gray-500 font-light">
+                  Completed
+                </p>
+              </div>
+
+              <div className="text-center">
+                <i className="text-3xl lg:text-4xl mb-2 font-extralight ri-close-circle-line text-gray-700"></i>
+                <h5 className="text-xl lg:text-2xl font-semibold text-gray-900 mb-1">
+                  {stats.cancelledRides}
+                </h5>
+                <p className="text-xs lg:text-sm text-gray-500 font-light">
+                  Cancelled
+                </p>
+              </div>
+            </div>
+          </div>
+
           {activeRide && (
-            <div className="mb-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
+            <div className="mb-6 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl shadow-lg p-6 text-white">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <i className="ri-roadster-line text-2xl"></i>
                     <h3 className="text-lg font-bold">Active Ride</h3>
                   </div>
-                  <p className="text-blue-100 text-sm mb-1">
+                  <p className="text-emerald-100 text-sm mb-1">
+                    From: {activeRide.pickup}
+                  </p>
+                  <p className="text-emerald-100 text-sm mb-1">
                     To: {activeRide.destination}
                   </p>
-                  <p className="text-blue-100 text-xs">
+                  <p className="text-emerald-100 text-xs">
                     Started: {formatTime(activeRide.createdAt)}
                   </p>
                 </div>
                 <button
                   onClick={() => handleGoToRide(activeRide)}
-                  className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-all duration-200 shadow-md active:scale-95"
+                  className="bg-white text-emerald-600 px-6 py-3 rounded-lg font-semibold hover:bg-emerald-50 transition-all duration-200 shadow-md active:scale-95"
                 >
                   View Ride
                 </button>
@@ -174,7 +254,7 @@ const UserRideHistory = () => {
 
           <div className="mb-6">
             <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-              Your Rides
+              Your Ride History
             </h2>
             <p className="text-gray-500 text-sm">
               {rides.length} total ride{rides.length !== 1 ? "s" : ""}
@@ -265,15 +345,15 @@ const UserRideHistory = () => {
                 </h3>
                 <p className="text-gray-500 mb-6">
                   {activeTab === "all"
-                    ? "You haven't taken any rides yet"
+                    ? "You haven't completed any rides yet"
                     : `No ${activeTab} rides`}
                 </p>
                 <Link
-                  to="/home"
+                  to="/captain-home"
                   className="inline-flex items-center gap-2 bg-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-900 transition-all duration-200 shadow-sm active:scale-95"
                 >
-                  <i className="ri-add-line"></i>
-                  Book a Ride
+                  <i className="ri-steering-2-line"></i>
+                  Go Online
                 </Link>
               </div>
             </div>
@@ -303,7 +383,7 @@ const UserRideHistory = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-gray-900">
+                      <p className="text-2xl font-bold text-green-600">
                         ₹{ride.fare}
                       </p>
                       {ride.paymentStatus && (
@@ -348,19 +428,18 @@ const UserRideHistory = () => {
                     </div>
                   </div>
 
-                  {ride.captain && (
+                  {ride.user && (
                     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-4">
                       <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
                         <i className="ri-user-line text-gray-600"></i>
                       </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-gray-900">
-                          {ride.captain.fullname.firstname}{" "}
-                          {ride.captain.fullname.lastname}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {ride.user.fullname.firstname}{" "}
+                          {ride.user.fullname.lastname}
                         </p>
-                        <p className="text-xs text-gray-500">
-                          {ride.captain.vehicle.plate} •{" "}
-                          {ride.captain.vehicle.vehicletype}
+                        <p className="text-xs text-gray-500 truncate">
+                          {ride.user.mobile}
                         </p>
                       </div>
                     </div>
@@ -369,28 +448,28 @@ const UserRideHistory = () => {
                   {ride.status === "ongoing" && (
                     <button
                       onClick={() => handleGoToRide(ride)}
-                      className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-900 transition-all duration-200 shadow-sm active:scale-95"
+                      className="w-full bg-emerald-500 text-white py-3 rounded-lg font-semibold hover:bg-emerald-600 transition-all duration-200 shadow-sm active:scale-95"
                     >
-                      View Active Ride
+                      Continue Ride
                     </button>
                   )}
 
                   {ride.status === "completed" && (
-                    <div className="flex gap-2">
-                      {ride.distance && ride.duration && (
-                        <div className="flex-1 grid grid-cols-2 gap-2">
-                          <div className="text-center p-2 bg-gray-50 rounded-lg">
-                            <p className="text-xs text-gray-500">Distance</p>
-                            <p className="text-sm font-semibold text-gray-900">
-                              {(ride.distance / 1000).toFixed(1)} km
-                            </p>
-                          </div>
-                          <div className="text-center p-2 bg-gray-50 rounded-lg">
-                            <p className="text-xs text-gray-500">Duration</p>
-                            <p className="text-sm font-semibold text-gray-900">
-                              {(ride.duration / 60).toFixed(1)} min
-                            </p>
-                          </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {ride.distance && (
+                        <div className="text-center p-2 bg-gray-50 rounded-lg">
+                          <p className="text-xs text-gray-500">Distance</p>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {(ride.distance / 1000).toFixed(2)} km
+                          </p>
+                        </div>
+                      )}
+                      {ride.duration && (
+                        <div className="text-center p-2 bg-gray-50 rounded-lg">
+                          <p className="text-xs text-gray-500">Duration</p>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {(ride.duration / 60).toFixed(2)} min
+                          </p>
                         </div>
                       )}
                     </div>
@@ -405,4 +484,4 @@ const UserRideHistory = () => {
   );
 };
 
-export default UserRideHistory;
+export default CaptainRideHistory;

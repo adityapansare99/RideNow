@@ -13,7 +13,8 @@ import {
   verifyOtp,
   generateOtp,
   deleteCaptain,
-  editProfile
+  editProfile,
+  rideHistory
 } from "../controller/captain.controller.js";
 import { upload } from "../middleware/multer.middleware.js";
 
@@ -28,4 +29,5 @@ caprouter.route("/Generate-otp").post(generateOtp);
 caprouter.route("/verify-otp").post(verifyOtp);
 caprouter.route("/delete-captain").delete(authc, deleteCaptain);
 caprouter.route("/edit-profile").put(authc,upload.single("profilepic"),editProfile);
+caprouter.route("/ride-history").get(authc,rideHistory);
 export { caprouter };

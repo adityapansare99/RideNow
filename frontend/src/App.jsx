@@ -17,6 +17,7 @@ import CaptainRiding from "./pages/CaptainRiding.jsx";
 import UserEditProfile from "./pages/UserEditProfile.jsx";
 import CaptainEditProfile from "./pages/CaptainEditProfile.jsx";
 import UserRideHistory from "./pages/UserRideHistory.jsx";
+import CaptainRideHistory from "./pages/CaptainRideHistory.jsx";
 
 const App = () => {
   return (
@@ -69,6 +70,15 @@ const App = () => {
           element={
             <CaptainProtectedWrapper>
               <CaptainHome />
+            </CaptainProtectedWrapper>
+          }
+        />
+
+        <Route
+          path="/captain/ride-history"
+          element={
+            <CaptainProtectedWrapper>
+              <CaptainRideHistory  />
             </CaptainProtectedWrapper>
           }
         />

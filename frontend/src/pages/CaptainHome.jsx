@@ -99,7 +99,7 @@ const CaptainHome = () => {
         },
       );
 
-      if(!response.data.success){
+      if (!response.data.success) {
         alert("Unable to cancel ride");
       }
     } catch (error) {
@@ -150,7 +150,16 @@ const CaptainHome = () => {
             </p>
           </div>
 
-          <div className="absolute right-15 sm:right-24">
+          <div className="absolute sm:hidden right-17">
+            <Link
+              to="/captain/edit-profile"
+              className="flex items-center justify-center h-10 w-10 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
+            >
+              <i className="ri-user-settings-line text-lg text-gray-700"></i>
+            </Link>
+          </div>
+
+          <div className="absolute hidden sm:block right-24">
             <Link
               to="/captain/edit-profile"
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
@@ -159,9 +168,31 @@ const CaptainHome = () => {
               <span className="text-sm font-medium text-gray-700">Profile</span>
             </Link>
           </div>
+
+          <div className="absolute sm:hidden right-30">
+            <Link
+              to="/captain/ride-history"
+              className="flex items-center px-3 py-2 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
+            >
+              <i className="ri-history-line text-base text-gray-700"></i>
+            </Link>
+          </div>
+
+          <div className="absolute hidden sm:block right-53">
+            <Link
+              to="/captain/ride-history"
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
+            >
+              <i className="ri-history-line text-base text-gray-700"></i>
+              <span className="text-sm font-medium text-gray-700">
+                Ride History
+              </span>
+            </Link>
+          </div>
+
           <Link
             to="/captain/logout"
-            className="flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
+            className="flex items-center justify-center h-10 w-10 sm:h-10 sm:w-12 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

@@ -6,6 +6,7 @@ import Histroy from "../model/captainHistroy.model.js";
 import twilio from "twilio";
 import { storeOtp, verifyStoredOtp } from "../service/otpStore.js";
 import { uploadoncloudinary } from "../utils/cloudinary.js";
+import {Ride} from "../model/ride.model.js";
 
 const registercaptain = asynchandler(async (req, res) => {
   const { fullname, email, password, vehicle, mobile } = req.body;
@@ -345,6 +346,29 @@ const editProfile = asynchandler(async (req, res) => {
   } catch (error) {}
 });
 
+const rideHistory=asynchandler(async(req,res)=>{
+  try {
+    const captain=req.captain;
+
+    if(!captain){
+      return res
+      .status(400)
+      .json(new ApiResponse(400, null, "Captain not found"));
+    }
+
+    const RideData=await Ride.find({captain:captain._id}).populate("user").sort({ createdAt: -1 });
+
+    if(!RideData){
+      return res.status(200).json(new ApiResponse(200, null, "There is no ride history"));
+    }
+
+    return res.status(200).json(new ApiResponse(200, RideData, "Ride history found"));
+
+  } catch (error) {
+    res.status(400).json(new ApiResponse(400, null, error.message));
+  }
+})
+
 export {
   registercaptain,
   logincaptain,
@@ -355,4 +379,5 @@ export {
   generateOtp,
   deleteCaptain,
   editProfile,
+  rideHistory
 };

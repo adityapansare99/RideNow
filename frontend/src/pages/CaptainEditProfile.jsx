@@ -252,7 +252,7 @@ const CaptainEditProfile = () => {
           </div>
           <Link
             to="/captain-home"
-            className="flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
+            className="flex items-center justify-center h-10 w-10 sm:h-10 sm:w-12 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
           >
             <i className="text-lg font-medium ri-home-5-line"></i>
           </Link>
@@ -271,7 +271,7 @@ const CaptainEditProfile = () => {
           </div>
           <Link
             to="/captain-home"
-            className="flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
+            className="flex items-center justify-center h-10 w-10 sm:h-10 sm:w-12 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
           >
             <i className="text-lg sm:text-xl font-medium ri-home-5-line text-gray-700"></i>
           </Link>
