@@ -24,7 +24,7 @@ const CaptainRiding = () => {
         });
       }
     },
-    [FinishRidePanel]
+    [FinishRidePanel],
   );
 
   return (
@@ -62,9 +62,8 @@ const CaptainRiding = () => {
       </div>
 
       <div className="flex-1 flex flex-col lg:flex-row lg:gap-6 lg:p-6">
-        <div className="relative w-full h-[70vh] lg:h-[84vh] flex-1 lg:rounded-2xl lg:overflow-hidden lg:shadow-lg">
-         <LiveRideTracking ride={rideData} userType="captain" />
-
+        <div className="relative w-full h-[60vh] md:h-[84vh] lg:flex-1 lg:min-h-0 lg:rounded-2xl lg:overflow-hidden lg:shadow-lg">
+          <LiveRideTracking ride={rideData} userType="captain" />
           <div className="absolute bottom-4 left-4 right-4 sm:left-6 sm:right-auto z-10">
             <div className="inline-flex mb-4 items-center gap-3 bg-white/90 backdrop-blur-md px-4 py-3 rounded-xl shadow-lg border border-gray-100">
               <div>

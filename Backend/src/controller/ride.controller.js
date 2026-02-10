@@ -132,18 +132,6 @@ const startRide = asynchandler(async (req, res) => {
     return res.status(400).json(new ApiResponse(400, err, "Ride not found"));
   }
 
-  const hist = await Histroy.updateOne(
-    { captain_id: ride_data.captain },
-    {
-      $push: {
-        dist: ride_data.distance / 1000,
-        time: ride_data.duration / 3600,
-        earning: ride_data.fare,
-      },
-    },
-    { upsert: true },
-  );
-
   try {
     const ride = await startride({ rideId, otp, captain: req.captain });
 
@@ -169,6 +157,19 @@ const endRide = asynchandler(async (req, res) => {
   }
 
   const { rideId } = req.body;
+  const ride_data = await Ride.findById(rideId);
+
+  const hist = await Histroy.updateOne(
+    { captain_id: ride_data.captain },
+    {
+      $push: {
+        dist: ride_data.distance / 1000,
+        time: ride_data.duration / 3600,
+        earning: ride_data.fare,
+      },
+    },
+    { upsert: true },
+  );
 
   try {
     const ride = await endride({ rideId, captain: req.captain });
@@ -263,7 +264,7 @@ const cancelRide = asynchandler(async (req, res) => {
         .json(new ApiResponse(400, null, "Ride id is required"));
     }
 
-    const ride = await Ride.findById(rideId);
+    const ride = await Ride.findById(rideId).populate("user");
     if (!ride) {
       return res.status(400).json(new ApiResponse(400, null, "Ride not found"));
     }
@@ -272,16 +273,17 @@ const cancelRide = asynchandler(async (req, res) => {
       status: "cancelled",
     });
 
-    sendMessageToSocketId(ride.user.socketId, {
-      event: "ride-ended",
-      data: ride,
-    });
-
     if (!response) {
       return res
         .status(400)
         .json(new ApiResponse(400, null, "Unable to cancel ride"));
     }
+
+    console.log("ride cancelled");
+    sendMessageToSocketId(ride.user.socketId, {
+      event: "ride-cancelled",
+      data: ride,
+    });
 
     return res
       .status(200)
@@ -299,5 +301,5 @@ export {
   endRide,
   makepayment,
   verifypayment,
-  cancelRide
+  cancelRide,
 };

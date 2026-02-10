@@ -56,6 +56,13 @@ const Home = () => {
     navigate(`/riding`, { state: { ride: ride } });
   });
 
+  socket.on("ride-cancelled",(ride)=>{
+    console.log("ride cancelled");
+    setWaitForDriverPanel(false);
+    setVehiclePanel(false);
+    setvehicleFound(false);
+  })
+
   const handlePickupChange = async (e) => {
     setPickup(e.target.value);
 
