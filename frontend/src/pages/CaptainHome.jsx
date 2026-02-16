@@ -43,15 +43,30 @@ const CaptainHome = () => {
     updateLocation();
     histroy();
 
-    // return () => clearInterval(locationInterval)
-  }, []);
-
-  socket.on("new-ride", (data) => {
+    const handleNewRide = (data) => {
     setRide(data);
     setRidePopupPanel(true);
-  });
+  };
 
-  const confirmRide = async () => {
+  const handleRideAlreadyConfirmed = (data) => {
+    setRidePopupPanel(false);
+    setConfirmRidePopupPanel(false);
+    alert("This ride was just accepted by another captain");
+  };
+
+  socket.on("new-ride", handleNewRide);
+  socket.on("ride-already-confirmed", handleRideAlreadyConfirmed);
+
+    // return () => clearInterval(locationInterval)
+    return () => {
+    clearInterval(locationInterval);
+    socket.off("new-ride", handleNewRide);
+    socket.off("ride-already-confirmed", handleRideAlreadyConfirmed);
+  };
+  }, [socket, captain._id]);
+
+const confirmRide = async () => {
+  try {
     const response = await axios.post(
       `${import.meta.env.VITE_BASE_URL}/rides/confirm`,
       {
@@ -62,12 +77,18 @@ const CaptainHome = () => {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      },
+      }
     );
 
     setRidePopupPanel(false);
     setConfirmRidePopupPanel(true);
-  };
+  } catch (error) {
+    console.error("Error confirming ride:", error);
+    alert(error.response?.data?.message || "This ride has already been accepted by another captain");
+    setRidePopupPanel(false);
+    setConfirmRidePopupPanel(false);
+  }
+};
 
   const histroy = async () => {
     try {

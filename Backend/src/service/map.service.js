@@ -3,6 +3,7 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
 import axios, { Axios } from "axios";
 import { Captain } from "../model/captain.model.js";
+import { Ride } from "../model/ride.model.js";
 
 const getAddressCoordinate = async (address) => {
   if (!address) {
@@ -88,7 +89,9 @@ const autosuggestion = async (input) => {
   }
 };
 
-const getCaptaininTheRadius = async (ltd, lng, radius, vehicleType) => {
+let myMap=new Map();
+
+const getCaptaininTheRadius = async (ltd, lng, radius, vehicleType,RideId) => {
   const captains = await Captain.find({
     location: {
       $geoWithin: {
@@ -99,12 +102,24 @@ const getCaptaininTheRadius = async (ltd, lng, radius, vehicleType) => {
     "vehicle.vehicletype": vehicleType,
   });
 
+  myMap.set(RideId.toString(),captains);
+
   return captains;
 };
+
+const CloseRide=async(RideId)=>{
+  const captains=myMap.get(RideId.toString());
+  if (captains) {
+    myMap.delete(RideId.toString());
+  }
+
+  return captains || [];
+}
 
 export {
   getAddressCoordinate,
   get_distance_time,
   autosuggestion,
   getCaptaininTheRadius,
+  CloseRide
 };

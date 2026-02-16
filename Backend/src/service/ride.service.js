@@ -2,8 +2,9 @@ import { asynchandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
 import { Ride } from "../model/ride.model.js";
-import { get_distance_time } from "../service/map.service.js";
+import { get_distance_time,CloseRide } from "../service/map.service.js";
 import crypto from "crypto";
+import { sendMessageToSocketId } from "../socket.js";
 
 const getFare = async (pickup, destination) => {
   if (!pickup || !destination) {
@@ -128,19 +129,19 @@ const confirmride = async ({ rideId, captain }) => {
     throw new Error("Ride id is required");
   }
 
-  await Ride.findOneAndUpdate(
+  const ride = await Ride.findOneAndUpdate(
     {
       _id: rideId,
+      status: "pending"
     },
     {
       status: "accepted",
       captain: captain._id,
+    },
+    {
+      new: true
     }
-  );
-
-  const ride = await Ride.findOne({
-    _id: rideId,
-  })
+  )
     .populate("user")
     .populate("captain")
     .select("+otp");
@@ -148,6 +149,22 @@ const confirmride = async ({ rideId, captain }) => {
   if (!ride) {
     throw new Error("Ride not found");
   }
+
+  const captains = await CloseRide(rideId);
+
+  if (captains && captains.length > 0) {
+  for (const otherCaptain of captains) {
+    if (captain._id.toString() !== otherCaptain._id.toString()) {
+      if (otherCaptain.socketId) {
+        sendMessageToSocketId(otherCaptain.socketId, {
+          event: "ride-already-confirmed",
+          data: ride, 
+        });
+      }
+    }
+  }
+}
+
 
   return ride;
 };

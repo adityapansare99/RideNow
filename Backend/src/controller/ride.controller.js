@@ -33,15 +33,22 @@ const createride = asynchandler(async (req, res) => {
   const { pickup, destination, vehicleType } = req.body;
 
   try {
-    const ride = await createRide({
-      user: user._id,
-      pickup,
-      destination,
-      vehicleType,
-    });
+    const ride = await createRide(
+      {
+        user: user._id,
+        pickup,
+        destination,
+        vehicleType,
+      },
+      {
+        new: true,
+      },
+    );
     res
       .status(200)
       .json(new ApiResponse(200, ride, "Ride created successfully"));
+
+    const RideId = await Ride.findById(ride._id);
 
     const pickupCoordinate = await getAddressCoordinate(pickup);
     const captainsInRadius = await getCaptaininTheRadius(
@@ -49,6 +56,7 @@ const createride = asynchandler(async (req, res) => {
       pickupCoordinate.lng,
       100,
       vehicleType,
+      RideId._id,
     );
 
     ride.otp = "";
@@ -111,7 +119,12 @@ const confirmRide = asynchandler(async (req, res) => {
       .status(200)
       .json(new ApiResponse(200, ride, "Ride confirmed successfully"));
   } catch (err) {
-    res.status(400).json(new ApiResponse(400, err, "Unable to confirm ride"));
+    console.error("Error in confirmRide:", err);
+    res
+      .status(400)
+      .json(
+        new ApiResponse(400, null, err.message || "Unable to confirm ride"),
+      );
   }
 });
 
@@ -279,7 +292,6 @@ const cancelRide = asynchandler(async (req, res) => {
         .json(new ApiResponse(400, null, "Unable to cancel ride"));
     }
 
-    console.log("ride cancelled");
     sendMessageToSocketId(ride.user.socketId, {
       event: "ride-cancelled",
       data: ride,
