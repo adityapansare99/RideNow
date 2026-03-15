@@ -5,6 +5,7 @@ import { Ride } from "../model/ride.model.js";
 import { get_distance_time,CloseRide } from "../service/map.service.js";
 import crypto from "crypto";
 import { sendMessageToSocketId } from "../socket.js";
+import axios from "axios";
 
 const getFare = async (pickup, destination) => {
   if (!pickup || !destination) {
@@ -20,49 +21,38 @@ const getFare = async (pickup, destination) => {
   const distance = distancetime.distance;
   const time = distancetime.time;
 
-  const baseFare = {
-    auto: 30,
-    car: 50,
-    moto: 20,
-  };
+  try {
+    const response = await axios.post(`${process.env.Model_link}/predict`, {
+      distance: distance,
+      time: time
+    });
 
-  const perKmRate = {
-    auto: 10,
-    car: 15,
-    moto: 8,
-  };
+    if (!response.data || !response.data.success || !response.data.fares) {
+      throw new ApiError(500, "Invalid response from ML model");
+    }
 
-  const perMinuteRate = {
-    auto: 2,
-    car: 3,
-    moto: 1.5,
-  };
+    const fare = response.data.fares; 
+    
+    console.log("ML Predicted Fares:", fare);  
 
-  const fare = {
-    auto:
-      Math.round(
-        (baseFare.auto +
-          (distance / 1000) * perKmRate.auto +
-          (time / 60) * perMinuteRate.auto) *
-          100
-      ) / 100,
-    car:
-      Math.round(
-        (baseFare.car +
-          (distance / 1000) * perKmRate.car +
-          (time / 60) * perMinuteRate.car) *
-          100
-      ) / 100,
-    moto:
-      Math.round(
-        (baseFare.moto +
-          (distance / 1000) * perKmRate.moto +
-          (time / 60) * perMinuteRate.moto) *
-          100
-      ) / 100,
-  };
+    return fare;
 
-  return fare;
+  } catch (error) {
+    console.error("ML API Error:", error.message);
+    
+    const baseFare = { auto: 30, car: 50, moto: 20 };
+    const perKmRate = { auto: 10, car: 15, moto: 8 };
+    const perMinuteRate = { auto: 2, car: 3, moto: 1.5 };
+
+    const fare = {
+      auto: Math.round((baseFare.auto + (distance / 1000) * perKmRate.auto + (time / 60) * perMinuteRate.auto) * 100) / 100,
+      car: Math.round((baseFare.car + (distance / 1000) * perKmRate.car + (time / 60) * perMinuteRate.car) * 100) / 100,
+      moto: Math.round((baseFare.moto + (distance / 1000) * perKmRate.moto + (time / 60) * perMinuteRate.moto) * 100) / 100,
+    };
+
+    console.log("Using Fallback Formula:", fare);
+    return fare;
+  }
 };
 
 const data_for_history = async (pickup, destination) => {
