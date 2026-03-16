@@ -1,6 +1,6 @@
 # Machine Learning Model Accuracy Report
 
-## Uber Clone — Fare Prediction System
+## RideNow — Fare Prediction System
 
 *Linear Regression Model with Vehicle Multipliers*
 
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-This report documents the accuracy and performance of a Linear Regression machine learning model trained to predict car ride fares for an Uber-like ride-hailing application. The model achieves near-perfect accuracy (99.92% R² Score) and serves as the foundation for a three-tier pricing system using vehicle multipliers.
+This report documents the accuracy and performance of a Linear Regression machine learning model trained to predict car ride fares for an RideNow ride-hailing application. The model achieves near-perfect accuracy (99.92% R² Score) and serves as the foundation for a three-tier pricing system using vehicle multipliers.
 
 | Metric | Value | Status |
 |--------|-------|--------|
