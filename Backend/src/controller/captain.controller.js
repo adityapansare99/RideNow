@@ -6,7 +6,7 @@ import Histroy from "../model/captainHistroy.model.js";
 import twilio from "twilio";
 import { storeOtp, verifyStoredOtp } from "../service/otpStore.js";
 import { uploadoncloudinary } from "../utils/cloudinary.js";
-import {Ride} from "../model/ride.model.js";
+import { Ride } from "../model/ride.model.js";
 
 const registercaptain = asynchandler(async (req, res) => {
   const { fullname, email, password, vehicle, mobile } = req.body;
@@ -14,7 +14,7 @@ const registercaptain = asynchandler(async (req, res) => {
   const exists = await Captain.findOne({ email });
 
   if (exists) {
-    throw new ApiError(400, "Captain already exists");
+    throw new ApiError(409, "Captain with this email already exists");
   }
 
   const captain = await Captain.create({
@@ -33,23 +33,23 @@ const registercaptain = asynchandler(async (req, res) => {
     mobile,
   });
 
-  const hist = await Histroy.create({
+  if (!captain) {
+    throw new ApiError(500, "Captain registration failed. Please try again");
+  }
+
+  await Histroy.create({
     captain_id: captain._id,
     dist: [0],
     time: [0],
     earning: [0],
   });
 
-  if (!captain) {
-    throw new ApiError(400, "Captain not created");
-  }
-
   const captainid = await Captain.findById(captain._id).select(
-    "-password -refershtoken",
+    "-password -refreshtoken",
   );
 
   if (!captainid) {
-    throw new ApiError(400, "Captain not created");
+    throw new ApiError(500, "Captain registration failed. Please try again");
   }
 
   const { accesstoken, refreshtoken } = await Generatingaccessandrefreshtoken(
@@ -62,13 +62,13 @@ const registercaptain = asynchandler(async (req, res) => {
   };
 
   res
-    .status(200)
+    .status(201)
     .cookie("accesstoken", accesstoken, options)
     .cookie("refreshtoken", refreshtoken, options)
     .json(
       new ApiResponse(
-        200,
-        { captain: captainid,accesstoken, refreshtoken },
+        201,
+        { captain: captainid, accesstoken, refreshtoken },
         "captain registered successfully",
       ),
     );
@@ -80,13 +80,13 @@ const logincaptain = asynchandler(async (req, res) => {
   const captain = await Captain.findOne({ email });
 
   if (!captain) {
-    throw new ApiError(400, "Captain not found");
+    throw new ApiError(404, "No captain found with this email");
   }
 
   const isPasswordCorrect = await captain.isPasswordCorrect(password);
 
   if (!isPasswordCorrect) {
-    throw new ApiError(400, "Password is wrong");
+    throw new ApiError(401, "Invalid credentials. Please check your password");
   }
 
   const { accesstoken, refreshtoken } = await Generatingaccessandrefreshtoken(
@@ -103,7 +103,7 @@ const logincaptain = asynchandler(async (req, res) => {
   );
 
   if (!loggeduser) {
-    throw new ApiError(400, "Captain not found");
+    throw new ApiError(500, "Failed to retrieve captain data after login");
   }
 
   res
@@ -124,8 +124,7 @@ const Generatingaccessandrefreshtoken = async (capEmail) => {
     const captain = await Captain.findOne({ email: capEmail });
 
     if (!captain) {
-      res.status(404).json(new ApiResponse(404, null, "Captain not found"));
-      return null;
+      throw new ApiError(404, "Captain not found");
     }
     const refreshtoken = captain.Generatingrefershtoken();
     const accesstoken = captain.Generatingaccesstoken();
@@ -136,15 +135,20 @@ const Generatingaccessandrefreshtoken = async (capEmail) => {
 
     return { accesstoken, refreshtoken };
   } catch (err) {
-    throw new ApiError(404, "NOT able to generate the tokens");
+    throw new ApiError(500, "Failed to generate authentication tokens");
   }
 };
 
 const profile = asynchandler(async (req, res) => {
-  const captainid = await Captain.findById(req.captain).select(
+  const captain = await Captain.findById(req.captain._id).select(
     "-password -refreshtoken",
   );
-  res.status(200).json(new ApiResponse(200, { captainid }, "captain profile"));
+
+  if (!captain) {
+    throw new ApiError(404, "Captain profile not found");
+  }
+
+  res.status(200).json(new ApiResponse(200, { captain }, "Captain profile fetched successfully"));
 });
 
 const logout = asynchandler(async (req, res) => {
@@ -346,28 +350,33 @@ const editProfile = asynchandler(async (req, res) => {
   } catch (error) {}
 });
 
-const rideHistory=asynchandler(async(req,res)=>{
+const rideHistory = asynchandler(async (req, res) => {
   try {
-    const captain=req.captain;
+    const captain = req.captain;
 
-    if(!captain){
+    if (!captain) {
       return res
-      .status(400)
-      .json(new ApiResponse(400, null, "Captain not found"));
+        .status(400)
+        .json(new ApiResponse(400, null, "Captain not found"));
     }
 
-    const RideData=await Ride.find({captain:captain._id}).populate("user").sort({ createdAt: -1 });
+    const RideData = await Ride.find({ captain: captain._id })
+      .populate("user")
+      .sort({ createdAt: -1 });
 
-    if(!RideData){
-      return res.status(200).json(new ApiResponse(200, null, "There is no ride history"));
+    if (!RideData) {
+      return res
+        .status(200)
+        .json(new ApiResponse(200, null, "There is no ride history"));
     }
 
-    return res.status(200).json(new ApiResponse(200, RideData, "Ride history found"));
-
+    return res
+      .status(200)
+      .json(new ApiResponse(200, RideData, "Ride history found"));
   } catch (error) {
     res.status(400).json(new ApiResponse(400, null, error.message));
   }
-})
+});
 
 export {
   registercaptain,
@@ -379,5 +388,5 @@ export {
   generateOtp,
   deleteCaptain,
   editProfile,
-  rideHistory
+  rideHistory,
 };
