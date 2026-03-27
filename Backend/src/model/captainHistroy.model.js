@@ -16,14 +16,9 @@ const histroy = new mongoose.Schema({
 
   earning: {
     type: [Number],
-  },
-
-  hist: {
-    type: Map,
-    of: [[Number]],
-  },
+  }
 });
 
-const Histroy = new mongoose.model("Histroy", histroy);
+const Histroy = mongoose.model("Histroy", histroy);
 
 export default Histroy;

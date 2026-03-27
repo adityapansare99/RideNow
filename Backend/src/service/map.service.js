@@ -1,7 +1,5 @@
-import { asynchandler } from "../utils/asyncHandler.js";
-import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
-import axios, { Axios } from "axios";
+import axios from "axios";
 import { Captain } from "../model/captain.model.js";
 import { Ride } from "../model/ride.model.js";
 
@@ -23,11 +21,11 @@ const getAddressCoordinate = async (address) => {
         lng: location.lng,
       };
     } else {
-      throw new ApiError(400, "Unable to fetch coordinates");
+      throw new ApiError(502, "Unable to fetch coordinates from Maps API");
     }
   } catch (error) {
     console.error(error);
-    throw new ApiError(400, "Unable to fetch coordinates");
+    throw new ApiError(502, "Unable to fetch coordinates from Maps API");
   }
 };
 
@@ -48,7 +46,7 @@ const get_distance_time = async (origin, destination) => {
         !response.data.rows[0].elements[0].distance ||
         !response.data.rows[0].elements[0].duration
       ) {
-        throw new ApiError(400, "Unable to fetch distance and time");
+        throw new ApiError(502, "Unable to fetch distance and time from Maps API");
       }
 
       const distance = response.data.rows[0].elements[0].distance.value;
@@ -58,11 +56,11 @@ const get_distance_time = async (origin, destination) => {
         time,
       };
     } else {
-      throw new ApiError(400, "Unable to fetch distance and time");
+      throw new ApiError(502, "Unable to fetch distance and time from Maps API");
     }
   } catch (error) {
     console.error(error);
-    throw new ApiError(400, "Unable to fetch distance and time");
+    throw new ApiError(502, "Unable to fetch distance and time from Maps API");
   }
 };
 
@@ -81,11 +79,11 @@ const autosuggestion = async (input) => {
     if (response.data.status === "OK") {
       return response.data.predictions;
     } else {
-      throw new ApiError(400, "Unable to fetch suggestions");
+      throw new ApiError(502, "Unable to fetch suggestions from Maps API");
     }
   } catch (error) {
     console.error(error);
-    throw new ApiError(400, "Unable to fetch suggestions");
+    throw new ApiError(502, "Unable to fetch suggestions from Maps API");
   }
 };
 

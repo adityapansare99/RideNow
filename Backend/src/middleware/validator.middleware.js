@@ -15,7 +15,7 @@ const validatorresult = (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    res
+    return res
       .status(400)
       .json(new ApiResponse(400, errors.array(), "Validation Error"));
   }
@@ -36,7 +36,7 @@ const loginvalidation = (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    res
+    return res
       .status(400)
       .json(new ApiResponse(400, errors.array(), "Validation Error"));
   }
@@ -96,7 +96,7 @@ const caplogin = (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    res
+    return res
       .status(400)
       .json(new ApiResponse(400, errors.array(), "Validation Error"));
   }

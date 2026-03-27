@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema(
     fullname: {
       firstname: {
         type: String,
-        // required: true,
+        required: true,
         minlength: [3, "First name must be at least 3 characters long"],
       },
       lastname: {
@@ -67,7 +67,6 @@ userSchema.methods.Generatingaccesstoken = function () {
   return jwt.sign(
     {
       email: this.email,
-      password: this.password,
       fullname: this.fullname,
     },
     process.env.accesstoken,

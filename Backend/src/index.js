@@ -14,7 +14,7 @@ const server = http.createServer(app);
 initializeSocket(server);
 
 server.listen(port, () => {
-  console.log(`Server is listening on port ${port}`); // Server is listening on );
+  console.log(`Server is listening on port ${port}`); 
 });
 
 connectdb()

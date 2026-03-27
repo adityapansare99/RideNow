@@ -32,5 +32,6 @@ userrouter
   .put(auth, upload.single("image"), editProfile);
 
 userrouter.route("/ride-history").get(auth, rideHistory);
+userrouter.route("/refresh-token").post(refreshaccesstoken);
 
 export { userrouter };

@@ -62,7 +62,7 @@ const captainschema = new mongoose.Schema(
       vehicletype: {
         type: String,
         required: true,
-        enum: ["car", "auto", "motorcycle"],
+        enum: ["car", "auto", "moto"],
       },
     },
 
@@ -111,7 +111,6 @@ captainschema.methods.Generatingaccesstoken = function () {
   return jwt.sign(
     {
       email: this.email,
-      password: this.password,
       fullname: this.fullname,
     },
     process.env.accesstoken,

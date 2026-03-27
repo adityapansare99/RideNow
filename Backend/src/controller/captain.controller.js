@@ -148,16 +148,18 @@ const profile = asynchandler(async (req, res) => {
     throw new ApiError(404, "Captain profile not found");
   }
 
-  res.status(200).json(new ApiResponse(200, { captain }, "Captain profile fetched successfully"));
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, { captain }, "Captain profile fetched successfully"),
+    );
 });
 
 const logout = asynchandler(async (req, res) => {
   await Captain.findOneAndUpdate(
     req.captain._id,
     {
-      $set: {
-        refreshtoken: undefined,
-      },
+      $unset: { refreshtoken: 1 },
     },
     { new: true },
   );
@@ -170,41 +172,41 @@ const logout = asynchandler(async (req, res) => {
   res
     .status(200)
     .clearCookie("accesstoken", options)
-    .clearCookie("refereshtoken", options)
+    .clearCookie("refreshtoken", options)
     .json(new ApiResponse(200, {}, "logged out successfully"));
 });
 
 const captainHistroy = asynchandler(async (req, res) => {
-  const captainid = await Captain.findById(req.captain).select(
-    "-password -refreshtoken",
-  );
-
-  const captain_id = captainid._id;
+  const captain_id = req.captain._id;
 
   if (!captain_id) {
-    throw new ApiError(400, "captain not found");
+    throw new ApiError(404, "Captain not found");
   }
 
-  const histroy = await Histroy.findOne({ captain_id }).select("-captain_id");
+  const history = await Histroy.findOne({ captain_id }).select("-captain_id");
 
-  if (!histroy) {
-    throw new ApiError(400, "histroy not found");
+  if (!history) {
+    throw new ApiError(404, "No history record found for this captain");
   }
 
   const totalDist = Number(
-    histroy.dist.reduce((sum, val) => sum + val, 0).toFixed(2),
+    history.dist.reduce((sum, val) => sum + val, 0).toFixed(2),
   );
   const totalTime = Number(
-    histroy.time.reduce((sum, val) => sum + val, 0).toFixed(2),
+    history.time.reduce((sum, val) => sum + val, 0).toFixed(2),
   );
   const totalEarning = Number(
-    histroy.earning.reduce((sum, val) => sum + val, 0).toFixed(2),
+    history.earning.reduce((sum, val) => sum + val, 0).toFixed(2),
   );
 
   res
     .status(200)
     .json(
-      new ApiResponse(200, { totalDist, totalTime, totalEarning }, "histroy"),
+      new ApiResponse(
+        200,
+        { totalDist, totalTime, totalEarning },
+        "Captain stats fetched successfully",
+      ),
     );
 });
 
@@ -224,15 +226,7 @@ const generateOtp = asynchandler(async (req, res) => {
   const { mobile } = req.body;
 
   if (!mobile || mobile.length !== 10) {
-    return res
-      .status(400)
-      .json(
-        new ApiResponse(
-          400,
-          null,
-          "Mobile number is required and should be 10 digits",
-        ),
-      );
+    throw new ApiError(400, "A valid 10-digit mobile number is required");
   }
 
   const otp = Math.floor(100000 + Math.random() * 900000);
@@ -242,9 +236,7 @@ const generateOtp = asynchandler(async (req, res) => {
   const response = await sendOtpToMobile(mobile, otp);
 
   if (!response) {
-    return res
-      .status(500)
-      .json(new ApiResponse(500, null, "Failed to send OTP"));
+    throw new ApiError(502, "Failed to send OTP. Please try again later");
   }
 
   res.status(200).json(new ApiResponse(200, null, "OTP sent successfully"));
@@ -254,61 +246,56 @@ const verifyOtp = asynchandler(async (req, res) => {
   const { mobile, otp } = req.body;
 
   if (!mobile || !otp) {
-    return res
-      .status(400)
-      .json(new ApiResponse(400, null, "Mobile and OTP are required"));
+    throw new ApiError(400, "Mobile number and OTP are required");
   }
 
   const isValid = await verifyStoredOtp(mobile, otp);
 
   if (!isValid) {
-    return res
-      .status(400)
-      .json(new ApiResponse(400, null, "Invalid or expired OTP"));
+    throw new ApiError(400, "Invalid or expired OTP. Please request a new one");
   }
 
   res.status(200).json(new ApiResponse(200, null, "OTP verified successfully"));
 });
 
 const deleteCaptain = asynchandler(async (req, res) => {
-  try {
-    const captain = req.captain;
-    const response = await Captain.findByIdAndDelete(captain._id);
-    if (!response) {
-      return res
-        .status(400)
-        .json(
-          new ApiResponse(400, null, "Unable to delete the captain account"),
-        );
-    }
-
-    res
-      .status(200)
-      .json(new ApiResponse(200, null, "Captain account deleted successfully"));
-  } catch (error) {
-    return res
-      .status(400)
-      .json(new ApiResponse(400, null, "Unable to delete the captain account"));
+  const captain = req.captain;
+  const response = await Captain.findByIdAndDelete(captain._id);
+  if (!response) {
+    throw new ApiError(
+      500,
+      "Failed to delete captain account. Please try again",
+    );
   }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, null, "Captain account deleted successfully"));
 });
 
 const editProfile = asynchandler(async (req, res) => {
-  try {
-    const captain = req.captain;
+  const captain = req.captain;
 
-    const {
-      firstname,
-      lastname,
-      password,
-      vehicleColor,
-      vehicleType,
-      vehiclePlate,
-      vehicleCapacity,
-    } = req.body;
+  const {
+    firstname,
+    lastname,
+    password,
+    vehicleColor,
+    vehicleType,
+    vehiclePlate,
+    vehicleCapacity,
+  } = req.body;
 
-    const profilepic = req.file;
+  const profilepic = req.file;
 
-    let updatedData = await Captain.findByIdAndUpdate(captain._id, {
+  const captainToUpdate = await Captain.findById(captain._id);
+  if (!captainToUpdate) {
+    throw new ApiError(404, "Captain not found");
+  }
+
+  let updatedData = await Captain.findByIdAndUpdate(
+    captain._id,
+    {
       fullname: {
         firstname,
         lastname,
@@ -319,63 +306,62 @@ const editProfile = asynchandler(async (req, res) => {
         capacity: vehicleCapacity,
         vehicletype: vehicleType,
       },
-    });
+    },
+    { new: true },
+  );
 
-    if (password) {
-      updatedData.password = password;
-      await updatedData.save({ validateBeforeSave: false });
-    }
-
-    if (profilepic) {
-      const response = await uploadoncloudinary(profilepic.path);
-      updatedData.profilepic = response.url;
-      await updatedData.save({ validateBeforeSave: false });
-    }
-
-    if (!updatedData) {
-      return res
-        .status(404)
-        .json(new ApiResponse(404, null, "Captain profile not updated"));
-    }
-
-    const updatedCaptain = await Captain.findById(captain._id).select(
-      "-password -refreshtoken",
-    );
-
+  if (!updatedData) {
     return res
-      .status(200)
-      .json(
-        new ApiResponse(200, updatedCaptain, "Profile updated successfully"),
+      .status(400)
+      .json(new ApiResponse(400, null, "Captain profile not updated"));
+  }
+
+  if (password) {
+    updatedData.password = password;
+    await updatedData.save({ validateBeforeSave: false });
+  }
+
+  if (profilepic) {
+    const response = await uploadoncloudinary(profilepic.path);
+    if (!response?.url) {
+      throw new ApiError(
+        502,
+        "Failed to upload profile picture. Please try again",
       );
-  } catch (error) {}
+    }
+    updatedData.profilepic = response.url;
+    await updatedData.save({ validateBeforeSave: false });
+  }
+
+  const updatedCaptain = await Captain.findById(captain._id).select(
+    "-password -refreshtoken",
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedCaptain, "Profile updated successfully"));
 });
 
 const rideHistory = asynchandler(async (req, res) => {
-  try {
-    const captain = req.captain;
+  const captain = req.captain;
 
-    if (!captain) {
-      return res
-        .status(400)
-        .json(new ApiResponse(400, null, "Captain not found"));
-    }
+  if (!captain) {
+    throw new ApiError(401, "Unauthorized. Captain not found in request");
+  }
 
-    const RideData = await Ride.find({ captain: captain._id })
-      .populate("user")
-      .sort({ createdAt: -1 });
+  const RideData = await Ride.find({ captain: captain._id })
+    .populate("user")
+    .sort({ createdAt: -1 });
 
-    if (!RideData) {
-      return res
-        .status(200)
-        .json(new ApiResponse(200, null, "There is no ride history"));
-    }
-
+  if (!RideData) {
     return res
       .status(200)
-      .json(new ApiResponse(200, RideData, "Ride history found"));
-  } catch (error) {
-    res.status(400).json(new ApiResponse(400, null, error.message));
+      .json(new ApiResponse(200, [], "No ride history found for this captain"));
   }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, RideData, "Ride history found"));
 });
 
 export {

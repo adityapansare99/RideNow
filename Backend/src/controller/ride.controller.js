@@ -23,118 +23,105 @@ const createride = asynchandler(async (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    res
-      .status(400)
-      .json(new ApiResponse(400, errors.array(), "Validation Error"));
+    throw new ApiError(400, "Validation failed", errors.array());
   }
 
   const user = req.user;
 
   const { pickup, destination, vehicleType } = req.body;
 
-  try {
-    const ride = await createRide(
-      {
-        user: user._id,
-        pickup,
-        destination,
-        vehicleType,
-      },
-      {
-        new: true,
-      },
-    );
-    res
-      .status(200)
-      .json(new ApiResponse(200, ride, "Ride created successfully"));
-
-    const RideId = await Ride.findById(ride._id);
-
-    const pickupCoordinate = await getAddressCoordinate(pickup);
-    const captainsInRadius = await getCaptaininTheRadius(
-      pickupCoordinate.ltd,
-      pickupCoordinate.lng,
-      100,
+  const ride = await createRide(
+    {
+      user: user._id,
+      pickup,
+      destination,
       vehicleType,
-      RideId._id,
+    },
+    {
+      new: true,
+    },
+  );
+
+  const RideId = await Ride.findById(ride._id);
+
+  const pickupCoordinate = await getAddressCoordinate(pickup);
+  if (!pickupCoordinate) {
+    throw new ApiError(
+      404,
+      "Unable to find coordinates for the pickup location",
     );
-
-    ride.otp = "";
-
-    const rideWithUser = await Ride.findOne({ _id: ride._id }).populate("user");
-
-    captainsInRadius.map((captain) => {
-      sendMessageToSocketId(captain.socketId, {
-        event: "new-ride",
-        data: rideWithUser,
-      });
-    });
-  } catch (err) {
-    res.status(400).json(new ApiResponse(400, err, "Unable to create ride"));
   }
+
+  const captainsInRadius = await getCaptaininTheRadius(
+    pickupCoordinate.ltd,
+    pickupCoordinate.lng,
+    100,
+    vehicleType,
+    RideId._id,
+  );
+
+  ride.otp = "";
+
+  const rideWithUser = await Ride.findOne({ _id: ride._id }).populate("user");
+
+  captainsInRadius.forEach((captain) => {
+    sendMessageToSocketId(captain.socketId, {
+      event: "new-ride",
+      data: rideWithUser,
+    });
+  });
+
+  res.status(201).json(new ApiResponse(201, ride, "Ride created successfully"));
 });
 
 const farevalue = asynchandler(async (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    res
-      .status(400)
-      .json(new ApiResponse(400, errors.array(), "Validation Error"));
+    throw new ApiError(400, "Validation failed", errors.array());
   }
 
   const { pickup, destination } = req.query;
 
-  try {
-    const fare = await getFare(pickup, destination);
+  const fare = await getFare(pickup, destination);
 
-    res
-      .status(200)
-      .json(new ApiResponse(200, fare, "Fare fetched successfully"));
-  } catch (err) {
-    res.status(400).json(new ApiResponse(400, err, "Unable to fetch fare"));
+  if (!fare) {
+    throw new ApiError(404, "Unable to calculate fare for the given route");
   }
+
+  res.status(200).json(new ApiResponse(200, fare, "Fare fetched successfully"));
 });
 
 const confirmRide = asynchandler(async (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    res
-      .status(400)
-      .json(new ApiResponse(400, errors.array(), "Validation Error"));
+    throw new ApiError(400, "Validation failed", errors.array());
   }
 
   const { rideId } = req.body;
 
-  try {
-    const ride = await confirmride({ rideId, captain: req.captain });
+  const ride = await confirmride({ rideId, captain: req.captain });
 
-    sendMessageToSocketId(ride.user.socketId, {
-      event: "ride-confirmed",
-      data: ride,
-    });
-
-    res
-      .status(200)
-      .json(new ApiResponse(200, ride, "Ride confirmed successfully"));
-  } catch (err) {
-    console.error("Error in confirmRide:", err);
-    res
-      .status(400)
-      .json(
-        new ApiResponse(400, null, err.message || "Unable to confirm ride"),
-      );
+  if (!ride) {
+    throw new ApiError(500, "Unable to confirm ride. Please try again");
   }
+
+  sendMessageToSocketId(ride.user.socketId, {
+    event: "ride-confirmed",
+    data: ride,
+  });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, ride, "Ride confirmed successfully"));
 });
 
 const startRide = asynchandler(async (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    res
-      .status(400)
-      .json(new ApiResponse(400, errors.array(), "Validation Error"));
+    throw new ApiError(400, "Validation failed", errors.array());
   }
 
   const { rideId, otp } = req.query;
@@ -142,35 +129,35 @@ const startRide = asynchandler(async (req, res) => {
   const ride_data = await Ride.findById(rideId);
 
   if (!ride_data) {
-    return res.status(400).json(new ApiResponse(400, err, "Ride not found"));
+    throw new ApiError(404, "Ride not found");
   }
 
-  try {
-    const ride = await startride({ rideId, otp, captain: req.captain });
+  const ride = await startride({ rideId, otp, captain: req.captain });
 
-    sendMessageToSocketId(ride.user.socketId, {
-      event: "ride-started",
-      data: ride,
-    });
-
-    res
-      .status(200)
-      .json(new ApiResponse(200, ride, "Ride started successfully"));
-  } catch (err) {
-    res.status(400).json(new ApiResponse(400, err, "Unable to start ride"));
+  if (!ride) {
+    throw new ApiError(500, "Unable to start ride. Please try again");
   }
+
+  sendMessageToSocketId(ride.user.socketId, {
+    event: "ride-started",
+    data: ride,
+  });
+
+  res.status(200).json(new ApiResponse(200, ride, "Ride started successfully"));
 });
 
 const endRide = asynchandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res
-      .status(400)
-      .json(new ApiResponse(400, errors.array(), "Validation Error"));
+    throw new ApiError(400, "Validation failed", errors.array());
   }
 
   const { rideId } = req.body;
   const ride_data = await Ride.findById(rideId);
+
+  if (!ride_data) {
+    throw new ApiError(404, "Ride not found");
+  }
 
   const hist = await Histroy.updateOne(
     { captain_id: ride_data.captain },
@@ -184,22 +171,20 @@ const endRide = asynchandler(async (req, res) => {
     { upsert: true },
   );
 
-  try {
-    const ride = await endride({ rideId, captain: req.captain });
+  const ride = await endride({ rideId, captain: req.captain });
 
-    sendMessageToSocketId(ride.user.socketId, {
-      event: "ride-ended",
-      data: ride,
-    });
-
-    return res
-      .status(200)
-      .json(new ApiResponse(200, ride, "Ride ended successfully"));
-  } catch (err) {
-    return res
-      .status(400)
-      .json(new ApiResponse(400, err, "Unable to end ride"));
+  if (!ride) {
+    throw new ApiError(500, "Unable to end ride. Please try again");
   }
+
+  sendMessageToSocketId(ride.user.socketId, {
+    event: "ride-ended",
+    data: ride,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, ride, "Ride ended successfully"));
 });
 
 const razorpayinstance = new razorpay({
@@ -211,98 +196,92 @@ const makepayment = asynchandler(async (req, res) => {
   const { rideId } = req.body;
 
   if (!rideId) {
-    throw new ApiError(400, "Ride id is required");
+    throw new ApiError(400, "Ride ID is required");
   }
 
-  try {
-    const ride = await Ride.findById(rideId);
+  const ride = await Ride.findById(rideId);
 
-    if (!ride) {
-      throw new ApiError(400, "Ride not found");
-    }
-
-    const options = {
-      amount: Math.round(ride.fare * 100),
-      currency: process.env.Currency,
-      receipt: rideId,
-    };
-
-    const paymentresponse = await razorpayinstance.orders.create(options);
-
-    return res
-      .status(200)
-      .json(new ApiResponse(200, paymentresponse, "Payment successful"));
-  } catch (error) {
-    return res
-      .status(500)
-      .json(new ApiResponse(500, error, "Payment failed! Please try again"));
+  if (!ride) {
+    throw new ApiError(404, "Ride not found");
   }
+
+  const options = {
+    amount: Math.round(ride.fare * 100),
+    currency: process.env.Currency,
+    receipt: rideId,
+  };
+
+  const paymentresponse = await razorpayinstance.orders.create(options);
+
+  if (!paymentresponse) {
+    throw new ApiError(502, "Payment gateway error. Please try again later");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        paymentresponse,
+        "Payment order created successfully",
+      ),
+    );
 });
 
 const verifypayment = asynchandler(async (req, res) => {
-  try {
-    const { order_id } = req.body;
+  const { order_id } = req.body;
 
-    const data = await razorpayinstance.orders.fetch(order_id);
-
-    if (!data) {
-      return res
-        .status(400)
-        .json(new ApiResponse(400, null, "Payment failed! Please try again"));
-    }
-
-    if (data.status === "paid") {
-      await Ride.findByIdAndUpdate(data.receipt, {
-        paymentID: data.receipt,
-        paymentStatus: true,
-      });
-
-      return res
-        .status(200)
-        .json(new ApiResponse(200, data, "Payment successful"));
-    }
-  } catch (error) {
-    return res
-      .status(500)
-      .json(new ApiResponse(500, error, "Payment failed! Please try again"));
+  if (!order_id) {
+    throw new ApiError(400, "Order ID is required");
   }
+
+  const data = await razorpayinstance.orders.fetch(order_id);
+
+  if (!data) {
+    throw new ApiError(404, "Payment order not found");
+  }
+
+  if (data.status !== "paid") {
+    throw new ApiError(402, "Payment not completed. Please try again");
+  }
+
+  await Ride.findByIdAndUpdate(data.receipt, {
+    paymentID: data.receipt,
+    paymentStatus: true,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, data, "Payment verified successfully"));
 });
 
 const cancelRide = asynchandler(async (req, res) => {
-  try {
-    const { rideId } = req.body;
-    if (!rideId) {
-      return res
-        .status(400)
-        .json(new ApiResponse(400, null, "Ride id is required"));
-    }
-
-    const ride = await Ride.findById(rideId).populate("user");
-    if (!ride) {
-      return res.status(400).json(new ApiResponse(400, null, "Ride not found"));
-    }
-
-    const response = await Ride.findByIdAndUpdate(rideId, {
-      status: "cancelled",
-    });
-
-    if (!response) {
-      return res
-        .status(400)
-        .json(new ApiResponse(400, null, "Unable to cancel ride"));
-    }
-
-    sendMessageToSocketId(ride.user.socketId, {
-      event: "ride-cancelled",
-      data: ride,
-    });
-
-    return res
-      .status(200)
-      .json(new ApiResponse(200, null, "Ride cancelled successfully"));
-  } catch (error) {
-    res.status(400).json(new ApiResponse(400, null, "Unable to cancel ride"));
+  const { rideId } = req.body;
+  if (!rideId) {
+    throw new ApiError(400, "Ride ID is required");
   }
+
+  const ride = await Ride.findById(rideId).populate("user");
+  if (!ride) {
+    throw new ApiError(404, "Ride not found");
+  }
+
+  const response = await Ride.findByIdAndUpdate(rideId, {
+    status: "cancelled",
+  });
+
+  if (!response) {
+    throw new ApiError(500, "Unable to cancel ride. Please try again");
+  }
+
+  sendMessageToSocketId(ride.user.socketId, {
+    event: "ride-cancelled",
+    data: ride,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Ride cancelled successfully"));
 });
 
 export {

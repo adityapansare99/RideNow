@@ -12,83 +12,71 @@ const getcoordinates = asynchandler(async (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    return res
-      .status(400)
-      .json(new ApiResponse(400, errors.array(), "Validation Error"));
+    throw new ApiError(400, "Validation failed", errors.array());
   }
+
   const { address } = req.query;
 
-  try {
-    const coordinates = await getAddressCoordinate(address);
+  const coordinates = await getAddressCoordinate(address);
 
-    if (!coordinates) {
-      throw new ApiError(400, "Unable to fetch coordinates");
-    }
-
-    res
-      .status(200)
-      .json(
-        new ApiResponse(200, coordinates, "Coordinates fetched successfully")
-      );
-  } catch (err) {
-    res
-      .status(400)
-      .json(new ApiResponse(400, err, "Unable to fetch coordinates"));
+  if (!coordinates) {
+    throw new ApiError(404, "No coordinates found for the given address");
   }
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, coordinates, "Coordinates fetched successfully"),
+    );
 });
 
 const getdistancetime = asynchandler(async (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    return res
-      .status(400)
-      .json(new ApiResponse(400, errors.array(), "Validation Error"));
+    throw new ApiError(400, "Validation failed", errors.array());
   }
 
   const { origin, destination } = req.query;
 
-  try {
-    const response = await get_distance_time(origin, destination);
+  const response = await get_distance_time(origin, destination);
 
-    res
-      .status(200)
-      .json(
-        new ApiResponse(200, response, "Distance and time fetched successfully")
-      );
-  } catch (err) {
-    res
-      .status(400)
-      .json(new ApiResponse(400, err, "Unable to fetch distance and time"));
+  if (!response) {
+    throw new ApiError(
+      404,
+      "Unable to fetch distance and time for the given route",
+    );
   }
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, response, "Distance and time fetched successfully"),
+    );
 });
 
 const autocompletesuggestions = asynchandler(async (req, res) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    return res
-      .status(400)
-      .json(new ApiResponse(400, errors.array(), "Validation Error"));
+    throw new ApiError(400, "Validation failed", errors.array());
   }
 
   const { input } = req.query;
 
   if (!input) {
-    throw new ApiError(400, "query is required");
+    throw new ApiError(400, "Search input is required");
   }
 
-  try {
-    const response = await autosuggestion(input);
+  const response = await autosuggestion(input);
 
-    res
-      .status(200)
-      .json(new ApiResponse(200, response, "Suggestions fetched successfully"));
-  } catch (err) {
-    res
-      .status(400)
-      .json(new ApiResponse(400, err, "Unable to fetch suggestions"));
+  if (!response) {
+    throw new ApiError(404, "No suggestions found for the given input");
   }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, response, "Suggestions fetched successfully"));
 });
 
 export { getcoordinates, getdistancetime, autocompletesuggestions };

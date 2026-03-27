@@ -12,23 +12,23 @@ const auth = asynchandler(async (req, _, next) => {
     req.body.accesstoken;
 
   if (!token) {
-    throw new ApiError(400, "token not found");
+    throw new ApiError(401, "Access token is missing");
   }
 
   try {
     const decodedtoken = jwt.verify(token, process.env.accesstoken);
     if (!decodedtoken) {
-      throw new ApiError(400, "invalid token");
+      throw new ApiError(401, "Invalid or expired access token");
     }
 
-    const user = await User.findOne({email:decodedtoken.email});
+    const user = await User.findOne({ email: decodedtoken.email });
     if (!user) {
-      throw new ApiError(400, "user not found");
+      throw new ApiError(401, "Unauthorized. User not found");
     }
     req.user = user;
     next();
   } catch (err) {
-    throw new ApiError(400, "invalid token");
+    throw new ApiError(401, "Invalid or expired access token");
   }
 });
 
@@ -39,23 +39,24 @@ const authc = asynchandler(async (req, _, next) => {
     req.body.accesstoken;
 
   if (!token) {
-    throw new ApiError(400, "token not found");
+    throw new ApiError(401, "Access token is missing");
   }
 
   try {
     const decodedtoken = jwt.verify(token, process.env.accesstoken);
+
     if (!decodedtoken) {
-      throw new ApiError(400, "invalid token");
+      throw new ApiError(401, "Invalid or expired access token");
     }
 
-    const captain = await Captain.findOne({email:decodedtoken.email});
+    const captain = await Captain.findOne({ email: decodedtoken.email });
     if (!captain) {
-      throw new ApiError(400, "user not found");
+      throw new ApiError(401, "Unauthorized. Captain not found");
     }
     req.captain = captain;
     next();
   } catch (err) {
-    throw new ApiError(400, "invalid token");
+    throw new ApiError(401, "Invalid or expired access token");
   }
 });
 

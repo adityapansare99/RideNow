@@ -26,8 +26,7 @@ const initializeSocket = (server) => {
           await Captain.findByIdAndUpdate(userId, { socketId: socket.id });
         }
       } catch (error) {
-        console.error("Join error:", error);
-        socket.emit("error", { message: "Join failed", error });
+        socket.emit("error", { message: "Join failed. Please try again" });
       }
     });
 
@@ -47,7 +46,9 @@ const initializeSocket = (server) => {
         });
       } catch (error) {
         console.error("Location update error:", error);
-        socket.emit("error", { message: "Location update failed", error });
+        socket.emit("error", {
+          message: "Location update failed. Please try again",
+        });
       }
     });
 
@@ -66,10 +67,9 @@ const initializeSocket = (server) => {
           },
         });
 
-        const ride = await Ride.findById(rideId).populate('user');
-        
+        const ride = await Ride.findById(rideId).populate("user");
+
         if (ride && ride.user && ride.user.socketId) {
-          console.log(`Sending location to user ${ride.user.socketId}`); 
           io.to(ride.user.socketId).emit("captain-location-update", {
             location: location,
             rideId: rideId,
@@ -77,7 +77,9 @@ const initializeSocket = (server) => {
         }
       } catch (error) {
         console.error("Ride location update error:", error);
-        socket.emit("error", { message: "Ride location update failed", error });
+        socket.emit("error", {
+          message: "Ride location update failed. Please try again",
+        });
       }
     });
 
@@ -88,8 +90,6 @@ const initializeSocket = (server) => {
 };
 
 const sendMessageToSocketId = (socketId, messageObject) => {
-  console.log("Sending message:", messageObject);
-
   if (io) {
     io.to(socketId).emit(messageObject.event, messageObject.data);
   } else {

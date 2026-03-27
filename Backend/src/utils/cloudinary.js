@@ -16,15 +16,22 @@ const uploadoncloudinary = async (filepath) => {
       resource_type: "auto",
     });
 
-    console.log("successfully uploaded to cloudinary" + response.url);
+    fs.unlink(filepath, (err) => {
+      if (err) {
+        console.log("Failed to delete temp file:", err);
+      } else {
+        console.log("Temp file deleted from local storage");
+      }
+    });
+    console.log("Successfully uploaded to Cloudinary:", response.url);
 
     return response;
   } catch (err) {
     fs.unlink(filepath, (err) => {
       if (err) {
-        console.log("File not deleted from local storage:", err);
+        console.log("Failed to delete temp file:", err);
       } else {
-        console.log("File deleted from local storage");
+        console.log("Temp file deleted from local storage");
       }
     });
     return null;
@@ -34,9 +41,9 @@ const uploadoncloudinary = async (filepath) => {
 const deletefromcloudinary = async (id) => {
   try {
     const response = await cloudinary.uploader.destroy(id);
-    console.log("delted successfully", response);
+    console.log("Deleted successfully from Cloudinary:", response);
   } catch (err) {
-    console.log("error in deleting the file", err);
+    console.log("Error in deleting the file", err);
     return null;
   }
 };
