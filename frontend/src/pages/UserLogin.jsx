@@ -23,7 +23,7 @@ const UserLogin = () => {
       userData
     );
 
-    if (response.status === 200) {
+    if (response.data.success) {
       const data = response.data.data;
       setUser(data.user);
       localStorage.setItem("token", data.accesstoken);

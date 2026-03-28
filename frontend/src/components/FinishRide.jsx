@@ -18,7 +18,7 @@ const FinishRide = (props) => {
       }
     );
 
-    if (response.status === 200) {
+    if (response.data.success) {
       navigate("/captain-home");
     }
   };

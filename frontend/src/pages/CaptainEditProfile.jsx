@@ -22,7 +22,7 @@ const CaptainEditProfile = () => {
       );
 
       if (response.data.success) {
-        setCaptainData(response.data.data.captainid);
+        setCaptainData(response.data.data.captainData);
       }
 
       if (!response.data.success) {

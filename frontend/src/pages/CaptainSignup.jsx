@@ -32,7 +32,9 @@ const CaptainSignup = () => {
         { mobile, otp:userOtp },
       );
 
-      if (otpResponse.status !== 200) {
+      console.log("OTP verification response:", otpResponse);
+
+      if (otpResponse.data.success !== true) {
         alert("OTP verification failed");
         e.preventDefault();
         return;
@@ -61,7 +63,7 @@ const CaptainSignup = () => {
 
       console.log("Signup response:", response);
 
-      if (response.status === 200) {
+      if (response.data.success) {
         const data = response.data.data;
         setCaptain(data.user);
         localStorage.setItem("token", data.accesstoken);
@@ -95,7 +97,7 @@ const CaptainSignup = () => {
         { mobile },
       );
 
-      if (response.status === 200) {
+      if (response.data.success) {
         alert("otp sent successfully");
         setOtpField(true);
         return;

@@ -77,20 +77,20 @@ const registercaptain = asynchandler(async (req, res) => {
 const logincaptain = asynchandler(async (req, res) => {
   const { email, password } = req.body;
 
-  const captain = await Captain.findOne({ email });
+  const captainData = await Captain.findOne({ email });
 
-  if (!captain) {
+  if (!captainData) {
     throw new ApiError(404, "No captain found with this email");
   }
 
-  const isPasswordCorrect = await captain.isPasswordCorrect(password);
+  const isPasswordCorrect = await captainData.isPasswordCorrect(password);
 
   if (!isPasswordCorrect) {
     throw new ApiError(401, "Invalid credentials. Please check your password");
   }
 
   const { accesstoken, refreshtoken } = await Generatingaccessandrefreshtoken(
-    captain.email,
+    captainData.email,
   );
 
   const options = {
@@ -98,7 +98,7 @@ const logincaptain = asynchandler(async (req, res) => {
     secure: process.env.NODE_ENV === "production",
   };
 
-  const loggeduser = await Captain.findOne({ email: captain.email }).select(
+  const loggeduser = await Captain.findOne({ email: captainData.email }).select(
     "-password -refreshtoken",
   );
 
@@ -113,7 +113,7 @@ const logincaptain = asynchandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        { user: loggeduser, accesstoken, refreshtoken },
+        { captain: loggeduser, accesstoken, refreshtoken },
         "successfully logged in",
       ),
     );
@@ -140,18 +140,18 @@ const Generatingaccessandrefreshtoken = async (capEmail) => {
 };
 
 const profile = asynchandler(async (req, res) => {
-  const captain = await Captain.findById(req.captain._id).select(
+  const captainData = await Captain.findById(req.captain._id).select(
     "-password -refreshtoken",
   );
 
-  if (!captain) {
+  if (!captainData) {
     throw new ApiError(404, "Captain profile not found");
   }
 
   res
     .status(200)
     .json(
-      new ApiResponse(200, { captain }, "Captain profile fetched successfully"),
+      new ApiResponse(200, { captainData }, "Captain profile fetched successfully"),
     );
 });
 

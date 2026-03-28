@@ -101,7 +101,7 @@ const confirmRide = async () => {
         },
       );
 
-      if (response.status === 200) {
+      if (response.data.success) {
         sethist(response.data.data);
         return;
       }

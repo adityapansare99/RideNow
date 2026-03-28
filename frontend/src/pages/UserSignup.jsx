@@ -24,7 +24,7 @@ const UserSignup = () => {
         { mobile, otp },
       );
 
-      if (otpResponse.status !== 200) {
+      if (otpResponse.data.success !== true) {
         alert("OTP verification failed");
         e.preventDefault();
         return;
@@ -43,7 +43,7 @@ const UserSignup = () => {
         newUser,
       );
 
-      if (resopnse.status === 200) {
+      if (resopnse.data.success) {
         const data = resopnse.data.data;
         setUser(data.user);
         localStorage.setItem("token", data.accesstoken);
@@ -73,7 +73,7 @@ const UserSignup = () => {
         { mobile },
       );
 
-      if (response.status === 200) {
+      if (response.data.success) {
         alert("otp sent successfully");
         setOtpField(true);
         return;

@@ -23,7 +23,7 @@ const UserProtectedWrapper = ({ children }) => {
         },
       })
       .then((res) => {
-        if (res.status === 200 && res.data.data.user) {
+        if (res.data.success && res.data.data.user) {
           setUser(res.data.data.user);
           setIsLoading(false);
         } else {
