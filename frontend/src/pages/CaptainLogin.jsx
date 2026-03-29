@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { CaptainDataContext } from "../context/CaptainContext";
+import { toast } from "react-toastify";
 
 const CaptainLogin = () => {
   const [email, setEmail] = useState("");
@@ -21,7 +22,7 @@ const CaptainLogin = () => {
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/captains/login`,
-        captainData
+        captainData,
       );
 
       if (response.data.success) {
@@ -29,14 +30,16 @@ const CaptainLogin = () => {
         setCaptain(data.captain);
         localStorage.setItem("token", data.accesstoken);
         navigate("/captain-home");
+        setEmail("");
+        setPassword("");
       }
     } catch (error) {
-      console.error("Login error:", error);
-      alert("Invalid email or password");
+      if (error.response.data.data !== null) {
+        toast.error(error.response.data.data[0].msg);
+      } else {
+        toast.error(error.response.data.message);
+      }
     }
-
-    setEmail("");
-    setPassword("");
   };
 
   return (

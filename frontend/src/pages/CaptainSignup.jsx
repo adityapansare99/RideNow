@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { CaptainDataContext } from "../context/CaptainContext";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const CaptainSignup = () => {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ const CaptainSignup = () => {
       console.log("OTP verification response:", otpResponse);
 
       if (otpResponse.data.success !== true) {
-        alert("OTP verification failed");
+        toast.error("OTP verification failed");
         e.preventDefault();
         return;
       }
@@ -79,15 +80,21 @@ const CaptainSignup = () => {
       setvehiclePlate("");
       setVehicleCapacity("");
     } catch (error) {
-      console.log("signup error:", error);
-      alert("Signup failed. Try again");
-      return;
+      if(error.response.data.message.includes("E11000 duplicate key error collection")){
+        toast.error("Mobile number already exists");
+      }
+
+      else if (error.response.data.data !== null) {
+        toast.error(error.response.data.data[0].msg);
+      } else {
+        toast.error(error.response.data.message);
+      }
     }
   };
 
   const otpHandler = async () => {
     if (mobile.length !== 10) {
-      alert("Enter valid mobile number");
+      toast.error("Enter valid mobile number");
       return;
     }
 
@@ -98,13 +105,12 @@ const CaptainSignup = () => {
       );
 
       if (response.data.success) {
-        alert("otp sent successfully");
+        toast.success(response.data.message);
         setOtpField(true);
         return;
       }
     } catch (error) {
-      console.log("otp error:", error);
-      alert("failed to send otp. Try again");
+      toast.error("Failed to send otp. Try again");
       return;
     }
   };

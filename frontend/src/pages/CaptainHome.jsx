@@ -9,6 +9,7 @@ import { SocketContext } from "../context/SocketContext";
 import { CaptainDataContext } from "../context/CaptainContext";
 import axios from "axios";
 import LiveTracking from "../components/LiveTracking";
+import { toast } from "react-toastify";
 
 const CaptainHome = () => {
   const [RidePopupPanel, setRidePopupPanel] = useState(false);
@@ -83,8 +84,7 @@ const confirmRide = async () => {
     setRidePopupPanel(false);
     setConfirmRidePopupPanel(true);
   } catch (error) {
-    console.error("Error confirming ride:", error);
-    alert(error.response?.data?.message || "This ride has already been accepted by another captain");
+    toast.error(error.response?.data?.message || "This ride has already been accepted by another captain");
     setRidePopupPanel(false);
     setConfirmRidePopupPanel(false);
   }
@@ -106,7 +106,7 @@ const confirmRide = async () => {
         return;
       }
     } catch (error) {
-      console.error("Error fetching history:", error);
+      toast.error("Failed to fetch ride history. Please try again.");
     }
   };
 
@@ -121,10 +121,10 @@ const confirmRide = async () => {
       );
 
       if (!response.data.success) {
-        alert("Unable to cancel ride");
+        toast.error("Failed to cancel ride. Please try again.");
       }
     } catch (error) {
-      console.error("Error canceling ride:", error);
+      toast.error("Failed to cancel ride. Please try again.");
     }
   };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const CaptainRideHistory = () => {
   const [rides, setRides] = useState([]);
@@ -16,6 +17,7 @@ const CaptainRideHistory = () => {
 
   const rideData = async () => {
     try {
+      toast.info("Fetching your rides...", { autoClose: 2000 });
       const response = await axios.get(
         `${import.meta.env.VITE_BASE_URL}/captains/ride-history`,
         {
@@ -24,14 +26,16 @@ const CaptainRideHistory = () => {
           },
         },
       );
+      
+      if(!response.data.success){
+        toast.error("Unable to fetch your rides");
+        navigate("/captain-home");
+        return;
+      }
 
       setRides(response.data.data);
-      if(!response.data.success){
-        alert("Unable to fetch your rides");
-        navigate("/captain-home");
-      }
     } catch (error) {
-      console.error("Error fetching rides:", error);
+      toast.error("Unable to fetch your rides, please try again.");
       navigate("/captain-home");
     }
   };

@@ -18,10 +18,12 @@ import UserEditProfile from "./pages/UserEditProfile.jsx";
 import CaptainEditProfile from "./pages/CaptainEditProfile.jsx";
 import UserRideHistory from "./pages/UserRideHistory.jsx";
 import CaptainRideHistory from "./pages/CaptainRideHistory.jsx";
+import { ToastContainer, toast } from 'react-toastify';
 
 const App = () => {
   return (
     <div>
+      <ToastContainer />
       <Routes>
         <Route path="/" element={<Start />} />
         <Route path="/login" element={<UserLogin />} />

@@ -38,9 +38,26 @@ const registeruser = asynchandler(async (req, res) => {
     "-password -refreshtoken",
   );
 
+  const { accesstoken, refreshtoken } = await Generatingaccessandrefreshtoken(
+    userData.email,
+  );
+
+  const options = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+  };
+
   return res
     .status(201)
-    .json(new ApiResponse(201, userData, "User created successfully"));
+    .cookie("accesstoken", accesstoken, options)
+    .cookie("refreshtoken", refreshtoken, options)
+    .json(
+      new ApiResponse(
+        201,
+        { userData, accesstoken, refreshtoken },
+        "User created successfully",
+      ),
+    );
 });
 
 const Generatingaccessandrefreshtoken = async (userEmail) => {

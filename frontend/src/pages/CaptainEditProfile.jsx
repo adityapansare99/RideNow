@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useEffect } from "react";
 import { CaptainDataContext } from "../context/CaptainContext";
+import { toast } from "react-toastify";
 
 const CaptainEditProfile = () => {
   const navigate = useNavigate();
@@ -26,11 +27,11 @@ const CaptainEditProfile = () => {
       }
 
       if (!response.data.success) {
-        console.log("Failed to fetch captain profile!");
+        toast.warn("Session expired. Please log in again.");
         navigate("/captain-login");
       }
     } catch (error) {
-      console.log("Error fetching captain profile:", error);
+      toast.warn("Session expired. Please log in again.");
       navigate("/captain-login");
     }
   };
@@ -105,18 +106,21 @@ const CaptainEditProfile = () => {
       );
 
       if (!response.data.success) {
-        throw new Error(response.data.message);
+        setOtpLoading(false);
+        setOtpError("Failed to send OTP. Please try again.");
+        return;
       }
 
       if (response.data.success) {
         setIsOtpSent(true);
         setOtpLoading(false);
-        alert(`OTP sent to ${captainData.mobile}. Please check your phone.`);
+        toast.success(
+          `OTP sent to ${captainData.mobile}. Please check your phone.`,
+        );
       }
     } catch (error) {
       setOtpLoading(false);
       setOtpError("Failed to send OTP. Please try again.");
-      console.error("OTP send error:", error);
     }
   };
 
@@ -140,18 +144,18 @@ const CaptainEditProfile = () => {
         },
       );
       if (!response.data.success) {
-        throw new Error(response.data.message);
+        setOtpLoading(false);
+        setOtpError("Invalid OTP. Please try again.");
       }
 
       if (response.data.success) {
         setIsOtpVerified(true);
         setOtpLoading(false);
-        alert("OTP verified successfully!");
+        toast.success("OTP verified successfully!");
       }
     } catch (error) {
       setOtpLoading(false);
       setOtpError("Invalid OTP. Please try again.");
-      console.error("OTP verification error:", error);
     }
   };
 
@@ -159,12 +163,12 @@ const CaptainEditProfile = () => {
     e.preventDefault();
 
     if (!isOtpVerified) {
-      alert("Please verify OTP first");
+      toast.warn("Please verify OTP first");
       return;
     }
 
     if (password && password !== confirmPassword) {
-      alert("Passwords do not match");
+      toast.error("Password and confirm password do not match");
       return;
     }
 
@@ -190,26 +194,28 @@ const CaptainEditProfile = () => {
       );
 
       if (!response.data.success) {
-        throw new Error(response.data.message);
+        toast.error("Failed to update profile. Please try again.");
       }
 
       if (response.data.success) {
         setCaptainData(response.data.data.captain);
         setCaptain(response.data.data.captain);
-        console.log(captain);
-        alert("Profile updated successfully!");
+        toast.success("Profile updated successfully!");
         navigate("/captain-home", { replace: true });
         window.location.reload();
       }
     } catch (error) {
-      alert("Failed to update profile");
-      console.error("Profile update error:", error);
+      if (error.response.data.data !== null) {
+        toast.error(error.response.data.data[0].msg);
+      } else {
+        toast.error(error.response.data.message);
+      }
     }
   };
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== "DELETE") {
-      alert('Please type "DELETE" to confirm');
+      toast.error('Please type "DELETE" to confirm');
       return;
     }
 
@@ -224,17 +230,17 @@ const CaptainEditProfile = () => {
       );
 
       if (!response.data.success) {
-        throw new Error(response.data.message);
+        toast.error("Failed to delete account. Please try again.");
+        return;
       }
 
       if (response.data.success) {
         localStorage.removeItem("token");
-        alert("Account deleted successfully");
+        toast.success("Account deleted successfully");
         navigate("/captain-login");
       }
     } catch (error) {
-      alert("Failed to delete account");
-      console.error("Account deletion error:", error);
+      toast.error("Failed to delete account. Please try again.");
     }
   };
 

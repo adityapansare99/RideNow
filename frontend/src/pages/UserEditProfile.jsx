@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useEffect } from "react";
+import { toast } from "react-toastify";
 
 const UserEditProfile = () => {
   const navigate = useNavigate();
@@ -24,11 +25,11 @@ const UserEditProfile = () => {
       }
 
       if (!response.data.success) {
-        console.log("Failed to fetch user profile!");
+        toast.warn("Session expired. Please log in again.");
         navigate("/login");
       }
     } catch (error) {
-      console.log("Error fetching user profile:", error);
+      toast.warn("Session expired. Please log in again.");
       navigate("/login");
     }
   };
@@ -95,18 +96,21 @@ const UserEditProfile = () => {
       );
 
       if (!response.data.success) {
-        throw new Error(response.data.message);
+        setOtpLoading(false);
+        setOtpError("Failed to send OTP. Please try again.");
+        return;
       }
 
       if (response.data.success) {
         setIsOtpSent(true);
         setOtpLoading(false);
-        alert(`OTP sent to ${userData.mobile}. Please check your phone.`);
+        toast.success(
+          `OTP sent to ${userData.mobile}. Please check your phone.`,
+        );
       }
     } catch (error) {
       setOtpLoading(false);
       setOtpError("Failed to send OTP. Please try again.");
-      console.error("OTP send error:", error);
     }
   };
 
@@ -130,18 +134,18 @@ const UserEditProfile = () => {
         },
       );
       if (!response.data.success) {
-        throw new Error(response.data.message);
+        setOtpLoading(false);
+        setOtpError("Invalid OTP. Please try again.");
       }
 
       if (response.data.success) {
         setIsOtpVerified(true);
         setOtpLoading(false);
-        alert("OTP verified successfully!");
+        toast.success("OTP verified successfully!");
       }
     } catch (error) {
       setOtpLoading(false);
       setOtpError("Invalid OTP. Please try again.");
-      console.error("OTP verification error:", error);
     }
   };
 
@@ -149,12 +153,12 @@ const UserEditProfile = () => {
     e.preventDefault();
 
     if (!isOtpVerified) {
-      alert("Please verify OTP first");
+      toast.warn("Please verify OTP first");
       return;
     }
 
     if (password && password !== confirmPassword) {
-      alert("Passwords do not match");
+      toast.error("Password and confirm password do not match");
       return;
     }
 
@@ -177,23 +181,26 @@ const UserEditProfile = () => {
       console.log("Update response:", response);
 
       if (!response.data.success) {
-        throw new Error(response.data.message);
+        toast.error("Failed to update profile. Please try again.");
       }
 
       if (response.data.success) {
         setUserData(response.data.data.user);
-        alert("Profile updated successfully!");
+        toast.success("Profile updated successfully!");
         navigate("/home");
       }
     } catch (error) {
-      alert("Failed to update profile");
-      console.error("Profile update error:", error);
+      if (error.response.data.data !== null) {
+        toast.error(error.response.data.data[0].msg);
+      } else {
+        toast.error(error.response.data.message);
+      }
     }
   };
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== "DELETE") {
-      alert('Please type "DELETE" to confirm');
+      toast.error('Please type "DELETE" to confirm');
       return;
     }
 
@@ -208,17 +215,16 @@ const UserEditProfile = () => {
       );
 
       if (!response.data.success) {
-        throw new Error(response.data.message);
+        toast.error("Failed to delete account. Please try again.");
       }
 
       if (response.data.success) {
         localStorage.removeItem("token");
-        alert("Account deleted successfully");
+        toast.success("Account deleted successfully");
         navigate("/login");
       }
     } catch (error) {
-      alert("Failed to delete account");
-      console.error("Account deletion error:", error);
+      toast.error("Failed to delete account. Please try again.");
     }
   };
 
@@ -280,7 +286,7 @@ const UserEditProfile = () => {
                 <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
                   <div className="text-center">
                     <div className="relative inline-block mb-4">
-                      {(photoPreview || image) ? (
+                      {photoPreview || image ? (
                         <img
                           src={photoPreview || image}
                           alt="Profile Preview"
@@ -323,7 +329,6 @@ const UserEditProfile = () => {
 
             <div className="lg:col-span-2">
               <div className="bg-white rounded-2xl md:shadow-lg md:border border-gray-200 p-6 sm:p-8 lg:p-8">
-
                 <div className="hidden lg:block mb-8">
                   <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                     Edit Profile
@@ -335,7 +340,7 @@ const UserEditProfile = () => {
 
                 <div className="lg:hidden mb-8 flex flex-col items-center">
                   <div className="relative">
-                    {(photoPreview || image) ? (
+                    {photoPreview || image ? (
                       <img
                         src={photoPreview || image}
                         alt="Profile"
@@ -372,7 +377,7 @@ const UserEditProfile = () => {
                   </label>
                   <div className="flex items-center gap-6">
                     <div className="relative">
-                      {(photoPreview || image) ? (
+                      {photoPreview || image ? (
                         <img
                           src={photoPreview || image}
                           alt="Profile"
@@ -406,7 +411,10 @@ const UserEditProfile = () => {
                   </div>
                 </div>
 
-                <form onSubmit={handleUpdateProfile} className="space-y-5 lg:space-y-6">
+                <form
+                  onSubmit={handleUpdateProfile}
+                  className="space-y-5 lg:space-y-6"
+                >
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Full Name
@@ -516,7 +524,9 @@ const UserEditProfile = () => {
                             type="text"
                             value={otp}
                             onChange={(e) =>
-                              setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+                              setOtp(
+                                e.target.value.replace(/\D/g, "").slice(0, 6),
+                              )
                             }
                             placeholder="Enter 6-digit OTP"
                             className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"

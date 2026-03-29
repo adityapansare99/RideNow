@@ -7,6 +7,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import axios from "axios";
 import LiveRideTracking from "../components/LiveRideTracking.jsx";
+import { toast } from "react-toastify";
 
 const Riding = () => {
   const location = useLocation();
@@ -80,7 +81,7 @@ const Riding = () => {
             setPaymentStatus(true);
           }
         } catch (error) {
-          console.error("error in payment", error);
+          toast.error("Payment verification failed. Please contact support.");
         }
       },
     };
@@ -108,11 +109,11 @@ const Riding = () => {
       }
 
       if (!response) {
-        alert("Payment failed");
+        toast.error("Payment failed, please try again.");
         return;
       }
     } catch (error) {
-      console.error("error in make payment", error);
+      toast.error("Payment failed, please try again.");
     }
   };
 

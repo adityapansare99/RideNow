@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { UserDataContext } from "../context/userContext";
+import { toast } from "react-toastify";
 
 const UserSignup = () => {
   const [email, setEmail] = useState("");
@@ -25,7 +26,7 @@ const UserSignup = () => {
       );
 
       if (otpResponse.data.success !== true) {
-        alert("OTP verification failed");
+        toast.error("OTP verification failed");
         e.preventDefault();
         return;
       }
@@ -45,7 +46,7 @@ const UserSignup = () => {
 
       if (resopnse.data.success) {
         const data = resopnse.data.data;
-        setUser(data.user);
+        setUser(data.userData);
         localStorage.setItem("token", data.accesstoken);
         navigate("/home");
       }
@@ -55,15 +56,19 @@ const UserSignup = () => {
       setFirstName("");
       setLastName("");
     } catch (error) {
-      console.log("signup error:", error);
-      alert("Signup failed. Try again");
-      return;
+      if(error.response.data.data!==null){
+        toast.error(error.response.data.data[0].msg);
+      }
+
+      else{
+        toast.error(error.response.data.message);
+      }
     }
   };
-
+ 
   const otpHandler = async () => {
     if (mobile.length !== 10) {
-      alert("Enter valid mobile number");
+      toast.error("Enter valid mobile number");
       return;
     }
 
@@ -74,13 +79,12 @@ const UserSignup = () => {
       );
 
       if (response.data.success) {
-        alert("otp sent successfully");
+        toast.success(response.data.message);
         setOtpField(true);
         return;
       }
     } catch (error) {
-      console.log("otp error:", error);
-      alert("failed to send otp. Try again");
+      toast.error("Failed to send OTP. Try again");
       return;
     }
   };

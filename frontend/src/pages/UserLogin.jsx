@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { UserDataContext } from "../context/userContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const UserLogin = () => {
   const [email, setEmail] = useState("");
@@ -13,25 +14,35 @@ const UserLogin = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    const userData = {
-      email: email,
-      password: password,
-    };
 
-    const response = await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/users/login`,
-      userData
-    );
+    try {
+      const userData = {
+        email: email,
+        password: password,
+      };
 
-    if (response.data.success) {
-      const data = response.data.data;
-      setUser(data.user);
-      localStorage.setItem("token", data.accesstoken);
-      navigate("/home");
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/users/login`,
+        userData,
+      );
+
+      if (response.data.success) {
+        const data = response.data.data;
+        setUser(data.user);
+        localStorage.setItem("token", data.accesstoken);
+        navigate("/home");
+        setEmail("");
+        setPassword("");
+      }
+    } catch (error) {
+      if(error.response.data.data!==null){
+        toast.error(error.response.data.data[0].msg);
+      }
+
+      else{
+        toast.error(error.response.data.message);
+      }
     }
-
-    setEmail("");
-    setPassword("");
   };
 
   return (

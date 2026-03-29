@@ -57,7 +57,6 @@ const Home = () => {
   });
 
   socket.on("ride-cancelled",(ride)=>{
-    console.log("ride cancelled");
     setWaitForDriverPanel(false);
     setVehiclePanel(false);
     setvehicleFound(false);
