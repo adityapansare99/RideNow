@@ -2,7 +2,6 @@ import { Captain } from "../model/captain.model.js";
 import { asynchandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
-import Histroy from "../model/captainHistroy.model.js";
 import twilio from "twilio";
 import { storeOtp, verifyStoredOtp } from "../service/otpStore.js";
 import { uploadoncloudinary } from "../utils/cloudinary.js";
@@ -36,13 +35,6 @@ const registercaptain = asynchandler(async (req, res) => {
   if (!captain) {
     throw new ApiError(500, "Captain registration failed. Please try again");
   }
-
-  await Histroy.create({
-    captain_id: captain._id,
-    dist: [0],
-    time: [0],
-    earning: [0],
-  });
 
   const captainid = await Captain.findById(captain._id).select(
     "-password -refreshtoken",
@@ -151,7 +143,11 @@ const profile = asynchandler(async (req, res) => {
   res
     .status(200)
     .json(
-      new ApiResponse(200, { captainData }, "Captain profile fetched successfully"),
+      new ApiResponse(
+        200,
+        { captainData },
+        "Captain profile fetched successfully",
+      ),
     );
 });
 
@@ -183,21 +179,38 @@ const captainHistroy = asynchandler(async (req, res) => {
     throw new ApiError(404, "Captain not found");
   }
 
-  const history = await Histroy.findOne({ captain_id }).select("-captain_id");
+  const stats = await Ride.aggregate([
+    {
+      $match: {
+        captain: captain_id,
+        status: "completed",
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalDist: { $sum: "$distance" },
+        totalTime: { $sum: "$duration" },
+        totalEarning: { $sum: "$fare" },
+      },
+    },
+  ]);
 
-  if (!history) {
-    throw new ApiError(404, "No history record found for this captain");
+  console.log("Captain Stats:", stats);
+
+  let totalDist = 0;
+  let totalTime = 0;
+  let totalEarning = 0;
+
+  if (stats.length > 0) {
+    totalDist = stats[0].totalDist || 0;
+    totalTime = stats[0].totalTime || 0;
+    totalEarning = stats[0].totalEarning || 0;
   }
 
-  const totalDist = Number(
-    history.dist.reduce((sum, val) => sum + val, 0).toFixed(2),
-  );
-  const totalTime = Number(
-    history.time.reduce((sum, val) => sum + val, 0).toFixed(2),
-  );
-  const totalEarning = Number(
-    history.earning.reduce((sum, val) => sum + val, 0).toFixed(2),
-  );
+  totalDist = parseFloat((totalDist / 1000).toFixed(2));
+  totalTime = parseFloat((totalTime / 3600).toFixed(2));
+  totalEarning = parseFloat(totalEarning.toFixed(2));
 
   res
     .status(200)

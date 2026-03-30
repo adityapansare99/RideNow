@@ -17,7 +17,6 @@ import {
 import { sendMessageToSocketId } from "../socket.js";
 import { Ride } from "../model/ride.model.js";
 import razorpay from "razorpay";
-import Histroy from "../model/captainHistroy.model.js";
 
 const createride = asynchandler(async (req, res) => {
   const errors = validationResult(req);
@@ -158,18 +157,6 @@ const endRide = asynchandler(async (req, res) => {
   if (!ride_data) {
     throw new ApiError(404, "Ride not found");
   }
-
-  const hist = await Histroy.updateOne(
-    { captain_id: ride_data.captain },
-    {
-      $push: {
-        dist: ride_data.distance / 1000,
-        time: ride_data.duration / 3600,
-        earning: ride_data.fare,
-      },
-    },
-    { upsert: true },
-  );
 
   const ride = await endride({ rideId, captain: req.captain });
 
