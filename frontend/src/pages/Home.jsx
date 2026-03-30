@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useState } from "react";
+import React, { use, useContext, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import axios from "axios";
@@ -8,7 +8,7 @@ import VehiclePanelMain from "../components/VehiclePanel.jsx";
 import ConfirmRide from "../components/ConfirmRide.jsx";
 import LookingForDriver from "../components/LookingForDriver.jsx";
 import WaitForDriver from "../components/WaitForDriver.jsx";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { UserDataContext } from "../context/userContext";
 import { SocketContext } from "../context/SocketContext.jsx";
 import { useEffect } from "react";
@@ -39,6 +39,45 @@ const Home = () => {
 
   const { socket } = useContext(SocketContext);
   const { user } = useContext(UserDataContext);
+
+  useEffect(() => {
+    setVehiclePanel(false);
+    setConfirmRidePanel(false);
+    setvehicleFound(false);
+    setWaitForDriverPanel(false);
+
+    if (vehiclepanelref.current) {
+      vehiclepanelref.current.style.transform = "translateY(100%)";
+    }
+
+    if (confirmridepanelref.current) {
+      confirmridepanelref.current.style.transform = "translateY(100%)";
+    }
+
+    if (vehicleFoundref.current) {
+      vehicleFoundref.current.style.transform = "translateY(100%)";
+    }
+    
+    if (waitfordriverref.current) {
+      waitfordriverref.current.style.transform = "translateY(100%)";
+    }
+  }, []);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.rideToComplete) {
+      const rideData = location.state.rideToComplete;
+  
+      setRide(rideData);
+  
+      setTimeout(() => {
+        setWaitForDriverPanel(true);
+      }, 0);
+  
+      navigate("/home", { replace: true });
+    }
+  }, [location.state]);
 
   useEffect(() => {
     socket.emit("join", { userType: "user", userId: user._id });

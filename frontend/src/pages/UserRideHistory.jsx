@@ -104,6 +104,10 @@ const UserRideHistory = () => {
     navigate("/riding", { state: { ride } });
   };
 
+  const handleCompleteRide = (ride) => {
+    navigate("/home",{state:{rideToComplete: ride}});
+  }
+
   return (
     <div className="min-h-screen w-full flex bg-gradient-to-b from-gray-50 to-white flex-col">
       <div className="lg:hidden relative z-10 bg-white border-b border-gray-200">
@@ -193,6 +197,9 @@ const UserRideHistory = () => {
                 className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all shadow-sm"
               >
                 <option value="all">All ({rides.length})</option>
+                <option value="accepted">
+                  Accepted ({rides.filter((r) => r.status === "accepted").length})
+                </option>
                 <option value="ongoing">
                   Ongoing ({rides.filter((r) => r.status === "ongoing").length})
                 </option>
@@ -218,6 +225,18 @@ const UserRideHistory = () => {
               >
                 All ({rides.length})
               </button>
+
+              <button
+                onClick={() => setActiveTab("accepted")}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                  activeTab === "accepted"
+                    ? "bg-black text-white"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                Accepted ({rides.filter((r) => r.status === "accepted").length})
+              </button>
+
               <button
                 onClick={() => setActiveTab("ongoing")}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
@@ -373,6 +392,15 @@ const UserRideHistory = () => {
                   {ride.status === "ongoing" && (
                     <button
                       onClick={() => handleGoToRide(ride)}
+                      className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-900 transition-all duration-200 shadow-sm active:scale-95"
+                    >
+                      View Active Ride
+                    </button>
+                  )}
+
+                  {ride.status === "accepted" && (
+                    <button
+                      onClick={() => handleCompleteRide(ride)}
                       className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-900 transition-all duration-200 shadow-sm active:scale-95"
                     >
                       View Active Ride

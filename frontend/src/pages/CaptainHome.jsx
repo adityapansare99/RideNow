@@ -1,5 +1,5 @@
-import React, { useContext, useRef, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useContext, useRef, useState, useEffect, use } from "react";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import CaptainDetails from "../components/CaptainDetails";
 import RidePopup from "../components/RidePopup";
 import { useGSAP } from "@gsap/react";
@@ -24,6 +24,18 @@ const CaptainHome = () => {
   const [hist, sethist] = useState();
 
   useEffect(() => {
+    setRidePopupPanel(false);
+    setConfirmRidePopupPanel(false);
+
+    if (ConfirmRidePopupPanelref.current) {
+      ConfirmRidePopupPanelref.current.style.transform = "translateY(100%)";
+    }
+    if (RidePopupPanelref.current) {
+      RidePopupPanelref.current.style.transform = "translateY(100%)";
+    }
+  }, []);
+
+  useEffect(() => {
     socket.emit("join", { userType: "captain", userId: captain._id });
 
     const updateLocation = () => {
@@ -45,50 +57,53 @@ const CaptainHome = () => {
     histroy();
 
     const handleNewRide = (data) => {
-    setRide(data);
-    setRidePopupPanel(true);
-  };
+      setRide(data);
+      setRidePopupPanel(true);
+    };
 
-  const handleRideAlreadyConfirmed = (data) => {
-    setRidePopupPanel(false);
-    setConfirmRidePopupPanel(false);
-    alert("This ride was just accepted by another captain");
-  };
+    const handleRideAlreadyConfirmed = (data) => {
+      setRidePopupPanel(false);
+      setConfirmRidePopupPanel(false);
+      alert("This ride was just accepted by another captain");
+    };
 
-  socket.on("new-ride", handleNewRide);
-  socket.on("ride-already-confirmed", handleRideAlreadyConfirmed);
+    socket.on("new-ride", handleNewRide);
+    socket.on("ride-already-confirmed", handleRideAlreadyConfirmed);
 
     // return () => clearInterval(locationInterval)
     return () => {
-    clearInterval(locationInterval);
-    socket.off("new-ride", handleNewRide);
-    socket.off("ride-already-confirmed", handleRideAlreadyConfirmed);
-  };
+      clearInterval(locationInterval);
+      socket.off("new-ride", handleNewRide);
+      socket.off("ride-already-confirmed", handleRideAlreadyConfirmed);
+    };
   }, [socket, captain._id]);
 
-const confirmRide = async () => {
-  try {
-    const response = await axios.post(
-      `${import.meta.env.VITE_BASE_URL}/rides/confirm`,
-      {
-        rideId: ride._id,
-        captainId: captain._id,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+  const confirmRide = async () => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/rides/confirm`,
+        {
+          rideId: ride._id,
+          captainId: captain._id,
         },
-      }
-    );
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
 
-    setRidePopupPanel(false);
-    setConfirmRidePopupPanel(true);
-  } catch (error) {
-    toast.error(error.response?.data?.message || "This ride has already been accepted by another captain");
-    setRidePopupPanel(false);
-    setConfirmRidePopupPanel(false);
-  }
-};
+      setRidePopupPanel(false);
+      setConfirmRidePopupPanel(true);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+          "This ride has already been accepted by another captain",
+      );
+      setRidePopupPanel(false);
+      setConfirmRidePopupPanel(false);
+    }
+  };
 
   const histroy = async () => {
     try {
@@ -127,6 +142,23 @@ const confirmRide = async () => {
       toast.error("Failed to cancel ride. Please try again.");
     }
   };
+
+  const location = useLocation();
+  const navigate=useNavigate();
+  
+  useEffect(() => {
+  if (location.state?.rideToComplete) {
+    const rideData = location.state.rideToComplete;
+
+    setRide(rideData);
+
+    setTimeout(() => {
+      setConfirmRidePopupPanel(true);
+    }, 0);
+
+    navigate("/captain-home", { replace: true });
+  }
+}, [location.state]);
 
   useGSAP(
     function () {

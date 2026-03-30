@@ -196,8 +196,6 @@ const captainHistroy = asynchandler(async (req, res) => {
     },
   ]);
 
-  console.log("Captain Stats:", stats);
-
   let totalDist = 0;
   let totalTime = 0;
   let totalEarning = 0;

@@ -325,7 +325,7 @@ const rideHistory = asynchandler(async (req, res) => {
 
   const rideData = await Ride.find({ user: user._id })
     .populate("captain")
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 }).select("+otp");
 
   if (!rideData) {
     return res
