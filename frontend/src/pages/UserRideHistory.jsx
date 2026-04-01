@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import RideRating from "../components/RideRating";
 
 const UserRideHistory = () => {
   const [rides, setRides] = useState([]);
@@ -105,8 +106,8 @@ const UserRideHistory = () => {
   };
 
   const handleCompleteRide = (ride) => {
-    navigate("/home",{state:{rideToComplete: ride}});
-  }
+    navigate("/home", { state: { rideToComplete: ride } });
+  };
 
   return (
     <div className="min-h-screen w-full flex bg-gradient-to-b from-gray-50 to-white flex-col">
@@ -198,7 +199,8 @@ const UserRideHistory = () => {
               >
                 <option value="all">All ({rides.length})</option>
                 <option value="accepted">
-                  Accepted ({rides.filter((r) => r.status === "accepted").length})
+                  Accepted (
+                  {rides.filter((r) => r.status === "accepted").length})
                 </option>
                 <option value="ongoing">
                   Ongoing ({rides.filter((r) => r.status === "ongoing").length})
@@ -408,9 +410,9 @@ const UserRideHistory = () => {
                   )}
 
                   {ride.status === "completed" && (
-                    <div className="flex gap-2">
+                    <div className="space-y-4">
                       {ride.distance && ride.duration && (
-                        <div className="flex-1 grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 gap-2">
                           <div className="text-center p-2 bg-gray-50 rounded-lg">
                             <p className="text-xs text-gray-500">Distance</p>
                             <p className="text-sm font-semibold text-gray-900">
@@ -423,6 +425,25 @@ const UserRideHistory = () => {
                               {(ride.duration / 60).toFixed(1)} min
                             </p>
                           </div>
+                        </div>
+                      )}
+
+                      {!ride.isRated ? (
+                        <RideRating
+                          ride={ride}
+                          onRatingSubmitted={() => {
+                            RideData();
+                          }}
+                        />
+                      ) : (
+                        <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+                          <p className="text-xs text-green-600 font-medium mb-2">
+                            <i className="ri-checkbox-circle-fill mr-1"></i>
+                            Rating submitted
+                          </p>
+                          <p className="text-2xl font-bold text-green-700">
+                            ⭐ {ride.rating}/5
+                          </p>
                         </div>
                       )}
                     </div>

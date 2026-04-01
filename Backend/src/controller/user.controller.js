@@ -323,15 +323,54 @@ const rideHistory = asynchandler(async (req, res) => {
     throw new ApiError(401, "Unauthorized. User not found in request");
   }
 
-  const rideData = await Ride.find({ user: user._id })
+  const rideData1 = await Ride.find({ user: user._id })
     .populate("captain")
     .sort({ createdAt: -1 }).select("+otp");
 
-  if (!rideData) {
+  if (!rideData1) {
     return res
       .status(200)
       .json(new ApiResponse(200, [], "No ride history found for this user"));
   }
+
+  const rideData = await Promise.all(
+    rideData1.map(async (ride) => {
+      const rideObj = ride.toObject();
+
+      if ((rideObj.status === "completed" || rideObj.status === "ongoing") && rideObj.captain) {
+        const averageRating = await Ride.aggregate([
+          {
+            $match: {
+              captain: ride.captain._id,
+              isRated: true,
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              totalRating: { $sum: "$rating" },
+              count: { $sum: 1 },
+            },
+          },
+        ]);
+
+        const avgRating =
+          averageRating.length > 0
+            ? (averageRating[0].totalRating / averageRating[0].count).toFixed(1)
+            : 0;
+
+        const count =
+          averageRating.length > 0 ? averageRating[0].count : 0;
+
+        rideObj.captainAverageRating = {
+          avgRating: parseFloat(avgRating),
+          count: count,
+        };
+      }
+
+      return rideObj;
+    })
+  );
 
   return res
     .status(200)

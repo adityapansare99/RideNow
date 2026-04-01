@@ -8,6 +8,7 @@ import gsap from "gsap";
 import axios from "axios";
 import LiveRideTracking from "../components/LiveRideTracking.jsx";
 import { toast } from "react-toastify";
+import RideRating from "../components/RideRating.jsx";
 
 const Riding = () => {
   const location = useLocation();
@@ -16,6 +17,7 @@ const Riding = () => {
   const [paymentstatus, setPaymentStatus] = useState(ride.paymentStatus);
   const [rideInfoPanel, setRideInfoPanel] = useState(false);
   const rideInfoPanelRef = useRef(null);
+  const [done, setDone] = useState(false);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
@@ -35,7 +37,22 @@ const Riding = () => {
     }
 
     const handleRideEnded = (data) => {
-      navigate("/home");
+      setDone(true);
+      toast.info("Your ride has ended. Please give the rating");
+      useGSAP(
+        function () {
+          if (rideInfoPanel) {
+            gsap.to(rideInfoPanelRef.current, {
+              transform: "translateY(0%)",
+            });
+          } else {
+            gsap.to(rideInfoPanelRef.current, {
+              transform: "translateY(100%)",
+            });
+          }
+        },
+        [rideInfoPanel],
+      );
     };
 
     socket.on("ride-ended", handleRideEnded);
@@ -118,7 +135,7 @@ const Riding = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-gray-50 to-white flex flex-col">
+    <div className="min-h-screen  w-full bg-gradient-to-b from-gray-50 to-white flex flex-col">
       <div className="relative z-20 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
           <div>
@@ -229,6 +246,23 @@ const Riding = () => {
                 Payment Successful
               </button>
             </div>
+
+            <div className="mx-5 flex flex-col gap-10 mb-10">
+              {done && (
+                <RideRating
+                  ride={ride}
+                  onRatingSubmitted={() => {
+                    navigate("/home");
+                  }}
+                />
+              )}
+
+              {done && (
+                <Link className="text-center text-sm text-blue-600" to="/home">
+                  Remind me later
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -260,7 +294,7 @@ const Riding = () => {
               </svg>
             </button>
           </div>
-          <div className="px-4 sm:px-6 pb-8">
+          <div className="px-4 sm:px-6 flex flex-col gap-10 pb-8">
             <div className="flex items-center justify-between mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
               <img
                 className="h-16"
@@ -329,6 +363,23 @@ const Riding = () => {
             >
               Payment Successful
             </button>
+
+            <div className="md:mx-5  flex flex-col gap-10 mb-10">
+              {done && (
+                <RideRating
+                  ride={ride}
+                  onRatingSubmitted={() => {
+                    navigate("/home");
+                  }}
+                />
+              )}
+
+              {done && (
+                <Link className="text-center text-sm text-blue-600" to="/home">
+                  Remind me later
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>

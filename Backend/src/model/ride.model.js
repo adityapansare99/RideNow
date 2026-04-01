@@ -64,6 +64,20 @@ const rideschema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    rating:{
+      type:Number,
+      default:0
+    },
+
+    isRated:{
+      type:Boolean,
+      default:false
+    },
+
+    rateTime:{
+      type:Date,
+    }
   },
   { timestamps: true }
 );

@@ -375,6 +375,47 @@ const rideHistory = asynchandler(async (req, res) => {
     .json(new ApiResponse(200, RideData, "Ride history found"));
 });
 
+const getAverageRating = asynchandler(async (req, res) => {
+  const captain = req.captain;
+
+  if (!captain) {
+    throw new ApiError(401, "Captain not found in request");
+  }
+
+  const averageRating = await Ride.aggregate([
+    {
+      $match: {
+        captain: captain._id,
+        isRated: true,
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalRating: { $sum: "$rating" },
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const avgRating =
+    averageRating.length > 0
+      ? averageRating[0].totalRating / averageRating[0].count
+      : 0;
+    
+  const count = averageRating.length > 0 ? averageRating[0].count : 0;
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { avgRating, count },
+        "Average rating calculated successfully",
+      ),
+    );
+});
+
 export {
   registercaptain,
   logincaptain,
@@ -386,4 +427,5 @@ export {
   deleteCaptain,
   editProfile,
   rideHistory,
+  getAverageRating
 };

@@ -271,6 +271,32 @@ const cancelRide = asynchandler(async (req, res) => {
     .json(new ApiResponse(200, null, "Ride cancelled successfully"));
 });
 
+const RideRating = asynchandler(async (req, res) => {
+  const { rideId, rating } = req.body;
+
+  if (!rideId || !rating) {
+    throw new ApiError(400, "Ride ID and rating are required");
+  }
+
+  const ride = await Ride.findByIdAndUpdate(
+    rideId,
+    {
+      rating: rating,
+      isRated: true,
+      rateTime: Date.now(),
+    },
+    { new: true },
+  );
+
+  if (!ride) {
+    throw new ApiError(500, "Unable to submit rating. Please try again");
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, null, "Rating submitted successfully"));
+});
+
 export {
   createride,
   farevalue,
@@ -280,4 +306,5 @@ export {
   makepayment,
   verifypayment,
   cancelRide,
+  RideRating
 };
