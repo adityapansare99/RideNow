@@ -6,6 +6,7 @@ import twilio from "twilio";
 import { uploadoncloudinary } from "../utils/cloudinary.js";
 import { storeOtp, verifyStoredOtp } from "../service/otpStore.js";
 import { Ride } from "../model/ride.model.js";
+import mongoose from "mongoose";
 
 const registeruser = asynchandler(async (req, res) => {
   const { firstname, lastname, email, password, mobile } = req.body;
@@ -325,7 +326,8 @@ const rideHistory = asynchandler(async (req, res) => {
 
   const rideData1 = await Ride.find({ user: user._id })
     .populate("captain")
-    .sort({ createdAt: -1 }).select("+otp");
+    .sort({ createdAt: -1 })
+    .select("+otp");
 
   if (!rideData1) {
     return res
@@ -337,7 +339,10 @@ const rideHistory = asynchandler(async (req, res) => {
     rideData1.map(async (ride) => {
       const rideObj = ride.toObject();
 
-      if ((rideObj.status === "completed" || rideObj.status === "ongoing") && rideObj.captain) {
+      if (
+        (rideObj.status === "completed" || rideObj.status === "ongoing") &&
+        rideObj.captain
+      ) {
         const averageRating = await Ride.aggregate([
           {
             $match: {
@@ -359,8 +364,7 @@ const rideHistory = asynchandler(async (req, res) => {
             ? (averageRating[0].totalRating / averageRating[0].count).toFixed(1)
             : 0;
 
-        const count =
-          averageRating.length > 0 ? averageRating[0].count : 0;
+        const count = averageRating.length > 0 ? averageRating[0].count : 0;
 
         rideObj.captainAverageRating = {
           avgRating: parseFloat(avgRating),
@@ -369,13 +373,54 @@ const rideHistory = asynchandler(async (req, res) => {
       }
 
       return rideObj;
-    })
+    }),
   );
 
   return res
     .status(200)
     .json(
       new ApiResponse(200, rideData, "Ride history retrieved successfully"),
+    );
+});
+
+const driverRating = asynchandler(async (req, res) => {
+  const { captainId } = req.body;
+
+  if (!captainId) {
+    throw new ApiError(400, "Captain not found");
+  }
+
+  const averageRating = await Ride.aggregate([
+    {
+      $match: {
+        captain: new mongoose.Types.ObjectId(captainId),
+        isRated: true,
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalRating: { $sum: "$rating" },
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const avgRating =
+    averageRating.length > 0
+      ? (averageRating[0].totalRating / averageRating[0].count).toFixed(1)
+      : 0;
+
+  const count = averageRating.length > 0 ? averageRating[0].count : 0;
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { avgRating: parseFloat(avgRating), count },
+        "Driver rating retrieved successfully",
+      ),
     );
 });
 
@@ -390,4 +435,5 @@ export {
   verifyOtp,
   deleteUser,
   rideHistory,
+  driverRating
 };

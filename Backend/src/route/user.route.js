@@ -9,7 +9,8 @@ import {
   editProfile,
   verifyOtp,
   deleteUser,
-  rideHistory
+  rideHistory,
+  driverRating
 } from "../controller/user.controller.js";
 import { auth } from "../middleware/auth.middleware.js";
 import {
@@ -33,5 +34,6 @@ userrouter
 
 userrouter.route("/ride-history").get(auth, rideHistory);
 userrouter.route("/refresh-token").post(refreshaccesstoken);
+userrouter.route("/captain-rating").post(auth,driverRating);
 
 export { userrouter };

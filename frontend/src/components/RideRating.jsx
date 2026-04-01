@@ -1,10 +1,38 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useEffect } from "react";
 
 const RideRating = ({ ride, onRatingSubmitted }) => {
   const [selectedRating, setSelectedRating] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [captainRating, setCaptainRating] = useState(null);
+
+  const fetchCaptainRating = async () => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/users/captain-rating`,
+        {
+          captainId: ride.captain._id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      if (response.data.success) {
+        setCaptainRating(response.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch captain rating:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCaptainRating();
+  }, []);
 
   const ratingLabels = {
     1: "Poor",
@@ -105,11 +133,14 @@ const RideRating = ({ ride, onRatingSubmitted }) => {
           <p className="text-xs font-medium text-gray-600">Driver rating</p>
           <div className="flex items-center gap-2">
             <span className="text-sm font-bold text-gray-900">
-              {ride.captainAverageRating?.avgRating || "0.0"}
+              {ride.captainAverageRating?.avgRating ||
+                captainRating?.avgRating ||
+                "0.0"}
             </span>
             <span className="text-lg text-yellow-400">★</span>
             <span className="text-xs text-gray-500">
-              ({ride.captainAverageRating?.count || "0"} rides)
+              ({ride.captainAverageRating?.count || captainRating?.count || "0"}{" "}
+              rides)
             </span>
           </div>
         </div>

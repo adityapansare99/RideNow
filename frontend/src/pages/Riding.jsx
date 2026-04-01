@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { use, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useContext, useState } from "react";
 import { SocketContext } from "../context/SocketContext.jsx";
@@ -20,6 +20,35 @@ const Riding = () => {
   const [done, setDone] = useState(false);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
+  const [rideStatus, setRideStatus] = useState(ride.status);
+
+  const rideStatusFunc = async () => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/rides/ride-status`,
+        {
+          rideId: ride._id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      if (response.data.success) setRideStatus(response.data.data);
+    } catch (error) {}
+  };
+
+  useEffect(() => {
+    rideStatusFunc();
+  }, []);
+
+  useEffect(() => {
+    if (rideStatus === "completed") {
+      setDone(true);
+    }
+  },[rideStatus]);
 
   useEffect(() => {
     if (!socket) {

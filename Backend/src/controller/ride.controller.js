@@ -297,6 +297,24 @@ const RideRating = asynchandler(async (req, res) => {
     .json(new ApiResponse(200, null, "Rating submitted successfully"));
 });
 
+const rideStatus = asynchandler(async (req, res) => {
+  const { rideId } = req.body;
+
+  if (!rideId) {
+    throw new ApiError(400, "Ride ID is required");
+  }
+
+  const ride = await Ride.findById(rideId);
+
+  if (!ride) {
+    throw new ApiError(404, "Ride not found");
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, ride.status, "Ride status fetched successfully"));
+})
+
 export {
   createride,
   farevalue,
@@ -306,5 +324,6 @@ export {
   makepayment,
   verifypayment,
   cancelRide,
-  RideRating
+  RideRating,
+  rideStatus
 };

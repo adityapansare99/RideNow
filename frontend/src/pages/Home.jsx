@@ -485,7 +485,7 @@ const Home = () => {
             )}
 
             {WaitForDriverPanel && (
-              <div className="px-6 py-6">
+              <div className="px-6 overflow-y-auto scrollbar-hide py-6">
                 <WaitForDriver
                   ride={ride}
                   setvehicleFound={setvehicleFound}
@@ -614,7 +614,7 @@ const Home = () => {
 
       <div
         ref={waitfordriverref}
-        className="lg:hidden fixed w-full z-10 bg-white bottom-0 px-3 py-6 pt-12"
+        className="lg:hidden fixed h-[80%] overflow-y-auto w-full z-10 bg-white bottom-0 px-3 py-6 pt-12"
       >
         <WaitForDriver
           ride={ride}

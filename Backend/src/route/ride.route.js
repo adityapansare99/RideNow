@@ -9,6 +9,7 @@ import {
   verifypayment,
   cancelRide,
   RideRating,
+  rideStatus
 } from "../controller/ride.controller.js";
 import { body, query } from "express-validator";
 import { auth, authc } from "../middleware/auth.middleware.js";
@@ -81,5 +82,7 @@ riderrouter.route("/verifypayment").post(auth, verifypayment);
 riderrouter.route("/cancel-ride").post(authc, cancelRide);
 
 riderrouter.route("/rate").post(auth, RideRating);
+
+riderrouter.route("/ride-status").post(auth, rideStatus);
 
 export { riderrouter };

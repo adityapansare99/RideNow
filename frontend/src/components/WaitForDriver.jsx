@@ -1,8 +1,42 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const WaitForDriver = (props) => {
+  const [captainRating, setCaptainRating] = useState(null);
+  const [ratingLoading, setRatingLoading] = useState(true);
+
+  const fetchCaptainRating = async () => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/users/captain-rating`,
+        {
+          captainId: props.ride.captain._id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setCaptainRating(response.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch captain rating:", error);
+    } finally {
+      setRatingLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (props.ride?.captain._id) {
+      fetchCaptainRating();
+    }
+  }, [props.ride?.captain._id]);
+
   return (
-    <div>
+    <div className="lg:mt-10 h-[70vh] overflow-y-auto scrollbar-hide">
       <h5
         onClick={() => {
           props.setWaitForDriverPanel(false);
@@ -37,6 +71,31 @@ const WaitForDriver = (props) => {
             <h1 className="text-base font-bold text-gray-900">
               OTP: {props.ride?.otp}
             </h1>
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-amber-700 mb-2 uppercase tracking-wide">
+              Driver Rating
+            </p>
+            {ratingLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="h-6 w-12 bg-gray-300 rounded animate-pulse"></div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-bold text-amber-900">
+                  {captainRating?.avgRating || "0"}
+                </span>
+                <span className="text-xl text-yellow-500">★</span>
+                <span className="text-xs text-amber-700 font-medium">
+                  ({captainRating?.count || 0} {captainRating?.count === 1 ? "rating" : "ratings"})
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
