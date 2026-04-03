@@ -14,9 +14,9 @@ VEHICLE_MULTIPLIERS = {
     'moto': 0.5,
 }
 
-@app.route('/health', methods=['GET'])
+@app.route('/', methods=['GET'])
 def health():
-    return jsonify({'status': 'OK', 'model': 'xgb_fare_model loaded'})
+    return jsonify({'status': 'OK', 'model': 'fare prediction model loaded'})
 
 @app.route('/predict', methods=['POST'])
 def predict_fare():
