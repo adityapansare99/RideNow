@@ -339,10 +339,7 @@ const rideHistory = asynchandler(async (req, res) => {
     rideData1.map(async (ride) => {
       const rideObj = ride.toObject();
 
-      if (
-        (rideObj.status === "completed" || rideObj.status === "ongoing") &&
-        rideObj.captain
-      ) {
+      if (rideObj.status === "completed" && rideObj.captain) {
         const averageRating = await Ride.aggregate([
           {
             $match: {
@@ -435,5 +432,5 @@ export {
   verifyOtp,
   deleteUser,
   rideHistory,
-  driverRating
+  driverRating,
 };
