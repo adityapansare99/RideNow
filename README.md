@@ -201,6 +201,6 @@ npm run dev
 | Training Samples | 50,000 rides |
 | Validation | 5-Fold Cross-Validation |
 
-> See [ml_backend/README.md](./ml_backend/README.md) for full accuracy report.
+> See [ml_backend/Model_Accuracy.md](./ml_backend/Model_Accuracy.md) for full accuracy report.
 
 ---
