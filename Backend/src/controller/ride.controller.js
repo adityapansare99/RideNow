@@ -54,7 +54,7 @@ const createride = asynchandler(async (req, res) => {
   const captainsInRadius = await getCaptaininTheRadius(
     pickupCoordinate.ltd,
     pickupCoordinate.lng,
-    100,
+    2,
     vehicleType,
     RideId._id,
   );
