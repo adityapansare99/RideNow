@@ -4,7 +4,9 @@ import joblib
 import numpy as np
 
 app = Flask(__name__)
-CORS(app)
+CORS(app,
+     resources={r"/*": {"origins": "*"}},
+     supports_credentials=False)
 
 model = joblib.load('linear_car_model.pkl')
 
