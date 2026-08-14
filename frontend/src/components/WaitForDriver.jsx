@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const WaitForDriver = (props) => {
   const [captainRating, setCaptainRating] = useState(null);
@@ -10,7 +11,7 @@ const WaitForDriver = (props) => {
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/users/captain-rating`,
         {
-          captainId: props.ride.captain._id,
+          captainId: props.ride?.captain?._id,
         },
         {
           headers: {
@@ -30,10 +31,12 @@ const WaitForDriver = (props) => {
   };
 
   useEffect(() => {
-    if (props.ride?.captain._id) {
+    if (props.ride?.captain?._id) {
       fetchCaptainRating();
     }
-  }, [props.ride?.captain._id]);
+
+    console.log(props.ride?.captain?._id);
+  }, [props.ride?.captain?._id]);
 
   return (
     <div className="lg:mt-10 h-[70vh] overflow-y-auto scrollbar-hide">
@@ -55,17 +58,17 @@ const WaitForDriver = (props) => {
 
         <div className="text-right">
           <h2 className="text-base font-semibold text-gray-900 capitalize">
-            {props.ride?.captain.fullname.firstname +
+            {props.ride?.captain?.fullname?.firstname +
               " " +
-              props.ride?.captain.fullname.lastname}
+              props.ride?.captain?.fullname?.lastname}
           </h2>
           <h4 className="text-lg font-bold text-gray-900 mt-1">
-            {props.ride?.captain.vehicle.plate}
+            {props.ride?.captain?.vehicle?.plate}
           </h4>
           <p className="text-xs text-gray-500 font-light mt-1">
-            {props.ride?.captain.vehicle.vehicletype +
+            {props.ride?.captain?.vehicle?.vehicletype +
               " - " +
-              props.ride?.captain.vehicle.color}
+              props.ride?.captain?.vehicle?.color}
           </p>
           <div className="mt-2 inline-block bg-yellow-400 px-3 py-1 rounded-full border border-yellow-500">
             <h1 className="text-base font-bold text-gray-900">
@@ -75,7 +78,7 @@ const WaitForDriver = (props) => {
         </div>
       </div>
 
-      <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
+      <div className="mb-6 p-4 bg-linear-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold text-amber-700 mb-2 uppercase tracking-wide">
@@ -148,6 +151,33 @@ const WaitForDriver = (props) => {
             </div>
           </div>
         </div>
+
+        <button
+          onClick={async () => {
+            try {
+              const response = await axios.post(
+                `${import.meta.env.VITE_BASE_URL}/rides/cancel-ride`,
+                { rideId: props.ride._id },
+                {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                  },
+                },
+              );
+              if (response.data.success) {
+                toast.info("Ride cancelled");
+                props.onCancel?.();
+              } else {
+                toast.error("Failed to cancel ride");
+              }
+            } catch (error) {
+              toast.error("Failed to cancel ride");
+            }
+          }}
+          className="w-full mt-4 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-lg transition-all duration-200 shadow-sm active:scale-95"
+        >
+          Cancel Ride
+        </button>
       </div>
     </div>
   );

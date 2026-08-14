@@ -64,8 +64,8 @@ const validationRulesforcaptain = [
     .isInt({ min: 1 })
     .withMessage("Capacity must be at least 1"),
   body("vehicle.vehicletype")
-    .isIn(["car", "auto", "motorcycle"])
-    .withMessage("Vehicle type must be car, auto or motorcycle"),
+    .isIn(["car", "auto", "moto"])
+    .withMessage("Vehicle type must be car, auto or moto"),
 ];
 
 const validatorresultcaptain = (req, res, next) => {

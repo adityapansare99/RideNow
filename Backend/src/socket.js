@@ -39,6 +39,7 @@ const initializeSocket = (server) => {
 
       try {
         await Captain.findByIdAndUpdate(userId, {
+          status: "active",
           location: {
             ltd: location.ltd,
             lng: location.lng,
@@ -53,7 +54,7 @@ const initializeSocket = (server) => {
     });
 
     socket.on("update-captain-location-ride", async (data) => {
-      const { userId, location, rideId } = data;
+      const { userId, location, rideId, heading } = data;
 
       if (!location || !location.ltd || !location.lng) {
         return socket.emit("error", { message: "Invalid location data" });
@@ -72,6 +73,7 @@ const initializeSocket = (server) => {
         if (ride && ride.user && ride.user.socketId) {
           io.to(ride.user.socketId).emit("captain-location-update", {
             location: location,
+            heading: heading,
             rideId: rideId,
           });
         }
@@ -83,8 +85,20 @@ const initializeSocket = (server) => {
       }
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
       console.log(`Client disconnected: ${socket.id}`);
+      try {
+        await Captain.findOneAndUpdate(
+          { socketId: socket.id },
+          { status: "inactive", $unset: { socketId: "" } }
+        );
+        await User.findOneAndUpdate(
+          { socketId: socket.id },
+          { $unset: { socketId: "" } }
+        );
+      } catch (error) {
+        console.error("Disconnect cleanup error:", error);
+      }
     });
   });
 };

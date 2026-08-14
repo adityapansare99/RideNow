@@ -13,16 +13,13 @@ const port = process.env.PORT || 8000;
 const server = http.createServer(app);
 initializeSocket(server);
 
-server.listen(port, () => {
-  console.log(`Server is listening on port ${port}`); 
-});
-
 connectdb()
   .then(() => {
-    app.listen(port, () => {
-      console.log(`http://127.0.0.1:${port}`);
+    server.listen(port, () => {
+      console.log(`Server is listening on port ${port}`);
     });
   })
   .catch((err) => {
-    console.log("something went wrong....", err);
+    console.error("MongoDB connection failed:", err);
+    process.exit(1);
   });

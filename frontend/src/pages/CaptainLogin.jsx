@@ -34,16 +34,17 @@ const CaptainLogin = () => {
         setPassword("");
       }
     } catch (error) {
-      if (error.response.data.data !== null) {
-        toast.error(error.response.data.data[0].msg);
+      const errData = error?.response?.data;
+      if (errData?.data && errData.data[0]?.msg) {
+        toast.error(errData.data[0].msg);
       } else {
-        toast.error(error.response.data.message);
+        toast.error(errData?.message || "Something went wrong. Please try again.");
       }
     }
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-gradient-to-b from-gray-50 to-white flex-col">
+    <div className="min-h-screen w-full flex bg-linear-to-b from-gray-50 to-white flex-col">
       <div className="relative h-15 sm:h-20 md:h-20 mb-4 bg-cover bg-center">
         <div className="relative z-10 pt-6 px-4 sm:pt-8 sm:px-6 md:px-8">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 tracking-tight">
@@ -55,7 +56,7 @@ const CaptainLogin = () => {
         </div>
       </div>
 
-      <div className="flex-1 bg-gradient-to-b from-gray-50 to-white px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12">
+      <div className="flex-1 bg-linear-to-b from-gray-50 to-white px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12">
         <div className="max-w-md mx-auto">
           <div className="space-y-3 mb-8">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
@@ -74,7 +75,7 @@ const CaptainLogin = () => {
               <input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
                 required
                 type="email"
                 placeholder="email@example.com"
@@ -88,7 +89,7 @@ const CaptainLogin = () => {
               <input
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
                 required
                 type="password"
                 placeholder="Enter your password"

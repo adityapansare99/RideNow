@@ -9,7 +9,7 @@ RideNow is a production-ready, full-stack ride-hailing application inspired by p
 ```
 RideNow/
 ├── frontend/          # React + Vite + Tailwind CSS
-├── backend/           # Node.js + Express + MongoDB + Socket.IO
+├── Backend/           # Node.js + Express + MongoDB + Socket.IO
 └── ml_backend/        # Python + Flask + scikit-learn (Fare Prediction)
 ```
 
@@ -90,14 +90,14 @@ Each subfolder has its own detailed README:
 | Folder | README |
 |--------|--------|
 | `frontend/` | [Frontend README](./frontend/README.md) |
-| `backend/` | [Backend README](./backend/README.md) |
+| `Backend/` | [Backend README](./Backend/README.md) |
 | `ml_backend/` | [ML Backend README](./ml_backend/README.md) |
 
 ---
 
 ## ⚙️ Environment Variables
 
-### Backend (`backend/.env`)
+### Backend (`Backend/.env`)
 ```env
 PORT=8000
 NODE_ENV=development
@@ -149,7 +149,7 @@ python app.py
 
 ### 3. Start Backend
 ```bash
-cd backend
+cd Backend
 npm install
 npm run dev
 # Runs on http://localhost:8000

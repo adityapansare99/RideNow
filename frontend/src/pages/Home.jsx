@@ -83,23 +83,37 @@ const Home = () => {
     socket.emit("join", { userType: "user", userId: user._id });
   }, [user]);
 
-  socket.on("ride-confirmed", (ride) => {
-    setvehicleFound(false);
-    setVehiclePanel(false);
-    setWaitForDriverPanel(true);
-    setRide(ride);
-  });
+  useEffect(() => {
+    if (!socket) return;
 
-  socket.on("ride-started", (ride) => {
-    setWaitForDriverPanel(false);
-    navigate(`/riding`, { state: { ride: ride } });
-  });
+    const handleRideConfirmed = (ride) => {
+      setvehicleFound(false);
+      setVehiclePanel(false);
+      setWaitForDriverPanel(true);
+      setRide(ride);
+    };
 
-  socket.on("ride-cancelled",(ride)=>{
-    setWaitForDriverPanel(false);
-    setVehiclePanel(false);
-    setvehicleFound(false);
-  })
+    const handleRideStarted = (ride) => {
+      setWaitForDriverPanel(false);
+      navigate(`/riding`, { state: { ride: ride } });
+    };
+
+    const handleRideCancelled = (ride) => {
+      setWaitForDriverPanel(false);
+      setVehiclePanel(false);
+      setvehicleFound(false);
+    };
+
+    socket.on("ride-confirmed", handleRideConfirmed);
+    socket.on("ride-started", handleRideStarted);
+    socket.on("ride-cancelled", handleRideCancelled);
+
+    return () => {
+      socket.off("ride-confirmed", handleRideConfirmed);
+      socket.off("ride-started", handleRideStarted);
+      socket.off("ride-cancelled", handleRideCancelled);
+    };
+  }, [socket, navigate]);
 
   const handlePickupChange = async (e) => {
     setPickup(e.target.value);
@@ -147,15 +161,17 @@ const Home = () => {
     function () {
       if (panelOpen) {
         gsap.to(panelref.current, {
-          height: "70%",
-          padding: 24,
+          flexGrow: 1,
+          marginTop: 0,
+          padding:24,
         });
         gsap.to(panelcloseref.current, {
           opacity: 1,
         });
       } else {
         gsap.to(panelref.current, {
-          height: "0%",
+          flexGrow: 0,
+          marginTop: 0,
           padding: 0,
         });
 
@@ -262,10 +278,11 @@ const Home = () => {
         },
       },
     );
+    setRide(response.data.data);
   }
 
   return (
-    <div className="relative h-screen overflow-hidden lg:min-h-screen lg:w-full lg:bg-gradient-to-b lg:from-gray-50 lg:to-white lg:flex lg:flex-col">
+    <div className="relative h-screen overflow-hidden lg:min-h-screen lg:w-full lg:bg-linear-to-b lg:from-gray-50 lg:to-white lg:flex lg:flex-col">
       <div className="hidden lg:block relative z-20 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between px-8 py-4">
           <div>
@@ -319,8 +336,8 @@ const Home = () => {
         </div>
       </div>
 
-      <div className="lg:hidden">
-        <div className="flex items-center justify-between px-8 py-4">
+      <div className="lg:hidden relative z-5">
+        <div className="flex items-center justify-between px-8 py-4 h-24">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
               RideNow
@@ -375,9 +392,9 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="flex flex-col w-[400px] bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="flex flex-col w-100 bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
           <div
-            className={`flex-shrink-0 px-6 py-6 border-b border-gray-200 ${
+            className={`shrink-0 px-6 py-6 border-b border-gray-200 ${
               VehiclePanel ||
               ConfirmRidePanel ||
               vehicleFound ||
@@ -389,7 +406,7 @@ const Home = () => {
             <h4 className="text-2xl font-semibold mb-4">Find a trip</h4>
             <form onSubmit={submitHandler}>
               <div className="relative">
-                <div className="absolute left-4 top-[58px] lg:top-[40px] h-16 w-1 bg-gray-900 rounded-full"></div>
+                <div className="absolute left-4 top-14.5 lg:top-10 h-16 w-1 bg-gray-900 rounded-full"></div>
                 <input
                   onClick={() => {
                     setPanelOpen(true);
@@ -479,7 +496,15 @@ const Home = () => {
                   destination={destination}
                   fare={fare}
                   vehicleType={vehicleType}
+                  rideId={ride?._id}
                   setvehicleFound={setvehicleFound}
+                  onCancel={() => {
+                    setvehicleFound(false);
+                    setVehiclePanel(false);
+                    setConfirmRidePanel(false);
+                    setWaitForDriverPanel(false);
+                    setRide(null);
+                  }}
                 />
               </div>
             )}
@@ -491,6 +516,13 @@ const Home = () => {
                   setvehicleFound={setvehicleFound}
                   WaitForDriverPanel={WaitForDriverPanel}
                   setWaitForDriverPanel={setWaitForDriverPanel}
+                  onCancel={() => {
+                    setvehicleFound(false);
+                    setVehiclePanel(false);
+                    setConfirmRidePanel(false);
+                    setWaitForDriverPanel(false);
+                    setRide(null);
+                  }}
                 />
               </div>
             )}
@@ -502,8 +534,8 @@ const Home = () => {
         <LiveTracking />
       </div>
 
-      <div className="lg:hidden flex flex-col justify-end absolute h-screen top-0 w-full">
-        <div className="h-[30%] p-6 bg-white relative">
+      <div className="lg:hidden flex flex-col justify-end absolute top-24 bottom-0 w-full">
+        <div className="shrink-0 p-6 bg-white relative">
           <h5
             ref={panelcloseref}
             onClick={() => {
@@ -554,7 +586,7 @@ const Home = () => {
           </button>
         </div>
 
-        <div ref={panelref} className="h-0 bg-white">
+        <div ref={panelref} className="grow-0 basis-0 overflow-hidden bg-white">
           <LocationSearchPanel
             suggestions={
               activeField === "pickup"
@@ -608,7 +640,12 @@ const Home = () => {
           destination={destination}
           fare={fare}
           vehicleType={vehicleType}
+          rideId={ride?._id}
           setvehicleFound={setvehicleFound}
+          onCancel={() => {
+            setvehicleFound(false);
+            setRide(null);
+          }}
         />
       </div>
 
@@ -621,6 +658,13 @@ const Home = () => {
           setvehicleFound={setvehicleFound}
           WaitForDriverPanel={WaitForDriverPanel}
           setWaitForDriverPanel={setWaitForDriverPanel}
+          onCancel={() => {
+            setvehicleFound(false);
+            setVehiclePanel(false);
+            setConfirmRidePanel(false);
+            setWaitForDriverPanel(false);
+            setRide(null);
+          }}
         />
       </div>
     </div>

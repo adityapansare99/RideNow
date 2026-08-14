@@ -153,7 +153,7 @@ const profile = asynchandler(async (req, res) => {
 
 const logout = asynchandler(async (req, res) => {
   await Captain.findOneAndUpdate(
-    req.captain._id,
+    { _id: req.captain._id },
     {
       $unset: { refreshtoken: 1 },
     },

@@ -1,4 +1,5 @@
 import { User } from "../model/user.model.js";
+import jwt from "jsonwebtoken";
 import { asynchandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
@@ -168,7 +169,7 @@ const refreshaccesstoken = asynchandler(async (req, res) => {
 
 const logout = asynchandler(async (req, res) => {
   await User.findOneAndUpdate(
-    req.user._id,
+    { _id: req.user._id },
     {
       $unset: { refreshtoken: 1 },
     },

@@ -163,7 +163,7 @@ const confirmride = async ({ rideId, captain }) => {
         if (otherCaptain.socketId) {
           sendMessageToSocketId(otherCaptain.socketId, {
             event: "ride-already-confirmed",
-            data: ride,
+            data: { _id: ride._id, status: ride.status },
           });
         }
       }

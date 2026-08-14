@@ -17,6 +17,7 @@ const CaptainHome = () => {
   const [ConfirmRidePopupPanel, setConfirmRidePopupPanel] = useState(false);
   const ConfirmRidePopupPanelref = useRef(null);
   const [ride, setRide] = useState(null);
+  const rideRef = useRef(null);
 
   const { socket } = useContext(SocketContext);
   const { captain } = useContext(CaptainDataContext);
@@ -34,6 +35,10 @@ const CaptainHome = () => {
       RidePopupPanelref.current.style.transform = "translateY(100%)";
     }
   }, []);
+
+  useEffect(() => {
+    rideRef.current = ride;
+  }, [ride]);
 
   useEffect(() => {
     socket.emit("join", { userType: "captain", userId: captain._id });
@@ -67,14 +72,24 @@ const CaptainHome = () => {
       alert("This ride was just accepted by another captain");
     };
 
+    const handleRideCancelled = (data) => {
+      if (rideRef.current?._id === data._id) {
+        setRidePopupPanel(false);
+        setConfirmRidePopupPanel(false);
+        setRide(null);
+        toast.warn("Ride was cancelled by the user");
+      }
+    };
+
     socket.on("new-ride", handleNewRide);
     socket.on("ride-already-confirmed", handleRideAlreadyConfirmed);
+    socket.on("ride-cancelled", handleRideCancelled);
 
-    // return () => clearInterval(locationInterval)
     return () => {
       clearInterval(locationInterval);
       socket.off("new-ride", handleNewRide);
       socket.off("ride-already-confirmed", handleRideAlreadyConfirmed);
+      socket.off("ride-cancelled", handleRideCancelled);
     };
   }, [socket, captain._id]);
 
@@ -93,6 +108,9 @@ const CaptainHome = () => {
         },
       );
 
+      // The /confirm response carries the ride with `captain` populated (and otp).
+      // Store it so downstream views (LiveRideTracking) can read ride.captain.
+      setRide(response.data.data);
       setRidePopupPanel(false);
       setConfirmRidePopupPanel(true);
     } catch (error) {
@@ -191,7 +209,7 @@ const CaptainHome = () => {
   );
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-gray-50 to-white flex flex-col">
+    <div className="min-h-screen w-full bg-linear-to-b from-gray-50 to-white flex flex-col">
       <div className="relative z-20 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
           <div>
@@ -245,7 +263,7 @@ const CaptainHome = () => {
 
           <Link
             to="/captain/logout"
-            className="flex items-center justify-center h-10 w-10 sm:h-10 sm:w-12 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
+            className="flex items-center justify-center h-10 w-10 sm:w-12 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-all duration-200 shadow-sm"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -279,8 +297,8 @@ const CaptainHome = () => {
           </div>
         </div>
 
-        <div className="hidden lg:flex lg:flex-col lg:w-[400px] bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="flex-shrink-0 px-6 py-6 border-b border-gray-200">
+        <div className="hidden lg:flex lg:flex-col lg:w-100 bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="shrink-0 px-6 py-6 border-b border-gray-200">
             <CaptainDetails hist={hist} />
           </div>
 

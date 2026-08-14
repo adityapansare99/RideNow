@@ -12,7 +12,7 @@ const LocationSearchPanel = (props) => {
   };
 
   return (
-    <div className="lg:h-[40vh] lg:scroll-y-auto lg:scrollbar-hide">
+    <div className="lg:h-[40vh] lg:overflow-y-auto scrollbar-hide">
       {props.suggestions.map((elem, idx) => (
         <div
           key={idx}

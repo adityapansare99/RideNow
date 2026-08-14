@@ -2,7 +2,7 @@ import React, { use, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useContext, useState } from "react";
 import { SocketContext } from "../context/SocketContext.jsx";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import axios from "axios";
@@ -14,13 +14,13 @@ const Riding = () => {
   const location = useLocation();
   const ride = location.state?.ride;
   const { socket } = useContext(SocketContext);
-  const [paymentstatus, setPaymentStatus] = useState(ride.paymentStatus);
+  const [paymentstatus, setPaymentStatus] = useState(ride?.paymentStatus);
   const [rideInfoPanel, setRideInfoPanel] = useState(false);
   const rideInfoPanelRef = useRef(null);
   const [done, setDone] = useState(false);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
-  const [rideStatus, setRideStatus] = useState(ride.status);
+  const [rideStatus, setRideStatus] = useState(ride?.status);
 
   const rideStatusFunc = async () => {
     try {
@@ -68,20 +68,6 @@ const Riding = () => {
     const handleRideEnded = (data) => {
       setDone(true);
       toast.info("Your ride has ended. Please give the rating");
-      useGSAP(
-        function () {
-          if (rideInfoPanel) {
-            gsap.to(rideInfoPanelRef.current, {
-              transform: "translateY(0%)",
-            });
-          } else {
-            gsap.to(rideInfoPanelRef.current, {
-              transform: "translateY(100%)",
-            });
-          }
-        },
-        [rideInfoPanel],
-      );
     };
 
     socket.on("ride-ended", handleRideEnded);
@@ -105,6 +91,10 @@ const Riding = () => {
     },
     [rideInfoPanel],
   );
+
+  if (!ride) {
+    return <Navigate to="/home" replace />;
+  }
 
   const initpay = (order) => {
     const options = {
@@ -164,7 +154,7 @@ const Riding = () => {
   };
 
   return (
-    <div className="min-h-screen  w-full bg-gradient-to-b from-gray-50 to-white flex flex-col">
+    <div className="min-h-screen w-full bg-linear-to-b from-gray-50 to-white flex flex-col">
       <div className="relative z-20 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
           <div>
@@ -203,7 +193,7 @@ const Riding = () => {
           </div>
         </div>
 
-        <div className="hidden lg:flex lg:flex-col lg:h-[84vh] lg:w-[400px] bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="hidden lg:flex lg:flex-col lg:h-[84vh] lg:w-100 bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
           <div className="flex-1 overflow-y-auto">
             <div className="px-6 py-6">
               <div className="flex items-center justify-between mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
@@ -393,7 +383,7 @@ const Riding = () => {
               Payment Successful
             </button>
 
-            <div className="md:mx-5  flex flex-col gap-10 mb-10">
+            <div className="md:mx-5 flex flex-col gap-10 mb-10">
               {done && (
                 <RideRating
                   ride={ride}

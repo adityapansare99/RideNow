@@ -205,10 +205,11 @@ const CaptainEditProfile = () => {
         window.location.reload();
       }
     } catch (error) {
-      if (error.response.data.data !== null) {
-        toast.error(error.response.data.data[0].msg);
+      const errData = error?.response?.data;
+      if (errData?.data && errData.data[0]?.msg) {
+        toast.error(errData.data[0].msg);
       } else {
-        toast.error(error.response.data.message);
+        toast.error(errData?.message || "Something went wrong. Please try again.");
       }
     }
   };
@@ -245,7 +246,7 @@ const CaptainEditProfile = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-gradient-to-b from-gray-50 to-white flex-col lg:bg-gradient-to-b lg:from-gray-50 lg:to-white">
+    <div className="min-h-screen w-full flex bg-linear-to-b from-gray-50 to-white flex-col lg:bg-linear-to-b lg:from-gray-50 lg:to-white">
       <div className="relative h-15 sm:h-20 md:h-20 mb-4 bg-cover bg-center lg:hidden">
         <div className="relative z-10 pt-6 px-4 sm:pt-8 sm:px-6 md:px-8 flex items-center justify-between">
           <div>
@@ -284,7 +285,7 @@ const CaptainEditProfile = () => {
         </div>
       </div>
 
-      <div className="flex-1 bg-gradient-to-b from-gray-50 to-white px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12 lg:py-12">
+      <div className="flex-1 bg-linear-to-b from-gray-50 to-white px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12 lg:py-12">
         <div className="max-w-md mx-auto lg:max-w-7xl">
           <div className="space-y-3 mb-8 lg:hidden">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight">

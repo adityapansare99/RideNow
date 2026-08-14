@@ -2,13 +2,16 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import joblib
 import numpy as np
+import os
 
 app = Flask(__name__)
 CORS(app,
      resources={r"/*": {"origins": "*"}},
      supports_credentials=False)
 
-model = joblib.load('linear_car_model.pkl')
+model = joblib.load(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'linear_car_model.pkl')
+)
 
 VEHICLE_MULTIPLIERS = {
     'car':  1.00,
@@ -90,6 +93,5 @@ def predict_original():
 
 
 if __name__ == '__main__':
-    import os
     port = int(os.environ.get('PORT', 5001))
     app.run(debug=False, host='0.0.0.0', port=port)

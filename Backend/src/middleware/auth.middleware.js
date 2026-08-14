@@ -7,9 +7,9 @@ import { Captain } from "../model/captain.model.js";
 
 const auth = asynchandler(async (req, _, next) => {
   const token =
-    req.cookies.accesstoken ||
+    req.cookies?.accesstoken ||
     req.header("Authorization")?.replace("Bearer ", "") ||
-    req.body.accesstoken;
+    req.body?.accesstoken;
 
   if (!token) {
     throw new ApiError(401, "Access token is missing");
@@ -32,11 +32,48 @@ const auth = asynchandler(async (req, _, next) => {
   }
 });
 
+const authAny = asynchandler(async (req, _, next) => {
+  const token =
+    req.cookies?.accesstoken ||
+    req.header("Authorization")?.replace("Bearer ", "") ||
+    req.body?.accesstoken;
+
+  if (!token) {
+    throw new ApiError(401, "Access token is missing");
+  }
+
+  let decodedtoken;
+  try {
+    decodedtoken = jwt.verify(token, process.env.accesstoken);
+  } catch (err) {
+    throw new ApiError(401, "Invalid or expired access token");
+  }
+
+  if (!decodedtoken?.email) {
+    throw new ApiError(401, "Invalid or expired access token");
+  }
+
+  const [user, captain] = await Promise.all([
+    User.findOne({ email: decodedtoken.email }),
+    Captain.findOne({ email: decodedtoken.email }),
+  ]);
+
+  if (user) {
+    req.user = user;
+  } else if (captain) {
+    req.captain = captain;
+  } else {
+    throw new ApiError(401, "Unauthorized. User not found");
+  }
+
+  next();
+});
+
 const authc = asynchandler(async (req, _, next) => {
   const token =
-    req.cookies.accesstoken ||
+    req.cookies?.accesstoken ||
     req.header("Authorization")?.replace("Bearer ", "") ||
-    req.body.accesstoken;
+    req.body?.accesstoken;
 
   if (!token) {
     throw new ApiError(401, "Access token is missing");
@@ -60,4 +97,4 @@ const authc = asynchandler(async (req, _, next) => {
   }
 });
 
-export { auth, authc };
+export { auth, authc, authAny };

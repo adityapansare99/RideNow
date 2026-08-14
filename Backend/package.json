@@ -1,7 +1,7 @@
 {
-  "name": "uber",
+  "name": "ridenow-backend",
   "version": "1.0.0",
-  "description": "This is the Uber Clone",
+  "description": "RideNow — ride-hailing platform backend (Node.js + Express + MongoDB + Socket.IO)",
   "license": "ISC",
   "author": "Aditya Pansare",
   "type": "module",

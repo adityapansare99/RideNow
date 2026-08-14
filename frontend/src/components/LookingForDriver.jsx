@@ -1,4 +1,6 @@
 import React from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const LookingForDriver = (props) => {
   return (
@@ -56,6 +58,33 @@ const LookingForDriver = (props) => {
             </div>
           </div>
         </div>
+
+        <button
+          onClick={async () => {
+            try {
+              const response = await axios.post(
+                `${import.meta.env.VITE_BASE_URL}/rides/cancel-ride`,
+                { rideId: props.rideId },
+                {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                  },
+                },
+              );
+              if (response.data.success) {
+                toast.info("Ride cancelled");
+                props.onCancel?.();
+              } else {
+                toast.error("Failed to cancel ride");
+              }
+            } catch (error) {
+              toast.error("Failed to cancel ride");
+            }
+          }}
+          className="w-full mt-6 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-lg transition-all duration-200 shadow-sm active:scale-95"
+        >
+          Cancel Ride
+        </button>
       </div>
     </div>
   );

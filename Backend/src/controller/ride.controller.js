@@ -232,8 +232,19 @@ const verifypayment = asynchandler(async (req, res) => {
     throw new ApiError(402, "Payment not completed. Please try again");
   }
 
+  const ride = await Ride.findById(data.receipt);
+  if (!ride) {
+    throw new ApiError(404, "Ride not found");
+  }
+  if (!ride.user || ride.user.toString() !== req.user._id.toString()) {
+    throw new ApiError(
+      403,
+      "You are not authorized to verify this payment",
+    );
+  }
+
   await Ride.findByIdAndUpdate(data.receipt, {
-    paymentID: data.receipt,
+    paymentID: data.id,
     paymentStatus: true,
   });
 
@@ -242,29 +253,54 @@ const verifypayment = asynchandler(async (req, res) => {
     .json(new ApiResponse(200, data, "Payment verified successfully"));
 });
 
+const CANCELABLE_STATUSES = ["pending", "accepted"];
+
 const cancelRide = asynchandler(async (req, res) => {
   const { rideId } = req.body;
   if (!rideId) {
     throw new ApiError(400, "Ride ID is required");
   }
 
-  const ride = await Ride.findById(rideId).populate("user");
+  const ride = await Ride.findById(rideId).populate("user").populate("captain");
   if (!ride) {
     throw new ApiError(404, "Ride not found");
   }
 
-  const response = await Ride.findByIdAndUpdate(rideId, {
-    status: "cancelled",
-  });
+  if (!CANCELABLE_STATUSES.includes(ride.status)) {
+    throw new ApiError(
+      400,
+      `Ride cannot be cancelled in its current state (${ride.status})`,
+    );
+  }
 
-  if (!response) {
+  if (req.user && (!ride.user || ride.user._id.toString() !== req.user._id.toString())) {
+    throw new ApiError(403, "You are not authorized to cancel this ride");
+  }
+
+  if (req.captain) {
+    if (!ride.captain || ride.captain._id.toString() !== req.captain._id.toString()) {
+      throw new ApiError(403, "You are not authorized to cancel this ride");
+    }
+  }
+
+  const updated = await Ride.findByIdAndUpdate(
+    rideId,
+    { status: "cancelled" },
+    { new: true },
+  );
+
+  if (!updated) {
     throw new ApiError(500, "Unable to cancel ride. Please try again");
   }
 
-  sendMessageToSocketId(ride.user.socketId, {
-    event: "ride-cancelled",
-    data: ride,
-  });
+  // Notify the counterpart (never the caller of the cancel action).
+  const notify = req.user ? ride.captain : ride.user;
+  if (notify?.socketId) {
+    sendMessageToSocketId(notify.socketId, {
+      event: "ride-cancelled",
+      data: ride,
+    });
+  }
 
   return res
     .status(200)

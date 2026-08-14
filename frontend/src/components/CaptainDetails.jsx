@@ -24,7 +24,7 @@ const CaptainDetails = ({ hist }) => {
       if(response.data.success){
         setCaptainRating(response.data.data);
       }
-      serRatingLoading(false);
+      setRatingLoading(false);
     } catch (error) {
       setRatingLoading(false);
     }
@@ -68,7 +68,7 @@ const CaptainDetails = ({ hist }) => {
         </div>
       </div>
 
-      <div className="mb-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200 shadow-sm">
+      <div className="mb-4 p-4 bg-linear-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 flex-1">
             <div>
@@ -82,7 +82,7 @@ const CaptainDetails = ({ hist }) => {
               ) : (
                 <div className="flex items-center gap-2">
                   <span className="text-2xl font-bold text-amber-900">
-                    {(captainRating?.avgRating).toFixed(2) || "0"}
+                    {(captainRating?.avgRating ?? 0).toFixed(2)}
                   </span>
                   <span className="text-xl text-yellow-500">★</span>
                 </div>

@@ -17,7 +17,7 @@ const Start = () => {
         </div>
       </div>
 
-      <div className="bg-gradient-to-b from-gray-50 to-white px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12">
+      <div className="bg-linear-to-b from-gray-50 to-white px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12">
         <div className="max-w-md mx-auto space-y-6">
           <div className="space-y-3">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
@@ -46,7 +46,7 @@ const Start = () => {
           <p className="text-center text-gray-500 text-xs sm:text-sm font-light">
             New to RideNow?{" "}
             <Link
-              to="/login"
+              to="/signup"
               className="text-black font-semibold hover:underline transition-all"
             >
               Sign up here

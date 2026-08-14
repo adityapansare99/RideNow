@@ -91,6 +91,7 @@ let myMap=new Map();
 
 const getCaptaininTheRadius = async (ltd, lng, radius, vehicleType,RideId) => {
   const captains = await Captain.find({
+    status: "active",
     location: {
       $geoWithin: {
         $centerSphere: [[ltd, lng], radius / 6371],

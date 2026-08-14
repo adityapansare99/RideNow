@@ -46,7 +46,7 @@ RideNow is a full-stack ride-hailing platform backend built with **Node.js**, **
 │   └── user.route.js
 ├── service/
 │   ├── map.service.js
-│   ├── otpStore.service.js
+│   ├── otpStore.js
 │   └── ride.service.js
 ├── utils/
 │   ├── apiError.js

@@ -49,6 +49,8 @@ const LiveTracking = () => {
     updatePosition();
 
     const intervalId = setInterval(updatePosition, 1000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
   return (
