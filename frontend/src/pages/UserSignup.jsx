@@ -22,7 +22,7 @@ const UserSignup = () => {
 
       const otpResponse = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/users/verify-otp`,
-        { mobile, otp },
+        { email, otp },
       );
 
       if (otpResponse.data.success !== true) {
@@ -66,15 +66,15 @@ const UserSignup = () => {
   };
  
   const otpHandler = async () => {
-    if (mobile.length !== 10) {
-      toast.error("Enter valid mobile number");
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      toast.error("Enter a valid email address");
       return;
     }
 
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/users/Generate-otp`,
-        { mobile },
+        { email },
       );
 
       if (response.data.success) {
@@ -140,42 +140,14 @@ const UserSignup = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Email Address
               </label>
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
-                type="email"
-                required
-                placeholder="email@example.com"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
-                type="password"
-                required
-                placeholder="Enter your password"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone Number
-              </label>
               <div className="flex gap-2">
                 <input
-                  value={mobile}
-                  onChange={(e) => setmobile(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
-                  type="number"
+                  type="email"
                   required
-                  placeholder="9xxxxxxxx"
+                  placeholder="email@example.com"
                 />
                 <button
                   type="button"
@@ -202,6 +174,34 @@ const UserSignup = () => {
                 />
               </div>
             )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                type="password"
+                required
+                placeholder="Enter your password"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phone Number
+              </label>
+              <input
+                value={mobile}
+                onChange={(e) => setmobile(e.target.value)}
+                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                type="number"
+                required
+                placeholder="9xxxxxxxx"
+              />
+            </div>
 
             <button
               type="submit"

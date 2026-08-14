@@ -30,7 +30,7 @@ const CaptainSignup = () => {
       e.preventDefault();
       const otpResponse = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/captains/verify-otp`,
-        { mobile, otp:userOtp },
+        { email, otp: userOtp },
       );
 
       console.log("OTP verification response:", otpResponse);
@@ -93,15 +93,15 @@ const CaptainSignup = () => {
   };
 
   const otpHandler = async () => {
-    if (mobile.length !== 10) {
-      toast.error("Enter valid mobile number");
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      toast.error("Enter a valid email address");
       return;
     }
 
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/captains/Generate-otp`,
-        { mobile },
+        { email },
       );
 
       if (response.data.success) {
@@ -167,15 +167,40 @@ const CaptainSignup = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Email Address
               </label>
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
-                type="email"
-                required
-                placeholder="email@example.com"
-              />
+              <div className="flex gap-2">
+                <input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                  type="email"
+                  required
+                  placeholder="email@example.com"
+                />
+                <button
+                  type="button"
+                  onClick={otpHandler}
+                  className="px-4 py-3 cursor-pointer bg-black hover:bg-gray-900 text-white font-semibold rounded-lg transition-all duration-200 text-sm whitespace-nowrap"
+                >
+                  Send OTP
+                </button>
+              </div>
             </div>
+
+            {otpField && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Enter OTP
+                </label>
+                <input
+                  value={userOtp}
+                  onChange={(e) => setUserOtp(e.target.value)}
+                  className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                  type="number"
+                  required
+                  placeholder="Enter OTP"
+                />
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -242,40 +267,15 @@ const CaptainSignup = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Phone Number
               </label>
-              <div className="flex gap-2">
-                <input
-                  value={mobile}
-                  onChange={(e) => setmobile(e.target.value)}
-                  className="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
-                  type="number"
-                  required
-                  placeholder="9xxxxxxxx"
-                />
-                <button
-                  type="button"
-                  onClick={otpHandler}
-                  className="px-4 py-3 bg-black hover:bg-gray-900 text-white font-semibold rounded-lg transition-all duration-200 text-sm whitespace-nowrap"
-                >
-                  Send OTP
-                </button>
-              </div>
+              <input
+                value={mobile}
+                onChange={(e) => setmobile(e.target.value)}
+                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
+                type="number"
+                required
+                placeholder="9xxxxxxxx"
+              />
             </div>
-
-            {otpField && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Enter OTP
-                </label>
-                <input
-                  value={userOtp}
-                  onChange={(e) => setUserOtp(e.target.value)}
-                  className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all"
-                  type="number"
-                  required
-                  placeholder="Enter OTP"
-                />
-              </div>
-            )}
 
             <button
               type="submit"

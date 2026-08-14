@@ -96,7 +96,7 @@ const CaptainEditProfile = () => {
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/captains/Generate-otp`,
         {
-          mobile: captainData.mobile,
+          email: captainData.email,
         },
         {
           headers: {
@@ -115,7 +115,7 @@ const CaptainEditProfile = () => {
         setIsOtpSent(true);
         setOtpLoading(false);
         toast.success(
-          `OTP sent to ${captainData.mobile}. Please check your phone.`,
+          `OTP sent to ${captainData.email}. Please check your inbox.`,
         );
       }
     } catch (error) {
@@ -136,7 +136,7 @@ const CaptainEditProfile = () => {
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/captains/verify-otp`,
-        { mobile: captainData.mobile, otp: otp },
+        { email: captainData.email, otp: otp },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -633,7 +633,7 @@ const CaptainEditProfile = () => {
                           disabled={otpLoading}
                           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 disabled:opacity-50"
                         >
-                          {otpLoading ? "Sending..." : "Send OTP to Mobile"}
+                          {otpLoading ? "Sending..." : "Send OTP to Email"}
                         </button>
                       ) : !isOtpVerified ? (
                         <div className="space-y-3">

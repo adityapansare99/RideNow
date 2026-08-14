@@ -3,9 +3,10 @@ import jwt from "jsonwebtoken";
 import { asynchandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
-import twilio from "twilio";
 import { uploadoncloudinary } from "../utils/cloudinary.js";
 import { storeOtp, verifyStoredOtp } from "../service/otpStore.js";
+import crypto from "crypto";
+import { sendOtpEmail } from "../service/email.service.js";
 import { Ride } from "../model/ride.model.js";
 import mongoose from "mongoose";
 
@@ -200,46 +201,34 @@ const profile = asynchandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, { user }, "User profile"));
 });
 
-const client = twilio(process.env.Twilio_SID, process.env.Twilio_AUTH_TOKEN);
-
-const sendOtpToMobile = async (mobile, otp) => {
-  const response = await client.messages.create({
-    body: `RideNow OTP: ${otp}\n\nUse this code to verify your phone number. Valid for 5 minutes. Do not share it with anyone.`,
-    from: process.env.Twilio_PHONE_NUMBER,
-    to: `+91${mobile}`,
-  });
-
-  return response;
-};
-
 const generateOtp = asynchandler(async (req, res) => {
-  const { mobile } = req.body;
+  const { email } = req.body;
 
-  if (!mobile || mobile.length !== 10) {
-    throw new ApiError(400, "A valid 10-digit mobile number is required");
+  if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+    throw new ApiError(400, "A valid email address is required");
   }
 
-  const otp = Math.floor(100000 + Math.random() * 900000);
+  const otp = crypto.randomInt(100000, 1000000);
 
-  await storeOtp(mobile, otp);
+  await storeOtp(email, otp);
 
-  const response = await sendOtpToMobile(mobile, otp);
-
-  if (!response) {
+  try {
+    await sendOtpEmail(email, otp);
+  } catch (error) {
     throw new ApiError(502, "Failed to send OTP. Please try again later");
   }
 
-  res.status(200).json(new ApiResponse(200, null, "OTP sent successfully"));
+  res.status(200).json(new ApiResponse(200, null, "OTP sent successfully to your email"));
 });
 
 const verifyOtp = asynchandler(async (req, res) => {
-  const { mobile, otp } = req.body;
+  const { email, otp } = req.body;
 
-  if (!mobile || !otp) {
-    throw new ApiError(400, "Mobile number and OTP are required");
+  if (!email || !otp) {
+    throw new ApiError(400, "Email and OTP are required");
   }
 
-  const isValid = await verifyStoredOtp(mobile, otp);
+  const isValid = await verifyStoredOtp(email, otp);
 
   if (!isValid) {
     throw new ApiError(400, "Invalid or expired OTP. Please request a new one");
