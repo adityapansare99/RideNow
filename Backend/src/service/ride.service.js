@@ -31,12 +31,8 @@ const getFare = async (pickup, destination) => {
 
     const fare = response.data.fares;
 
-    console.log("ML Predicted Fares:", fare);
-
     return fare;
   } catch (error) {
-    console.error("ML API Error:", error.message);
-
     const baseFare = { auto: 30, car: 50, moto: 20 };
     const perKmRate = { auto: 10, car: 15, moto: 8 };
     const perMinuteRate = { auto: 2, car: 3, moto: 1.5 };
@@ -65,7 +61,6 @@ const getFare = async (pickup, destination) => {
         ) / 100,
     };
 
-    console.log("Using Fallback Formula:", fare);
     return fare;
   }
 };

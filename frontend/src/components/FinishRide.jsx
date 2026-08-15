@@ -15,7 +15,7 @@ const FinishRide = (props) => {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      }
+      },
     );
 
     if (response.data.success) {

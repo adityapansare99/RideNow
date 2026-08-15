@@ -21,7 +21,7 @@ const CaptainDetails = ({ hist }) => {
         },
       );
 
-      if(response.data.success){
+      if (response.data.success) {
         setCaptainRating(response.data.data);
       }
       setRatingLoading(false);
@@ -30,9 +30,9 @@ const CaptainDetails = ({ hist }) => {
     }
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchCaptainRating();
-  },[])
+  }, []);
 
   useEffect(() => {}, [captain]);
   return (

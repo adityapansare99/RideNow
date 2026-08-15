@@ -17,7 +17,7 @@ const WaitForDriver = (props) => {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
 
       if (response.data.success) {
@@ -34,8 +34,7 @@ const WaitForDriver = (props) => {
     if (props.ride?.captain?._id) {
       fetchCaptainRating();
     }
-
-    console.log(props.ride?.captain?._id);
+    
   }, [props.ride?.captain?._id]);
 
   return (
@@ -95,7 +94,8 @@ const WaitForDriver = (props) => {
                 </span>
                 <span className="text-xl text-yellow-500">★</span>
                 <span className="text-xs text-amber-700 font-medium">
-                  ({captainRating?.count || 0} {captainRating?.count === 1 ? "rating" : "ratings"})
+                  ({captainRating?.count || 0}{" "}
+                  {captainRating?.count === 1 ? "rating" : "ratings"})
                 </span>
               </div>
             )}

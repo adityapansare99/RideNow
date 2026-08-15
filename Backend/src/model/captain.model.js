@@ -90,7 +90,7 @@ const captainschema = new mongoose.Schema(
       unique: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 captainschema.pre("save", async function (next) {
@@ -114,7 +114,7 @@ captainschema.methods.Generatingaccesstoken = function () {
       fullname: this.fullname,
     },
     process.env.accesstoken,
-    { expiresIn: process.env.accesstime }
+    { expiresIn: process.env.accesstime },
   );
 };
 
@@ -124,7 +124,7 @@ captainschema.methods.Generatingrefershtoken = function () {
       email: this.email,
     },
     process.env.refreshtoken,
-    { expiresIn: process.env.refreshtime }
+    { expiresIn: process.env.refreshtime },
   );
 };
 

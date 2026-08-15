@@ -104,6 +104,9 @@ api_secret=your_cloudinary_api_secret
 
 # ML Model
 Model_link=your_ml_model_url
+
+# Frontend Url
+Fontend_URL=your_frontend_url
 ```
 
 ---

@@ -18,7 +18,7 @@ import UserEditProfile from "./pages/UserEditProfile.jsx";
 import CaptainEditProfile from "./pages/CaptainEditProfile.jsx";
 import UserRideHistory from "./pages/UserRideHistory.jsx";
 import CaptainRideHistory from "./pages/CaptainRideHistory.jsx";
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer, toast } from "react-toastify";
 
 const App = () => {
   return (
@@ -44,7 +44,7 @@ const App = () => {
           path="/user/edit-profile"
           element={
             <UserProtectedWrapper>
-              <UserEditProfile/>
+              <UserEditProfile />
             </UserProtectedWrapper>
           }
         />
@@ -53,11 +53,10 @@ const App = () => {
           path="/user/ride-history"
           element={
             <UserProtectedWrapper>
-              <UserRideHistory/>
+              <UserRideHistory />
             </UserProtectedWrapper>
           }
         />
-        
 
         <Route
           path="/user/logout"
@@ -80,7 +79,7 @@ const App = () => {
           path="/captain/ride-history"
           element={
             <CaptainProtectedWrapper>
-              <CaptainRideHistory  />
+              <CaptainRideHistory />
             </CaptainProtectedWrapper>
           }
         />
@@ -89,7 +88,7 @@ const App = () => {
           path="/captain/edit-profile"
           element={
             <CaptainProtectedWrapper>
-              <CaptainEditProfile/>
+              <CaptainEditProfile />
             </CaptainProtectedWrapper>
           }
         />

@@ -10,7 +10,7 @@ const check = (label, cond) => {
 };
 
 await mongoose.connect(`${process.env.dblink}RideNow`);
-await Otp.init(); // wait for index builds (incl. TTL) before asserting on them
+await Otp.init(); 
 
 const email = "verify.test@example.com";
 

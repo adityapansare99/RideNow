@@ -19,7 +19,7 @@ maprouter
     query("origin").isString().isLength({ min: 3 }),
     query("destination").isString().isLength({ min: 3 }),
     auth,
-    getdistancetime
+    getdistancetime,
   );
 
 maprouter
@@ -27,7 +27,7 @@ maprouter
   .get(
     query("input").isString().isLength({ min: 3 }),
     auth,
-    autocompletesuggestions
+    autocompletesuggestions,
   );
 
 export { maprouter };

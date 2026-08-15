@@ -9,7 +9,7 @@ import {
   verifypayment,
   cancelRide,
   RideRating,
-  rideStatus
+  rideStatus,
 } from "../controller/ride.controller.js";
 import { body, query } from "express-validator";
 import { auth, authc, authAny } from "../middleware/auth.middleware.js";
@@ -81,7 +81,11 @@ riderrouter.route("/verifypayment").post(auth, verifypayment);
 
 riderrouter
   .route("/cancel-ride")
-  .post(authAny, body("rideId").isMongoId().withMessage("Invalid rideId"), cancelRide);
+  .post(
+    authAny,
+    body("rideId").isMongoId().withMessage("Invalid rideId"),
+    cancelRide,
+  );
 
 riderrouter.route("/rate").post(auth, RideRating);
 

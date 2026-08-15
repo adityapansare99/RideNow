@@ -26,8 +26,8 @@ const CaptainRideHistory = () => {
           },
         },
       );
-      
-      if(!response.data.success){
+
+      if (!response.data.success) {
         toast.error("Unable to fetch your rides");
         navigate("/captain-home");
         return;
@@ -126,11 +126,11 @@ const CaptainRideHistory = () => {
   };
 
   const handleCompleteRide = (ride) => {
-    navigate("/captain-home",{state:{rideToComplete: ride}});
-  }
+    navigate("/captain-home", { state: { rideToComplete: ride } });
+  };
 
   return (
-    <div className="min-h-screen w-full flex bg-gradient-to-b from-gray-50 to-white flex-col">
+    <div className="min-h-screen w-full flex bg-linear-to-b from-gray-50 to-white flex-col">
       <div className="lg:hidden relative z-10 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between px-4 py-4">
           <div>
@@ -233,7 +233,7 @@ const CaptainRideHistory = () => {
           </div>
 
           {activeRide && (
-            <div className="mb-6 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl shadow-lg p-6 text-white">
+            <div className="mb-6 bg-linear-to-r from-emerald-500 to-emerald-600 rounded-2xl shadow-lg p-6 text-white">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">

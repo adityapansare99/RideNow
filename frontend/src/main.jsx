@@ -18,5 +18,5 @@ createRoot(document.getElementById("root")).render(
         </SocketProvider>
       </UserContext>
     </CaptainContext>
-  </StrictMode>
+  </StrictMode>,
 );

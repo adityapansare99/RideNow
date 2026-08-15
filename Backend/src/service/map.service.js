@@ -9,7 +9,7 @@ const getAddressCoordinate = async (address) => {
   }
   const apiKey = process.env.GOOGLE_MAPS_API;
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-    address
+    address,
   )}&key=${apiKey}`;
 
   try {
@@ -24,7 +24,6 @@ const getAddressCoordinate = async (address) => {
       throw new ApiError(502, "Unable to fetch coordinates from Maps API");
     }
   } catch (error) {
-    console.error(error);
     throw new ApiError(502, "Unable to fetch coordinates from Maps API");
   }
 };
@@ -36,7 +35,7 @@ const get_distance_time = async (origin, destination) => {
 
   const apiKey = process.env.GOOGLE_MAPS_API;
   const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(
-    origin
+    origin,
   )}&destinations=${encodeURIComponent(destination)}&key=${apiKey}`;
 
   try {
@@ -46,7 +45,10 @@ const get_distance_time = async (origin, destination) => {
         !response.data.rows[0].elements[0].distance ||
         !response.data.rows[0].elements[0].duration
       ) {
-        throw new ApiError(502, "Unable to fetch distance and time from Maps API");
+        throw new ApiError(
+          502,
+          "Unable to fetch distance and time from Maps API",
+        );
       }
 
       const distance = response.data.rows[0].elements[0].distance.value;
@@ -56,10 +58,12 @@ const get_distance_time = async (origin, destination) => {
         time,
       };
     } else {
-      throw new ApiError(502, "Unable to fetch distance and time from Maps API");
+      throw new ApiError(
+        502,
+        "Unable to fetch distance and time from Maps API",
+      );
     }
   } catch (error) {
-    console.error(error);
     throw new ApiError(502, "Unable to fetch distance and time from Maps API");
   }
 };
@@ -71,7 +75,7 @@ const autosuggestion = async (input) => {
 
   const apiKey = process.env.GOOGLE_MAPS_API;
   const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
-    input
+    input,
   )}&key=${apiKey}`;
 
   try {
@@ -82,14 +86,13 @@ const autosuggestion = async (input) => {
       throw new ApiError(502, "Unable to fetch suggestions from Maps API");
     }
   } catch (error) {
-    console.error(error);
     throw new ApiError(502, "Unable to fetch suggestions from Maps API");
   }
 };
 
-let myMap=new Map();
+let myMap = new Map();
 
-const getCaptaininTheRadius = async (ltd, lng, radius, vehicleType,RideId) => {
+const getCaptaininTheRadius = async (ltd, lng, radius, vehicleType, RideId) => {
   const captains = await Captain.find({
     status: "active",
     location: {
@@ -101,24 +104,24 @@ const getCaptaininTheRadius = async (ltd, lng, radius, vehicleType,RideId) => {
     "vehicle.vehicletype": vehicleType,
   });
 
-  myMap.set(RideId.toString(),captains);
+  myMap.set(RideId.toString(), captains);
 
   return captains;
 };
 
-const CloseRide=async(RideId)=>{
-  const captains=myMap.get(RideId.toString());
+const CloseRide = async (RideId) => {
+  const captains = myMap.get(RideId.toString());
   if (captains) {
     myMap.delete(RideId.toString());
   }
 
   return captains || [];
-}
+};
 
 export {
   getAddressCoordinate,
   get_distance_time,
   autosuggestion,
   getCaptaininTheRadius,
-  CloseRide
+  CloseRide,
 };

@@ -57,7 +57,7 @@ const Home = () => {
     if (vehicleFoundref.current) {
       vehicleFoundref.current.style.transform = "translateY(100%)";
     }
-    
+
     if (waitfordriverref.current) {
       waitfordriverref.current.style.transform = "translateY(100%)";
     }
@@ -68,13 +68,13 @@ const Home = () => {
   useEffect(() => {
     if (location.state?.rideToComplete) {
       const rideData = location.state.rideToComplete;
-  
+
       setRide(rideData);
-  
+
       setTimeout(() => {
         setWaitForDriverPanel(true);
       }, 0);
-  
+
       navigate("/home", { replace: true });
     }
   }, [location.state]);
@@ -163,7 +163,7 @@ const Home = () => {
         gsap.to(panelref.current, {
           flexGrow: 1,
           marginTop: 0,
-          padding:24,
+          padding: 24,
         });
         gsap.to(panelcloseref.current, {
           opacity: 1,

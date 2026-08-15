@@ -239,7 +239,9 @@ const generateOtp = asynchandler(async (req, res) => {
     throw new ApiError(502, "Failed to send OTP. Please try again later");
   }
 
-  res.status(200).json(new ApiResponse(200, null, "OTP sent successfully to your email"));
+  res
+    .status(200)
+    .json(new ApiResponse(200, null, "OTP sent successfully to your email"));
 });
 
 const verifyOtp = asynchandler(async (req, res) => {
@@ -391,7 +393,7 @@ const getAverageRating = asynchandler(async (req, res) => {
     averageRating.length > 0
       ? averageRating[0].totalRating / averageRating[0].count
       : 0;
-    
+
   const count = averageRating.length > 0 ? averageRating[0].count : 0;
 
   res
@@ -416,5 +418,5 @@ export {
   deleteCaptain,
   editProfile,
   rideHistory,
-  getAverageRating
+  getAverageRating,
 };

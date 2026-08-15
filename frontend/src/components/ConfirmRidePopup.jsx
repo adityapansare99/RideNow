@@ -14,7 +14,7 @@ const ConfirmRidePopup = (props) => {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      }
+      },
     );
     if (resopnse.data.success) {
       props.setConfirmRidePopupPanel(false);

@@ -33,8 +33,6 @@ const CaptainSignup = () => {
         { email, otp: userOtp },
       );
 
-      console.log("OTP verification response:", otpResponse);
-
       if (otpResponse.data.success !== true) {
         toast.error("OTP verification failed");
         e.preventDefault();
@@ -61,8 +59,6 @@ const CaptainSignup = () => {
         `${import.meta.env.VITE_BASE_URL}/captains/register`,
         captainData,
       );
-
-      console.log("Signup response:", response);
 
       if (response.data.success) {
         const data = response.data.data;

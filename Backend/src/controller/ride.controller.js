@@ -237,10 +237,7 @@ const verifypayment = asynchandler(async (req, res) => {
     throw new ApiError(404, "Ride not found");
   }
   if (!ride.user || ride.user.toString() !== req.user._id.toString()) {
-    throw new ApiError(
-      403,
-      "You are not authorized to verify this payment",
-    );
+    throw new ApiError(403, "You are not authorized to verify this payment");
   }
 
   await Ride.findByIdAndUpdate(data.receipt, {
@@ -273,12 +270,18 @@ const cancelRide = asynchandler(async (req, res) => {
     );
   }
 
-  if (req.user && (!ride.user || ride.user._id.toString() !== req.user._id.toString())) {
+  if (
+    req.user &&
+    (!ride.user || ride.user._id.toString() !== req.user._id.toString())
+  ) {
     throw new ApiError(403, "You are not authorized to cancel this ride");
   }
 
   if (req.captain) {
-    if (!ride.captain || ride.captain._id.toString() !== req.captain._id.toString()) {
+    if (
+      !ride.captain ||
+      ride.captain._id.toString() !== req.captain._id.toString()
+    ) {
       throw new ApiError(403, "You are not authorized to cancel this ride");
     }
   }
@@ -293,7 +296,6 @@ const cancelRide = asynchandler(async (req, res) => {
     throw new ApiError(500, "Unable to cancel ride. Please try again");
   }
 
-  // Notify the counterpart (never the caller of the cancel action).
   const notify = req.user ? ride.captain : ride.user;
   if (notify?.socketId) {
     sendMessageToSocketId(notify.socketId, {
@@ -348,8 +350,10 @@ const rideStatus = asynchandler(async (req, res) => {
 
   res
     .status(200)
-    .json(new ApiResponse(200, ride.status, "Ride status fetched successfully"));
-})
+    .json(
+      new ApiResponse(200, ride.status, "Ride status fetched successfully"),
+    );
+});
 
 export {
   createride,
@@ -361,5 +365,5 @@ export {
   verifypayment,
   cancelRide,
   RideRating,
-  rideStatus
+  rideStatus,
 };

@@ -162,21 +162,21 @@ const CaptainHome = () => {
   };
 
   const location = useLocation();
-  const navigate=useNavigate();
-  
+  const navigate = useNavigate();
+
   useEffect(() => {
-  if (location.state?.rideToComplete) {
-    const rideData = location.state.rideToComplete;
+    if (location.state?.rideToComplete) {
+      const rideData = location.state.rideToComplete;
 
-    setRide(rideData);
+      setRide(rideData);
 
-    setTimeout(() => {
-      setConfirmRidePopupPanel(true);
-    }, 0);
+      setTimeout(() => {
+        setConfirmRidePopupPanel(true);
+      }, 0);
 
-    navigate("/captain-home", { replace: true });
-  }
-}, [location.state]);
+      navigate("/captain-home", { replace: true });
+    }
+  }, [location.state]);
 
   useGSAP(
     function () {

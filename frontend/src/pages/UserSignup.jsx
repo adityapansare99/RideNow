@@ -60,11 +60,13 @@ const UserSignup = () => {
       if (errData?.data && errData.data[0]?.msg) {
         toast.error(errData.data[0].msg);
       } else {
-        toast.error(errData?.message || "Something went wrong. Please try again.");
+        toast.error(
+          errData?.message || "Something went wrong. Please try again.",
+        );
       }
     }
   };
- 
+
   const otpHandler = async () => {
     if (!/^\S+@\S+\.\S+$/.test(email)) {
       toast.error("Enter a valid email address");

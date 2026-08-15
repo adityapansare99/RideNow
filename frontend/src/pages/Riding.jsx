@@ -48,7 +48,7 @@ const Riding = () => {
     if (rideStatus === "completed") {
       setDone(true);
     }
-  },[rideStatus]);
+  }, [rideStatus]);
 
   useEffect(() => {
     if (!socket) {

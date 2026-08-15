@@ -90,11 +90,11 @@ const initializeSocket = (server) => {
       try {
         await Captain.findOneAndUpdate(
           { socketId: socket.id },
-          { status: "inactive", $unset: { socketId: "" } }
+          { status: "inactive", $unset: { socketId: "" } },
         );
         await User.findOneAndUpdate(
           { socketId: socket.id },
-          { $unset: { socketId: "" } }
+          { $unset: { socketId: "" } },
         );
       } catch (error) {
         console.error("Disconnect cleanup error:", error);

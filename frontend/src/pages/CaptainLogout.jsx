@@ -17,7 +17,7 @@ const CaptainLogout = () => {
               Authorization: `Bearer ${token}`,
             },
             withCredentials: true,
-          }
+          },
         );
 
         if (res.data.success) {
@@ -38,7 +38,7 @@ const CaptainLogout = () => {
   }, [navigate, token]);
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
+    <div className="min-h-screen w-full bg-linear-to-b from-gray-50 to-white flex items-center justify-center">
       <div className="text-center">
         <div className="relative mb-6">
           <div className="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center">

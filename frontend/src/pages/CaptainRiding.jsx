@@ -28,7 +28,7 @@ const CaptainRiding = () => {
   );
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-gray-50 to-white flex flex-col">
+    <div className="min-h-screen w-full bg-linear-to-b from-gray-50 to-white flex flex-col">
       <div className="relative z-20 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
           <div>
@@ -98,7 +98,7 @@ const CaptainRiding = () => {
           </div>
         </div>
 
-        <div className="hidden lg:flex lg:flex-col lg:h-[84vh] lg:w-[400px] bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="hidden lg:flex lg:flex-col lg:h-[84vh] lg:w-100 bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
           <div className="flex-1 overflow-y-auto">
             <div className="px-6 py-6">
               <FinishRide

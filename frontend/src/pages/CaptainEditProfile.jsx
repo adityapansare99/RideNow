@@ -209,7 +209,9 @@ const CaptainEditProfile = () => {
       if (errData?.data && errData.data[0]?.msg) {
         toast.error(errData.data[0].msg);
       } else {
-        toast.error(errData?.message || "Something went wrong. Please try again.");
+        toast.error(
+          errData?.message || "Something went wrong. Please try again.",
+        );
       }
     }
   };
@@ -313,9 +315,6 @@ const CaptainEditProfile = () => {
                           <i className="ri-user-line text-5xl text-gray-400"></i>
                         </div>
                       )}
-                      {/* <div className="absolute -bottom-1 -right-1 bg-emerald-500 rounded-full p-2">
-                        <i className="ri-steering-2-line text-white text-lg"></i>
-                      </div> */}
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-1">
                       {firstname || lastname

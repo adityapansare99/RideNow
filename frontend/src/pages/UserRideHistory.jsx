@@ -110,7 +110,7 @@ const UserRideHistory = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-gradient-to-b from-gray-50 to-white flex-col">
+    <div className="min-h-screen w-full flex bg-linear-to-b from-gray-50 to-white flex-col">
       <div className="lg:hidden relative z-10 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between px-4 py-4">
           <div>
@@ -157,7 +157,7 @@ const UserRideHistory = () => {
       <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
         <div className="max-w-5xl mx-auto">
           {activeRide && (
-            <div className="mb-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
+            <div className="mb-6 bg-linear-to-r from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">

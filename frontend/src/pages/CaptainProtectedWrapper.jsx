@@ -37,7 +37,7 @@ const CaptainProtectedWrapper = ({ children }) => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
+      <div className="min-h-screen w-full bg-linear-to-b from-gray-50 to-white flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
             <div className="w-16 h-16 mx-auto border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>

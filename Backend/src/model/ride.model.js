@@ -65,21 +65,21 @@ const rideschema = new mongoose.Schema(
       default: false,
     },
 
-    rating:{
-      type:Number,
-      default:0
+    rating: {
+      type: Number,
+      default: 0,
     },
 
-    isRated:{
-      type:Boolean,
-      default:false
+    isRated: {
+      type: Boolean,
+      default: false,
     },
 
-    rateTime:{
-      type:Date,
-    }
+    rateTime: {
+      type: Date,
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Ride = mongoose.model("Ride", rideschema);

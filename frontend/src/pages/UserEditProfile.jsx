@@ -178,8 +178,6 @@ const UserEditProfile = () => {
         },
       );
 
-      console.log("Update response:", response);
-
       if (!response.data.success) {
         toast.error("Failed to update profile. Please try again.");
       }
@@ -194,7 +192,9 @@ const UserEditProfile = () => {
       if (errData?.data && errData.data[0]?.msg) {
         toast.error(errData.data[0].msg);
       } else {
-        toast.error(errData?.message || "Something went wrong. Please try again.");
+        toast.error(
+          errData?.message || "Something went wrong. Please try again.",
+        );
       }
     }
   };
@@ -271,7 +271,6 @@ const UserEditProfile = () => {
 
       <div className="flex-1 bg-linear-to-b from-gray-50 to-white px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12 lg:py-12">
         <div className="max-w-md mx-auto lg:max-w-7xl">
-          {/* Mobile Title */}
           <div className="space-y-3 mb-8 lg:hidden">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
               Edit Profile

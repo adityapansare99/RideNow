@@ -15,7 +15,7 @@ const otpSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 otpSchema.index({ email: 1 });
