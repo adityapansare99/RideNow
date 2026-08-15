@@ -15,7 +15,7 @@ RideNow is a full-stack ride-hailing platform backend built with **Node.js**, **
 | Bcrypt | Password hashing |
 | Google Maps API | Coordinates, distance, suggestions |
 | Razorpay | Payment gateway |
-| Twilio | OTP via SMS |
+| Nodemailer (SMTP) | OTP via email |
 | Cloudinary | Profile image uploads |
 | ML Model | Dynamic fare prediction |
 
@@ -36,6 +36,7 @@ RideNow is a full-stack ride-hailing platform backend built with **Node.js**, **
 │   └── validator.middleware.js
 ├── model/
 │   ├── captain.model.js
+│   ├── otp.model.js
 │   ├── ride.model.js
 │   └── user.model.js
 ├── route/
@@ -45,6 +46,7 @@ RideNow is a full-stack ride-hailing platform backend built with **Node.js**, **
 │   ├── ride.route.js
 │   └── user.route.js
 ├── service/
+│   ├── email.service.js
 │   ├── map.service.js
 │   ├── otpStore.js
 │   └── ride.service.js
@@ -87,10 +89,13 @@ RazorPayKey=your_razorpay_key
 RazorPaySecretKey=your_razorpay_secret
 Currency=INR
 
-# Twilio
-Twilio_SID=your_twilio_sid
-Twilio_AUTH_TOKEN=your_twilio_auth_token
-Twilio_PHONE_NUMBER=your_twilio_phone_number
+# SMTP (email OTP)
+SMTP_HOST=your_smtp_host
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your_smtp_user
+SMTP_PASS=your_smtp_password
+EMAIL_FROM=your_from_address
 
 # Cloudinary
 cloud_name=your_cloud_name
@@ -165,7 +170,7 @@ All API responses follow a consistent structure.
 | `404` | Not Found — Resource does not exist |
 | `409` | Conflict — Resource already exists |
 | `500` | Internal Server Error — Server-side failure |
-| `502` | Bad Gateway — External service failure (Twilio, Google Maps, Razorpay) |
+| `502` | Bad Gateway — External service failure (SMTP email, Google Maps, Razorpay) |
 
 ---
 
@@ -421,12 +426,12 @@ Get all past rides for the authenticated user. Each completed ride also includes
 
 ## `POST /users/Generate-otp`
 
-Send a 6-digit OTP to the given mobile number via SMS (Twilio). OTP is valid for **5 minutes**.
+Send a 6-digit OTP to the given email address via SMTP (nodemailer). OTP is valid for **5 minutes**.
 
 **Request Body**
 ```json
 {
-  "mobile": "9876543210"
+  "email": "user@example.com"
 }
 ```
 
@@ -435,7 +440,7 @@ Send a 6-digit OTP to the given mobile number via SMS (Twilio). OTP is valid for
 {
   "statusCode": 200,
   "success": true,
-  "message": "OTP sent successfully",
+  "message": "OTP sent successfully to your email",
   "data": null
 }
 ```
@@ -444,19 +449,19 @@ Send a 6-digit OTP to the given mobile number via SMS (Twilio). OTP is valid for
 
 | Status | Message |
 |--------|---------|
-| `400` | A valid 10-digit mobile number is required |
+| `400` | A valid email address is required |
 | `502` | Failed to send OTP. Please try again later |
 
 ---
 
 ## `POST /users/verify-otp`
 
-Verify the OTP sent to the user's mobile number.
+Verify the OTP sent to the user's email address.
 
 **Request Body**
 ```json
 {
-  "mobile": "9876543210",
+  "email": "user@example.com",
   "otp": "123456"
 }
 ```
@@ -475,7 +480,7 @@ Verify the OTP sent to the user's mobile number.
 
 | Status | Message |
 |--------|---------|
-| `400` | Mobile number and OTP are required |
+| `400` | Email and OTP are required |
 | `400` | Invalid or expired OTP. Please request a new one |
 
 ---
@@ -850,12 +855,12 @@ Permanently delete the authenticated captain's account.
 
 ## `POST /captains/Generate-otp`
 
-Send a 6-digit OTP to the captain's mobile number via SMS. OTP is valid for **5 minutes**.
+Send a 6-digit OTP to the captain's email address via SMTP (nodemailer). OTP is valid for **5 minutes**.
 
 **Request Body**
 ```json
 {
-  "mobile": "9876543210"
+  "email": "captain@example.com"
 }
 ```
 
@@ -864,7 +869,7 @@ Send a 6-digit OTP to the captain's mobile number via SMS. OTP is valid for **5 
 {
   "statusCode": 200,
   "success": true,
-  "message": "OTP sent successfully",
+  "message": "OTP sent successfully to your email",
   "data": null
 }
 ```
@@ -873,19 +878,19 @@ Send a 6-digit OTP to the captain's mobile number via SMS. OTP is valid for **5 
 
 | Status | Message |
 |--------|---------|
-| `400` | A valid 10-digit mobile number is required |
+| `400` | A valid email address is required |
 | `502` | Failed to send OTP. Please try again later |
 
 ---
 
 ## `POST /captains/verify-otp`
 
-Verify the OTP sent to the captain's mobile number.
+Verify the OTP sent to the captain's email address.
 
 **Request Body**
 ```json
 {
-  "mobile": "9876543210",
+  "email": "captain@example.com",
   "otp": "123456"
 }
 ```
@@ -904,7 +909,7 @@ Verify the OTP sent to the captain's mobile number.
 
 | Status | Message |
 |--------|---------|
-| `400` | Mobile number and OTP are required |
+| `400` | Email and OTP are required |
 | `400` | Invalid or expired OTP. Please request a new one |
 
 ---

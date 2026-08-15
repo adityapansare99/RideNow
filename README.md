@@ -27,7 +27,7 @@ RideNow/
 - Rate captain after ride completion
 - View full ride history with captain ratings
 - Edit profile with image upload (Cloudinary)
-- Mobile OTP verification via Twilio
+- Email OTP verification via SMTP (nodemailer)
 
 ### 🚕 Captain
 - Register with vehicle details
@@ -65,7 +65,7 @@ RideNow/
 | **Real-time (Backend)** | Socket.IO |
 | **Authentication** | JWT (Access + Refresh tokens), Bcrypt |
 | **File Upload** | Multer + Cloudinary |
-| **SMS/OTP** | Twilio |
+| **Email/OTP** | Nodemailer (SMTP) |
 | **Payments (Backend)** | Razorpay Node SDK |
 | **Maps (Backend)** | Google Maps Geocoding, Distance Matrix, Places API |
 | **ML Backend** | Python 3.13, Flask, scikit-learn, joblib |
@@ -110,9 +110,12 @@ GOOGLE_MAPS_API=your_google_maps_api_key
 RazorPayKey=your_razorpay_key
 RazorPaySecretKey=your_razorpay_secret
 Currency=INR
-Twilio_SID=your_twilio_sid
-Twilio_AUTH_TOKEN=your_twilio_auth_token
-Twilio_PHONE_NUMBER=your_twilio_phone_number
+SMTP_HOST=your_smtp_host
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your_smtp_user
+SMTP_PASS=your_smtp_password
+EMAIL_FROM=your_from_address
 cloud_name=your_cloudinary_cloud_name
 api_key=your_cloudinary_api_key
 api_secret=your_cloudinary_api_secret
@@ -178,7 +181,7 @@ npm run dev
 ┌──────────────────▼──────────────────────────────┐
 │              Backend (Node.js + Express)          │
 │  REST API + Socket.IO + JWT Auth + Cloudinary    │
-│  MongoDB + Twilio + Razorpay + Google Maps API   │
+│  MongoDB + SMTP + Razorpay + Google Maps API     │
 └──────┬───────────────────────┬───────────────────┘
        │ MongoDB                │ HTTP (axios)
 ┌──────▼──────┐      ┌─────────▼──────────────────┐
