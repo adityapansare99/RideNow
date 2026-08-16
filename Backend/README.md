@@ -1,154 +1,329 @@
-# 🚗 RideNow — Backend API Documentation
+# 🚗 RideNow — Backend Service & API Specification
 
-RideNow is a full-stack ride-hailing platform backend built with **Node.js**, **Express**, **MongoDB**, and **Socket.IO**. It supports real-time ride tracking, dynamic ML-based fare prediction, OTP verification, Razorpay payments, and a captain rating system.
+[![Node.js](https://img.shields.io/badge/Node.js-v20+-green.svg)](https://nodejs.org/)
+[![Express.js](https://img.shields.io/badge/Express-v4.21-blue.svg)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose%20v8.12-green.svg)](https://www.mongodb.com/)
+[![Socket.IO](https://img.shields.io/badge/Socket.IO-v4.8-black.svg)](https://socket.io/)
+[![JWT](https://img.shields.io/badge/Auth-JWT%20Rotation-orange.svg)](https://jwt.io/)
 
----
-
-## 🛠️ Tech Stack
-
-| Technology | Usage |
-|------------|-------|
-| Node.js + Express | REST API server |
-| MongoDB + Mongoose | Database |
-| Socket.IO | Real-time communication |
-| JWT | Authentication |
-| Bcrypt | Password hashing |
-| Google Maps API | Coordinates, distance, suggestions |
-| Razorpay | Payment gateway |
-| Nodemailer (SMTP) | OTP via email |
-| Cloudinary | Profile image uploads |
-| ML Model | Dynamic fare prediction |
+The **RideNow Backend** is a production-grade Node.js/Express RESTful API and WebSocket engine powering real-time urban ride matching, dynamic ML-backed pricing, OTP verification, Razorpay payments, and captain telemetry aggregation.
 
 ---
 
-## 📁 Project Structure
+## 🏗️ Layered System Architecture
 
 ```
-├── controller/
-│   ├── captain.controller.js
-│   ├── healthcheck.controller.js
-│   ├── map.controller.js
-│   ├── ride.controller.js
-│   └── user.controller.js
-├── middleware/
-│   ├── auth.middleware.js
-│   ├── multer.middleware.js
-│   └── validator.middleware.js
-├── model/
-│   ├── captain.model.js
-│   ├── otp.model.js
-│   ├── ride.model.js
-│   └── user.model.js
-├── route/
-│   ├── captain.route.js
-│   ├── healthcheck.route.js
-│   ├── map.route.js
-│   ├── ride.route.js
-│   └── user.route.js
-├── service/
-│   ├── email.service.js
-│   ├── map.service.js
-│   ├── otpStore.js
-│   └── ride.service.js
-├── utils/
-│   ├── apiError.js
-│   ├── apiResponse.js
-│   ├── asyncHandler.js
-│   └── cloudinary.js
-├── db/
-│   └── index.js
-├── app.js
-├── socket.js
-└── index.js
+┌─────────────────────────────────────────────────────────────────────────┐
+│                       Incoming Client Requests                          │
+│                (HTTP REST Requests & WebSocket Packets)                 │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │
+┌────────────────────────────────────▼────────────────────────────────────┐
+│                    Express Routing Layer (app.js)                       │
+│    /users        │      /captains       │       /maps      │   /rides   │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │
+┌────────────────────────────────────▼────────────────────────────────────┐
+│                       Middleware Pipeline Layer                         │
+│  - auth.middleware.js (auth, authc, authAny JWT validation)             │
+│  - validator.middleware.js (express-validator body/query checkers)      │
+│  - multer.middleware.js (Multipart form image uploads to memory)        │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │
+┌────────────────────────────────────▼────────────────────────────────────┐
+│                           Controller Layer                              │
+│  - user.controller.js       - captain.controller.js                      │
+│  - ride.controller.js       - map.controller.js                         │
+└──────────────────┬──────────────────────────────────┬───────────────────┘
+                   │                                  │
+┌──────────────────▼─────────────────┐     ┌──────────▼───────────────────┐
+│           Service Layer            │     │    Utility & Helper Layer    │
+│  - ride.service.js (Fare/Calculations)   │     │  - ApiError.js               │
+│  - map.service.js (Google Maps SDK)│     │  - ApiResponse.js            │
+│  - email.service.js (SMTP OTP)     │     │  - asyncHandler.js           │
+│  - otpStore.js (In-memory verification)  │     │  - cloudinary.js             │
+└──────────────────┬─────────────────┘     └──────────────────────────────┘
+                   │
+┌──────────────────▼──────────────────────────────────────────────────────┐
+│                        Data Layer & External Services                   │
+│   MongoDB Atlas (User, Captain, Ride, OTP Models) │  Socket.IO Engine   │
+│   Flask ML Backend  │  Google Maps APIs  │ Razorpay  │ Nodemailer SMTP │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## ⚙️ Environment Variables
+## ⚡ Sequence Diagrams
 
-Create a `.env` file in the root directory:
+### 1. Complete Ride Booking & Real-Time Lifecycle
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Rider as Rider (User)
+    participant API as Express API Server
+    participant MapSvc as Google Maps Service
+    participant MLSvc as ML Backend (Flask)
+    participant DB as MongoDB Atlas
+    participant Sock as Socket.IO Server
+    actor Driver as Captain (Driver)
+
+    Rider->>API: GET /rides/get-fare?pickup=...&destination=...
+    API->>MapSvc: Get Distance & Duration (Distance Matrix API)
+    API->>MLSvc: POST /predict (distance, duration)
+    MLSvc-->>API: Estimated Fares (car, auto, moto)
+    API-->>Rider: Return Fare Estimates
+    Rider->>API: POST /rides/create-ride (vehicleType)
+    API->>DB: Save Ride (status: pending, generate OTP)
+    API->>Sock: Broadcast `new-ride` to active nearby captains
+    Sock-->>Driver: Socket Event: `new-ride`
+    Driver->>API: POST /rides/confirm { rideId }
+    API->>DB: Update Ride (status: accepted, captainId)
+    API->>Sock: Emit `ride-confirmed` to Rider socket
+    Sock-->>Rider: Socket Event: `ride-confirmed`
+    Driver->>Rider: Arrives at Pickup Location
+    Rider->>Driver: Shares 6-Digit OTP
+    Driver->>API: GET /rides/start-ride?rideId=...&otp=...
+    API->>DB: Validate OTP -> Update Ride (status: ongoing)
+    API->>Sock: Emit `ride-started` to Rider socket
+    Sock-->>Rider: Socket Event: `ride-started`
+    loop Telemetry (Every 10 seconds)
+        Driver->>Sock: Socket Event: `update-captain-location-ride`
+        Sock->>DB: Update Captain Location
+        Sock-->>Rider: Socket Event: `captain-location-update`
+    end
+    Driver->>API: POST /rides/end-ride { rideId }
+    API->>DB: Update Ride (status: completed)
+    API->>Sock: Emit `ride-ended` to Rider socket
+    Sock-->>Rider: Socket Event: `ride-ended`
+```
+
+### 2. Payment & Verification Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Rider as Rider (User)
+    participant API as Express API Server
+    participant RPay as Razorpay SDK
+    participant DB as MongoDB Atlas
+
+    Rider->>API: POST /rides/makepayment { rideId }
+    API->>DB: Fetch Completed Ride Details
+    API->>RPay: Create Razorpay Order (amount in paise)
+    RPay-->>API: Return Order Object (order_id)
+    API-->>Rider: Return Order ID & Credentials
+    Rider->>RPay: Execute Payment via Frontend SDK
+    RPay-->>Rider: Payment Complete (payment_id, signature)
+    Rider->>API: POST /rides/verifypayment { order_id }
+    API->>RPay: Verify Order Status
+    API->>DB: Update Ride (paymentStatus: true, paymentID)
+    API-->>Rider: Payment Verified Success Response
+```
+
+---
+
+## 🔌 Socket.IO Real-Time Directory
+
+The Socket.IO server runs alongside the Express HTTP server, managing live connections, captain location updates, and trip event dispatches.
+
+### Client $\rightarrow$ Server Events
+
+| Event Name | Payload Structure | Triggering Context | Server Action |
+|------------|-------------------|--------------------|---------------|
+| `join` | `{ userId: string, userType: "user" \| "captain" }` | Page mount on home / dashboard | Maps socket ID to MongoDB User/Captain document |
+| `update-location-captain` | `{ userId: string, location: { ltd: number, lng: number } }` | Captain idle screen (every 10s) | Updates captain status to `active` and saves geolocation |
+| `update-captain-location-ride` | `{ userId: string, location: { ltd: number, lng: number }, rideId: string, heading?: number }` | Active trip navigation (every 10s) | Updates captain location & forwards `captain-location-update` to rider |
+
+### Server $\rightarrow$ Client Events
+
+| Event Name | Recipient | Payload | Trigger Context |
+|------------|-----------|---------|-----------------|
+| `new-ride` | Nearby Captains | `{ _id, user, pickup, destination, fare, distance, duration }` | User creates a new ride |
+| `ride-confirmed` | User | `{ _id, status, captain, user }` | Captain accepts ride request |
+| `ride-started` | User | `{ _id, status, captain, user }` | Captain verifies OTP & starts trip |
+| `ride-ended` | User | `{ _id, status, fare, distance }` | Captain marks trip completed |
+| `ride-cancelled` | User | `{ message: "Ride cancelled" }` | Rider or Captain cancels trip |
+| `ride-already-confirmed` | Other Captains | `{ rideId }` | Emitted when another captain claims the ride first |
+| `captain-location-update` | User | `{ location: { ltd, lng }, heading, rideId }` | Emitted during active trip telemetry |
+| `error` | Socket Sender | `{ message: string }` | Emitted when a socket handler encounters an error |
+
+---
+
+## 📋 Data Schemas & Models
+
+### 1. User Model (`model/user.model.js`)
+
+```json
+{
+  "_id": "64abc1234567890abcdef123",
+  "fullname": {
+    "firstname": "John",
+    "lastname": "Doe"
+  },
+  "email": "john.doe@example.com",
+  "password": "<bcrypt-hashed-string>",
+  "mobile": "9876543210",
+  "image": "https://res.cloudinary.com/demo/image/upload/v12345678/user.jpg",
+  "socketId": "sock_user_9988",
+  "refreshtoken": "<JWT-refresh-token>",
+  "createdAt": "2026-08-16T10:00:00.000Z",
+  "updatedAt": "2026-08-16T10:00:00.000Z"
+}
+```
+
+| Field | Type | Required | Constraints / Validation |
+|-------|------|----------|--------------------------|
+| `fullname.firstname` | String | ✅ | Minimum 3 characters |
+| `fullname.lastname` | String | ❌ | Minimum 3 characters |
+| `email` | String | ✅ | Unique, lowercase, valid email |
+| `password` | String | ✅ | Select: false (hidden), bcrypt hashed |
+| `mobile` | String | ✅ | Unique, exactly 10 digits |
+| `image` | String | ❌ | Default avatar URL |
+| `socketId` | String | ❌ | Socket session ID |
+| `refreshtoken` | String | ❌ | Refresh JWT string |
+
+### 2. Captain Model (`model/captain.model.js`)
+
+```json
+{
+  "_id": "64cap9876543210fedcba987",
+  "fullname": {
+    "firstname": "Raj",
+    "lastname": "Kumar"
+  },
+  "email": "raj.kumar@example.com",
+  "password": "<bcrypt-hashed-string>",
+  "mobile": "9123456789",
+  "status": "active",
+  "profilepic": "https://res.cloudinary.com/demo/image/upload/v12345678/captain.jpg",
+  "socketId": "sock_cap_1122",
+  "vehicle": {
+    "color": "Black",
+    "plate": "MH12AB1234",
+    "capacity": 4,
+    "vehicletype": "car"
+  },
+  "location": {
+    "ltd": 18.5204,
+    "lng": 73.8567
+  },
+  "refreshtoken": "<JWT-refresh-token>"
+}
+```
+
+| Field | Type | Required | Constraints / Validation |
+|-------|------|----------|--------------------------|
+| `fullname.firstname` | String | ✅ | Minimum 3 characters |
+| `fullname.lastname` | String | ✅ | Minimum 3 characters |
+| `email` | String | ✅ | Unique, lowercase, valid email |
+| `mobile` | String | ✅ | Unique, exactly 10 digits |
+| `status` | String | ❌ | Enum: `active`, `inactive`. Default: `inactive` |
+| `vehicle.color` | String | ✅ | Minimum 3 characters |
+| `vehicle.plate` | String | ✅ | Minimum 3 characters |
+| `vehicle.capacity` | Number | ✅ | Minimum 1 |
+| `vehicle.vehicletype` | String | ✅ | Enum: `car`, `auto`, `moto` |
+| `location.ltd` | Number | ❌ | Latitude coordinate |
+| `location.lng` | Number | ❌ | Longitude coordinate |
+
+### 3. Ride Model (`model/ride.model.js`)
+
+```json
+{
+  "_id": "64ride555444333222111000",
+  "user": "64abc1234567890abcdef123",
+  "captain": "64cap9876543210fedcba987",
+  "pickup": "Shivaji Nagar, Pune, Maharashtra",
+  "destination": "Hinjewadi Phase 1, Pune, Maharashtra",
+  "fare": 250.00,
+  "status": "completed",
+  "duration": 1800,
+  "distance": 15000,
+  "paymentID": "pay_K123456789",
+  "orderID": "order_K987654321",
+  "signature": "a1b2c3...",
+  "paymentStatus": true,
+  "rating": 5,
+  "isRated": true,
+  "rateTime": "2026-08-16T11:00:00.000Z",
+  "otp": "482910"
+}
+```
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `user` | ObjectId | ✅ | Reference: `User` model |
+| `captain` | ObjectId | ❌ | Reference: `Captain` model (populated on confirm) |
+| `pickup` | String | ✅ | Pickup address string |
+| `destination` | String | ✅ | Destination address string |
+| `fare` | Number | ✅ | Trip cost in INR (₹) |
+| `status` | String | ❌ | Enum: `pending`, `accepted`, `ongoing`, `completed`, `cancelled`. Default: `pending` |
+| `duration` | Number | ❌ | Estimated duration in seconds |
+| `distance` | Number | ❌ | Distance in meters |
+| `otp` | String | ✅ | Select: false (hidden in default queries) |
+| `paymentStatus` | Boolean | ❌ | Default: `false` |
+| `rating` | Number | ❌ | Default: `0` |
+
+---
+
+## ⚙️ Environment Variables Reference
+
+Create `.env` inside `Backend/`:
 
 ```env
 PORT=8000
 NODE_ENV=development
 
-# MongoDB
-dblink=mongodb+srv://<username>:<password>@cluster.mongodb.net/
+# Database
+dblink=mongodb+srv://<user>:<password>@cluster.mongodb.net/ridenow
 
-# JWT
-accesstoken=your_access_token_secret
-refreshtoken=your_refresh_token_secret
+# Authentication Secrets & Expiry
+accesstoken=your_jwt_access_token_secret
+refreshtoken=your_jwt_refresh_token_secret
 accesstime=15m
 refreshtime=7d
 
-# Google Maps
+# Google Maps API Key
 GOOGLE_MAPS_API=your_google_maps_api_key
 
-# Razorpay
-RazorPayKey=your_razorpay_key
-RazorPaySecretKey=your_razorpay_secret
+# Razorpay Credentials
+RazorPayKey=your_razorpay_key_id
+RazorPaySecretKey=your_razorpay_secret_key
 Currency=INR
 
-# SMTP (email OTP)
-SMTP_HOST=your_smtp_host
+# Nodemailer SMTP Configuration
+SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_SECURE=false
-SMTP_USER=your_smtp_user
-SMTP_PASS=your_smtp_password
-EMAIL_FROM=your_from_address
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
+EMAIL_FROM=noreply@ridenow.com
 
-# Cloudinary
-cloud_name=your_cloud_name
+# Cloudinary Storage
+cloud_name=your_cloudinary_cloud_name
 api_key=your_cloudinary_api_key
 api_secret=your_cloudinary_api_secret
 
-# ML Model
-Model_link=your_ml_model_url
-
-# Frontend Url
-Fontend_URL=your_frontend_url
+# Service Routing
+Model_link=http://localhost:5001
+Fontend_URL=http://localhost:5173
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🌐 Standard Response Structure
 
-```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Start production server
-npm start
-```
-
----
-
-## 🌐 Base URL
-
-```
-http://localhost:8000
-```
-
----
-
-## 📦 Response Format
-
-All API responses follow a consistent structure.
-
-### ✅ Success Response
+### ✅ Success Envelope (`ApiResponse`)
 ```json
 {
   "statusCode": 200,
   "success": true,
-  "message": "Descriptive success message",
-  "data": { }
+  "message": "Operation completed successfully",
+  "data": {}
 }
 ```
 
-### ❌ Error Response
+### ❌ Error Envelope (`ApiError`)
 ```json
 {
   "statusCode": 400,
@@ -161,62 +336,37 @@ All API responses follow a consistent structure.
 
 ---
 
-## 📊 HTTP Status Codes
+## 🔐 Verified API Route Specifications
 
-| Code | Meaning |
-|------|---------|
-| `200` | OK — Successful request |
-| `201` | Created — Resource successfully created |
-| `400` | Bad Request — Invalid or missing input |
-| `401` | Unauthorized — Missing or invalid token / wrong credentials |
-| `402` | Payment Required — Payment not completed |
-| `404` | Not Found — Resource does not exist |
-| `409` | Conflict — Resource already exists |
-| `500` | Internal Server Error — Server-side failure |
-| `502` | Bad Gateway — External service failure (SMTP email, Google Maps, Razorpay) |
-
----
-
-## 🔐 Authentication
-
-Protected routes require a valid JWT access token passed as:
-- **Cookie**: `accesstoken`
-- **Header**: `Authorization: Bearer <token>`
-
-> 🔒 = Protected route (requires auth token)
-
----
+Legend:
+- 🔒 **User** = Requires User Access Token (`auth` middleware)
+- 🔒 **Captain** = Requires Captain Access Token (`authc` middleware)
+- 🔒 **User/Captain** = Accepts either User or Captain Access Token (`authAny` middleware)
 
 ---
 
 # 👤 User Endpoints — `/users`
 
----
-
 ## `POST /users/register`
+Register a new User account.
 
-Register a new user account.
-
-**Request Body**
+**Request Body (`application/json`)**
 ```json
 {
   "firstname": "John",
   "lastname": "Doe",
   "email": "john@example.com",
-  "password": "secret123",
+  "password": "secretpassword",
   "mobile": "9876543210"
 }
 ```
+- `firstname` (string, required, min 3 chars)
+- `lastname` (string, optional, min 3 chars)
+- `email` (string, required, valid email format)
+- `password` (string, required, min 6 chars)
+- `mobile` (string, required, exactly 10 digits)
 
-| Field | Type | Required | Validation |
-|-------|------|----------|------------|
-| `firstname` | string | ✅ | min 3 characters |
-| `lastname` | string | ❌ | min 3 characters |
-| `email` | string | ✅ | valid email format |
-| `password` | string | ✅ | min 6 characters |
-| `mobile` | string | ✅ | 10 digits |
-
-**Success Response `201`**
+**Response `201 Created`**
 ```json
 {
   "statusCode": 201,
@@ -224,45 +374,36 @@ Register a new user account.
   "message": "User created successfully",
   "data": {
     "userData": {
+      "_id": "64abc123...",
       "fullname": { "firstname": "John", "lastname": "Doe" },
       "email": "john@example.com",
-      "mobile": "9876543210",
-      "_id": "64abc123..."
+      "mobile": "9876543210"
     },
-    "accesstoken": "<JWT>",
-    "refreshtoken": "<JWT>"
+    "accesstoken": "<jwt_access_token>",
+    "refreshtoken": "<jwt_refresh_token>"
   }
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | All fields are required |
-| `409` | User with this email already exists |
-| `500` | User registration failed. Please try again |
+**Errors:**
+- `400 Bad Request` — Validation failed / Missing fields
+- `409 Conflict` — User with this email already exists
+- `500 Internal Server Error` — Registration failed
 
 ---
 
 ## `POST /users/login`
+Authenticate User and receive access/refresh tokens.
 
-Authenticate user and receive JWT tokens.
-
-**Request Body**
+**Request Body (`application/json`)**
 ```json
 {
   "email": "john@example.com",
-  "password": "secret123"
+  "password": "secretpassword"
 }
 ```
 
-| Field | Type | Required | Validation |
-|-------|------|----------|------------|
-| `email` | string | ✅ | valid email |
-| `password` | string | ✅ | min 6 characters |
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -270,32 +411,28 @@ Authenticate user and receive JWT tokens.
   "message": "successfully logged in",
   "data": {
     "user": {
+      "_id": "64abc123...",
       "fullname": { "firstname": "John", "lastname": "Doe" },
       "email": "john@example.com",
-      "mobile": "9876543210",
-      "_id": "64abc123..."
+      "mobile": "9876543210"
     },
-    "accesstoken": "<JWT>",
-    "refreshtoken": "<JWT>"
+    "accesstoken": "<jwt_access_token>",
+    "refreshtoken": "<jwt_refresh_token>"
   }
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | All fields are required |
-| `404` | User not found |
-| `401` | Invalid credentials. Please check your password |
+**Errors:**
+- `400 Bad Request` — Missing email or password
+- `401 Unauthorized` — Invalid credentials. Please check your password
+- `404 Not Found` — User not found
 
 ---
 
-## `POST /users/logout` 🔒
+## `POST /users/logout` 🔒 User
+Log out authenticated user, unsetting socket ID and refresh token.
 
-Logout user and clear auth cookies.
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -307,11 +444,10 @@ Logout user and clear auth cookies.
 
 ---
 
-## `GET /users/profile` 🔒
+## `GET /users/profile` 🔒 User
+Retrieve authenticated User profile details.
 
-Get the authenticated user's profile.
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -319,65 +455,48 @@ Get the authenticated user's profile.
   "message": "User profile",
   "data": {
     "user": {
+      "_id": "64abc123...",
       "fullname": { "firstname": "John", "lastname": "Doe" },
       "email": "john@example.com",
       "mobile": "9876543210",
-      "_id": "64abc123..."
+      "image": "https://cloudinary.com/..."
     }
   }
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `401` | Access token is missing |
-| `404` | User profile not found |
-
 ---
 
-## `PUT /users/edit-profile` 🔒
+## `PUT /users/edit-profile` 🔒 User
+Update profile details and avatar. Accepts `multipart/form-data`.
 
-Update user's personal details and profile picture. Accepts `multipart/form-data`.
+**Form Data Fields:**
+- `firstname` (string, required)
+- `lastname` (string, required)
+- `password` (string, optional)
+- `image` (file, optional — avatar image)
 
-**Request Body**
-
-| Field | Type | Required |
-|-------|------|----------|
-| `firstname` | string | ✅ |
-| `lastname` | string | ✅ |
-| `password` | string | ❌ |
-| `image` | file | ❌ |
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
   "success": true,
   "message": "Profile updated successfully",
   "data": {
+    "_id": "64abc123...",
     "fullname": { "firstname": "John", "lastname": "Updated" },
-    "email": "john@example.com"
+    "email": "john@example.com",
+    "image": "https://res.cloudinary.com/..."
   }
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | All fields are required |
-| `404` | User not found |
-| `502` | Failed to upload image. Please try again |
-
 ---
 
-## `DELETE /users/delete-user` 🔒
+## `DELETE /users/delete-user` 🔒 User
+Permanently delete user account and clear session cookies.
 
-Permanently delete the authenticated user's account.
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -387,19 +506,12 @@ Permanently delete the authenticated user's account.
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `500` | Failed to delete user account. Please try again |
-
 ---
 
-## `GET /users/ride-history` 🔒
+## `GET /users/ride-history` 🔒 User
+Fetch complete ride history for the authenticated user (includes average rating for completed trips).
 
-Get all past rides for the authenticated user. Each completed ride also includes the captain's average rating.
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -408,37 +520,31 @@ Get all past rides for the authenticated user. Each completed ride also includes
   "data": [
     {
       "_id": "64ride123...",
-      "pickup": "Shivaji Nagar, Pune",
-      "destination": "Hinjewadi, Pune",
-      "fare": 250.00,
+      "pickup": "Shivaji Nagar",
+      "destination": "Hinjewadi",
+      "fare": 250,
       "status": "completed",
       "captain": { "fullname": { "firstname": "Raj" }, "vehicle": {} },
-      "captainAverageRating": {
-        "avgRating": 4.5,
-        "count": 28
-      },
-      "createdAt": "2024-01-01T09:00:00.000Z"
+      "captainAverageRating": { "avgRating": 4.8, "count": 15 },
+      "createdAt": "2026-08-16T10:00:00.000Z"
     }
   ]
 }
 ```
 
-> `captainAverageRating` is included only for `completed` rides.
-
 ---
 
 ## `POST /users/Generate-otp`
+Send a 6-digit verification code to the target email via SMTP.
 
-Send a 6-digit OTP to the given email address via SMTP (nodemailer). OTP is valid for **5 minutes**.
-
-**Request Body**
+**Request Body (`application/json`)**
 ```json
 {
-  "email": "user@example.com"
+  "email": "john@example.com"
 }
 ```
 
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -448,28 +554,20 @@ Send a 6-digit OTP to the given email address via SMTP (nodemailer). OTP is vali
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | A valid email address is required |
-| `502` | Failed to send OTP. Please try again later |
-
 ---
 
 ## `POST /users/verify-otp`
+Verify email OTP.
 
-Verify the OTP sent to the user's email address.
-
-**Request Body**
+**Request Body (`application/json`)**
 ```json
 {
-  "email": "user@example.com",
+  "email": "john@example.com",
   "otp": "123456"
 }
 ```
 
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -479,94 +577,64 @@ Verify the OTP sent to the user's email address.
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | Email and OTP are required |
-| `400` | Invalid or expired OTP. Please request a new one |
-
 ---
 
 ## `POST /users/refresh-token`
+Request new access token using a valid refresh token.
 
-Refresh the access token using a valid refresh token.
-
-**Request Body**
+**Request Body (`application/json`)**
 ```json
 {
-  "refreshtoken": "<refresh_JWT>"
+  "refreshtoken": "<jwt_refresh_token>"
 }
 ```
 
-> Can also be passed via cookie `refreshtoken`.
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
   "success": true,
   "message": "access token successful",
   "data": {
-    "accesstoken": "<new_JWT>",
-    "refreshtoken": "<new_JWT>"
+    "accesstoken": "<new_jwt_access_token>",
+    "refreshtoken": "<new_jwt_refresh_token>"
   }
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `401` | Refresh token is missing |
-| `401` | Refresh token is invalid or expired |
-| `404` | User not found |
-
 ---
 
-## `POST /users/captain-rating` 🔒
+## `POST /users/captain-rating` 🔒 User
+Fetch average rating for a target captain ID.
 
-Get the average rating of a specific captain by their ID.
-
-**Request Body**
+**Request Body (`application/json`)**
 ```json
 {
-  "captainId": "64cap123..."
+  "captainId": "64cap987..."
 }
 ```
 
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
   "success": true,
   "message": "Driver rating retrieved successfully",
   "data": {
-    "avgRating": 4.5,
-    "count": 28
+    "avgRating": 4.8,
+    "count": 15
   }
 }
 ```
-
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | Captain not found |
-
----
 
 ---
 
 # 🚕 Captain Endpoints — `/captains`
 
----
-
 ## `POST /captains/register`
+Register a new Captain account with vehicle details.
 
-Register a new captain account with vehicle details.
-
-**Request Body**
+**Request Body (`application/json`)**
 ```json
 {
   "fullname": {
@@ -574,8 +642,8 @@ Register a new captain account with vehicle details.
     "lastname": "Kumar"
   },
   "email": "raj@example.com",
-  "password": "secret123",
-  "mobile": "9876543210",
+  "password": "secretpassword",
+  "mobile": "9123456789",
   "vehicle": {
     "color": "Black",
     "plate": "MH12AB1234",
@@ -585,19 +653,7 @@ Register a new captain account with vehicle details.
 }
 ```
 
-| Field | Type | Required | Validation |
-|-------|------|----------|------------|
-| `fullname.firstname` | string | ✅ | min 3 characters |
-| `fullname.lastname` | string | ❌ | min 3 characters |
-| `email` | string | ✅ | valid email |
-| `password` | string | ✅ | min 6 characters |
-| `mobile` | string | ✅ | 10 digits |
-| `vehicle.color` | string | ✅ | min 3 characters |
-| `vehicle.plate` | string | ✅ | min 3 characters |
-| `vehicle.capacity` | number | ✅ | min 1 |
-| `vehicle.vehicletype` | string | ✅ | `car`, `auto`, `moto` |
-
-**Success Response `201`**
+**Response `201 Created`**
 ```json
 {
   "statusCode": 201,
@@ -605,41 +661,32 @@ Register a new captain account with vehicle details.
   "message": "captain registered successfully",
   "data": {
     "captain": {
+      "_id": "64cap987...",
       "fullname": { "firstname": "Raj", "lastname": "Kumar" },
       "email": "raj@example.com",
-      "mobile": "9876543210",
-      "vehicle": { "color": "Black", "plate": "MH12AB1234", "capacity": 4, "vehicletype": "car" },
       "status": "inactive",
-      "_id": "64cap123..."
+      "vehicle": { "color": "Black", "plate": "MH12AB1234", "capacity": 4, "vehicletype": "car" }
     },
-    "accesstoken": "<JWT>",
-    "refreshtoken": "<JWT>"
+    "accesstoken": "<jwt_access_token>",
+    "refreshtoken": "<jwt_refresh_token>"
   }
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `409` | Captain with this email already exists |
-| `500` | Captain registration failed. Please try again |
-
 ---
 
 ## `POST /captains/login`
+Authenticate Captain credentials.
 
-Authenticate captain and receive JWT tokens.
-
-**Request Body**
+**Request Body (`application/json`)**
 ```json
 {
   "email": "raj@example.com",
-  "password": "secret123"
+  "password": "secretpassword"
 }
 ```
 
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -647,32 +694,22 @@ Authenticate captain and receive JWT tokens.
   "message": "successfully logged in",
   "data": {
     "captain": {
+      "_id": "64cap987...",
       "fullname": { "firstname": "Raj", "lastname": "Kumar" },
-      "email": "raj@example.com",
-      "status": "inactive",
-      "vehicle": { "color": "Black", "plate": "MH12AB1234", "capacity": 4, "vehicletype": "car" },
-      "_id": "64cap123..."
+      "email": "raj@example.com"
     },
-    "accesstoken": "<JWT>",
-    "refreshtoken": "<JWT>"
+    "accesstoken": "<jwt_access_token>",
+    "refreshtoken": "<jwt_refresh_token>"
   }
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `404` | No captain found with this email |
-| `401` | Invalid credentials. Please check your password |
-
 ---
 
-## `POST /captains/logout` 🔒
+## `POST /captains/logout` 🔒 Captain
+Log out authenticated captain.
 
-Logout captain and clear auth cookies.
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -684,11 +721,10 @@ Logout captain and clear auth cookies.
 
 ---
 
-## `GET /captains/profile` 🔒
+## `GET /captains/profile` 🔒 Captain
+Fetch authenticated Captain profile.
 
-Get the authenticated captain's profile.
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -696,149 +732,65 @@ Get the authenticated captain's profile.
   "message": "Captain profile fetched successfully",
   "data": {
     "captainData": {
+      "_id": "64cap987...",
       "fullname": { "firstname": "Raj", "lastname": "Kumar" },
       "email": "raj@example.com",
-      "status": "inactive",
-      "vehicle": { "color": "Black", "plate": "MH12AB1234", "capacity": 4, "vehicletype": "car" },
-      "profilepic": "https://cloudinary.com/...",
-      "_id": "64cap123..."
+      "vehicle": { "color": "Black", "plate": "MH12AB1234", "capacity": 4, "vehicletype": "car" }
     }
   }
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `401` | Access token is missing |
-| `404` | Captain profile not found |
-
 ---
 
-## `GET /captains/history` 🔒
+## `GET /captains/history` 🔒 Captain
+Get cumulative drive metrics (distance in km, time in hours, earnings in ₹) aggregated from completed rides.
 
-Get captain's cumulative ride stats — total distance, time, and earnings — calculated directly from completed rides using MongoDB aggregation.
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
   "success": true,
   "message": "Captain stats fetched successfully",
   "data": {
-    "totalDist": 124.5,
-    "totalTime": 3.2,
-    "totalEarning": 2450.00
+    "totalDist": 142.5,
+    "totalTime": 4.2,
+    "totalEarning": 3150.00
   }
 }
 ```
 
-> `totalDist` in **km** | `totalTime` in **hours** | `totalEarning` in **₹**
-
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `404` | Captain not found |
-
 ---
 
-## `GET /captains/average-rating` 🔒
+## `PUT /captains/edit-profile` 🔒 Captain
+Update captain details and vehicle specifications. Accepts `multipart/form-data`.
 
-Get the captain's average rating calculated from all rated rides.
+**Form Data Fields:**
+- `firstname` (string, required)
+- `lastname` (string, required)
+- `password` (string, optional)
+- `vehicleColor` (string, optional)
+- `vehicleType` (string, optional: `car`, `auto`, `moto`)
+- `vehiclePlate` (string, optional)
+- `vehicleCapacity` (number, optional)
+- `profilepic` (file, optional — avatar image)
 
-**Success Response `200`**
-```json
-{
-  "statusCode": 200,
-  "success": true,
-  "message": "Average rating calculated successfully",
-  "data": {
-    "avgRating": 4.5,
-    "count": 28
-  }
-}
-```
-
-> `avgRating` — cumulative average of all ratings received
-> `count` — total number of rated rides
-
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `401` | Captain not found in request |
-
----
-
-## `GET /captains/ride-history` 🔒
-
-Get all past rides for the authenticated captain.
-
-**Success Response `200`**
-```json
-{
-  "statusCode": 200,
-  "success": true,
-  "message": "Ride history found",
-  "data": [
-    {
-      "_id": "64ride123...",
-      "pickup": "Shivaji Nagar, Pune",
-      "destination": "Hinjewadi, Pune",
-      "fare": 250.00,
-      "status": "completed",
-      "user": { "fullname": { "firstname": "John" } },
-      "createdAt": "2024-01-01T09:00:00.000Z"
-    }
-  ]
-}
-```
-
----
-
-## `PUT /captains/edit-profile` 🔒
-
-Update captain's personal and vehicle details. Accepts `multipart/form-data`.
-
-**Request Body**
-
-| Field | Type | Required |
-|-------|------|----------|
-| `firstname` | string | ✅ |
-| `lastname` | string | ✅ |
-| `password` | string | ❌ |
-| `vehicleColor` | string | ❌ |
-| `vehicleType` | string | ❌ |
-| `vehiclePlate` | string | ❌ |
-| `vehicleCapacity` | number | ❌ |
-| `profilepic` | file | ❌ |
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
   "success": true,
   "message": "Profile updated successfully",
-  "data": { }
+  "data": {}
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `404` | Captain not found |
-| `502` | Failed to upload profile picture. Please try again |
-
 ---
 
-## `DELETE /captains/delete-captain` 🔒
+## `DELETE /captains/delete-captain` 🔒 Captain
+Permanently delete captain account.
 
-Permanently delete the authenticated captain's account.
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -848,99 +800,69 @@ Permanently delete the authenticated captain's account.
 }
 ```
 
-**Error Responses**
+---
 
-| Status | Message |
-|--------|---------|
-| `500` | Failed to delete captain account. Please try again |
+## `GET /captains/ride-history` 🔒 Captain
+Fetch history of trips completed by the authenticated captain.
+
+**Response `200 OK`**
+```json
+{
+  "statusCode": 200,
+  "success": true,
+  "message": "Ride history found",
+  "data": [
+    {
+      "_id": "64ride123...",
+      "pickup": "Shivaji Nagar",
+      "destination": "Hinjewadi",
+      "fare": 250,
+      "status": "completed",
+      "user": { "fullname": { "firstname": "John" } }
+    }
+  ]
+}
+```
+
+---
+
+## `GET /captains/average-rating` 🔒 Captain
+Get average rating score computed across all passenger reviews for this captain.
+
+**Response `200 OK`**
+```json
+{
+  "statusCode": 200,
+  "success": true,
+  "message": "Average rating calculated successfully",
+  "data": {
+    "avgRating": 4.8,
+    "count": 15
+  }
+}
+```
 
 ---
 
 ## `POST /captains/Generate-otp`
-
-Send a 6-digit OTP to the captain's email address via SMTP (nodemailer). OTP is valid for **5 minutes**.
-
-**Request Body**
-```json
-{
-  "email": "captain@example.com"
-}
-```
-
-**Success Response `200`**
-```json
-{
-  "statusCode": 200,
-  "success": true,
-  "message": "OTP sent successfully to your email",
-  "data": null
-}
-```
-
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | A valid email address is required |
-| `502` | Failed to send OTP. Please try again later |
+Send 6-digit OTP to captain email address.
 
 ---
 
 ## `POST /captains/verify-otp`
-
-Verify the OTP sent to the captain's email address.
-
-**Request Body**
-```json
-{
-  "email": "captain@example.com",
-  "otp": "123456"
-}
-```
-
-**Success Response `200`**
-```json
-{
-  "statusCode": 200,
-  "success": true,
-  "message": "OTP verified successfully",
-  "data": null
-}
-```
-
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | Email and OTP are required |
-| `400` | Invalid or expired OTP. Please request a new one |
-
----
+Verify captain email OTP.
 
 ---
 
 # 🗺️ Map Endpoints — `/maps`
 
-> All map endpoints require authentication 🔒
+## `GET /maps/get-coordinates` 🔒 User
+Geocode an address string into latitude & longitude using Google Maps API.
 
----
+**Query Parameters:**
+- `address` (string, required, min 3 chars) — e.g. `/maps/get-coordinates?address=Shivaji+Nagar`
 
-## `GET /maps/get-coordinates` 🔒
-
-Get latitude and longitude for a given address using Google Maps Geocoding API.
-
-**Query Parameters**
-
-| Param | Type | Required | Validation |
-|-------|------|----------|------------|
-| `address` | string | ✅ | min 3 characters |
-
-**Example Request**
-```
-GET /maps/get-coordinates?address=Shivaji+Nagar,+Pune
-```
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -953,73 +875,37 @@ GET /maps/get-coordinates?address=Shivaji+Nagar,+Pune
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | Validation failed |
-| `404` | No coordinates found for the given address |
-| `502` | Unable to fetch coordinates from Maps API |
-
 ---
 
-## `GET /maps/get-distance-time` 🔒
+## `GET /maps/get-distance-time` 🔒 User
+Fetch road distance (meters) and travel duration (seconds) between two addresses using Google Maps Distance Matrix.
 
-Get distance and travel time between two locations using Google Maps Distance Matrix API.
+**Query Parameters:**
+- `origin` (string, required, min 3 chars)
+- `destination` (string, required, min 3 chars)
 
-**Query Parameters**
-
-| Param | Type | Required | Validation |
-|-------|------|----------|------------|
-| `origin` | string | ✅ | min 3 characters |
-| `destination` | string | ✅ | min 3 characters |
-
-**Example Request**
-```
-GET /maps/get-distance-time?origin=Pune&destination=Mumbai
-```
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
   "success": true,
   "message": "Distance and time fetched successfully",
   "data": {
-    "distance": 148000,
-    "time": 9000
+    "distance": 15000,
+    "time": 1800
   }
 }
 ```
 
-> `distance` in **meters** | `time` in **seconds**
-
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | Validation failed |
-| `404` | Unable to fetch distance and time for the given route |
-| `502` | Unable to fetch distance and time from Maps API |
-
 ---
 
-## `GET /maps/get-suggestions` 🔒
+## `GET /maps/get-suggestions` 🔒 User
+Autocomplete address strings using Google Maps Places API.
 
-Get autocomplete address suggestions using Google Maps Places API.
+**Query Parameters:**
+- `input` (string, required, min 3 chars) — e.g. `/maps/get-suggestions?input=Koregaon`
 
-**Query Parameters**
-
-| Param | Type | Required | Validation |
-|-------|------|----------|------------|
-| `input` | string | ✅ | min 3 characters |
-
-**Example Request**
-```
-GET /maps/get-suggestions?input=Koregaon
-```
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -1032,42 +918,23 @@ GET /maps/get-suggestions?input=Koregaon
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | Search input is required |
-| `404` | No suggestions found for the given input |
-| `502` | Unable to fetch suggestions from Maps API |
-
----
-
 ---
 
 # 🛺 Ride Endpoints — `/rides`
 
----
+## `POST /rides/create-ride` 🔒 User
+Create a new ride request and notify nearby active captains via Socket.IO.
 
-## `POST /rides/create-ride` 🔒 (User)
-
-Create a new ride request. Notifies nearby captains via Socket.IO.
-
-**Request Body**
+**Request Body (`application/json`)**
 ```json
 {
   "pickup": "Shivaji Nagar, Pune",
-  "destination": "Hinjewadi, Pune",
+  "destination": "Hinjewadi Phase 1, Pune",
   "vehicleType": "car"
 }
 ```
 
-| Field | Type | Required | Validation |
-|-------|------|----------|------------|
-| `pickup` | string | ✅ | min 3 characters |
-| `destination` | string | ✅ | min 3 characters |
-| `vehicleType` | string | ✅ | `car`, `auto`, `moto` |
-
-**Success Response `201`**
+**Response `201 Created`**
 ```json
 {
   "statusCode": 201,
@@ -1077,7 +944,7 @@ Create a new ride request. Notifies nearby captains via Socket.IO.
     "_id": "64ride123...",
     "user": "64abc123...",
     "pickup": "Shivaji Nagar, Pune",
-    "destination": "Hinjewadi, Pune",
+    "destination": "Hinjewadi Phase 1, Pune",
     "fare": 250.00,
     "status": "pending",
     "duration": 1800,
@@ -1086,67 +953,42 @@ Create a new ride request. Notifies nearby captains via Socket.IO.
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | Validation failed |
-| `404` | Unable to find coordinates for the pickup location |
-| `500` | Unable to create ride. Please try again |
-
 ---
 
-## `GET /rides/get-fare` 🔒 (User)
+## `GET /rides/get-fare` 🔒 User
+Fetch ML-calculated fare estimates across all vehicle types (`car`, `auto`, `moto`).
 
-Get fare estimates for all vehicle types between two locations. Uses ML model for prediction with formula-based fallback.
+**Query Parameters:**
+- `pickup` (string, required, min 3 chars)
+- `destination` (string, required, min 3 chars)
 
-**Query Parameters**
-
-| Param | Type | Required | Validation |
-|-------|------|----------|------------|
-| `pickup` | string | ✅ | min 3 characters |
-| `destination` | string | ✅ | min 3 characters |
-
-**Example Request**
-```
-GET /rides/get-fare?pickup=Shivaji+Nagar&destination=Hinjewadi
-```
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
   "success": true,
   "message": "Fare fetched successfully",
   "data": {
-    "auto": 180.50,
+    "auto": 165.00,
     "car": 250.00,
-    "moto": 120.00
+    "moto": 125.00
   }
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | Validation failed |
-| `404` | Unable to calculate fare for the given route |
-
 ---
 
-## `POST /rides/confirm` 🔒 (Captain)
+## `POST /rides/confirm` 🔒 Captain
+Captain accepts a pending ride request. Emits `ride-confirmed` to the rider and `ride-already-confirmed` to other captains.
 
-Captain accepts a pending ride. Notifies the user and other nearby captains via Socket.IO.
-
-**Request Body**
+**Request Body (`application/json`)**
 ```json
 {
   "rideId": "64ride123..."
 }
 ```
 
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -1155,39 +997,22 @@ Captain accepts a pending ride. Notifies the user and other nearby captains via 
   "data": {
     "_id": "64ride123...",
     "status": "accepted",
-    "captain": { },
-    "user": { }
+    "captain": { "_id": "64cap987..." },
+    "user": { "_id": "64abc123..." }
   }
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | Validation failed |
-| `404` | Ride not found |
-| `500` | Unable to confirm ride. Please try again |
-
 ---
 
-## `GET /rides/start-ride` 🔒 (Captain)
+## `GET /rides/start-ride` 🔒 Captain
+Start an accepted ride after verifying rider's 6-digit OTP. Emits `ride-started` to rider.
 
-Start an accepted ride after verifying the user's OTP. Notifies the user via Socket.IO.
+**Query Parameters:**
+- `rideId` (string, required, Mongo ID format)
+- `otp` (string, required, exactly 6 digits)
 
-**Query Parameters**
-
-| Param | Type | Required | Validation |
-|-------|------|----------|------------|
-| `rideId` | string | ✅ | valid MongoDB ID |
-| `otp` | string | ✅ | exactly 6 digits |
-
-**Example Request**
-```
-GET /rides/start-ride?rideId=64ride123...&otp=482910
-```
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -1195,37 +1020,24 @@ GET /rides/start-ride?rideId=64ride123...&otp=482910
   "message": "Ride started successfully",
   "data": {
     "_id": "64ride123...",
-    "status": "ongoing",
-    "captain": { },
-    "user": { }
+    "status": "ongoing"
   }
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | Validation failed |
-| `400` | Invalid OTP. Please try again |
-| `400` | Ride has not been accepted yet |
-| `404` | Ride not found |
-| `500` | Unable to start ride. Please try again |
-
 ---
 
-## `POST /rides/end-ride` 🔒 (Captain)
+## `POST /rides/end-ride` 🔒 Captain
+Mark an ongoing ride as completed. Emits `ride-ended` to rider.
 
-End an ongoing ride. Notifies the user via Socket.IO.
-
-**Request Body**
+**Request Body (`application/json`)**
 ```json
 {
   "rideId": "64ride123..."
 }
 ```
 
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -1238,29 +1050,19 @@ End an ongoing ride. Notifies the user via Socket.IO.
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | Validation failed |
-| `400` | Ride is not ongoing |
-| `404` | Ride not found |
-| `500` | Unable to end ride. Please try again |
-
 ---
 
-## `POST /rides/cancel-ride` 🔒 (Captain)
+## `POST /rides/cancel-ride` 🔒 User/Captain (`authAny`)
+Cancel a pending or accepted ride. Callable by either User or Captain token (`authAny`). Emits `ride-cancelled`.
 
-Cancel a pending or accepted ride. Notifies the user via Socket.IO.
-
-**Request Body**
+**Request Body (`application/json`)**
 ```json
 {
   "rideId": "64ride123..."
 }
 ```
 
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -1270,96 +1072,19 @@ Cancel a pending or accepted ride. Notifies the user via Socket.IO.
 }
 ```
 
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | Ride ID is required |
-| `404` | Ride not found |
-| `500` | Unable to cancel ride. Please try again |
-
 ---
 
-## `POST /rides/rate` 🔒 (User)
+## `POST /rides/makepayment` 🔒 User
+Generate a Razorpay payment order for a completed ride.
 
-Submit a star rating for a completed ride. Rating contributes to the captain's cumulative average.
-
-**Request Body**
-```json
-{
-  "rideId": "64ride123...",
-  "rating": 4.5
-}
-```
-
-| Field | Type | Required |
-|-------|------|----------|
-| `rideId` | string | ✅ |
-| `rating` | number | ✅ |
-
-**Success Response `200`**
-```json
-{
-  "statusCode": 200,
-  "success": true,
-  "message": "Rating submitted successfully",
-  "data": null
-}
-```
-
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | Ride ID and rating are required |
-| `500` | Unable to submit rating. Please try again |
-
----
-
-## `POST /rides/ride-status` 🔒 (User)
-
-Get the current status of a specific ride.
-
-**Request Body**
+**Request Body (`application/json`)**
 ```json
 {
   "rideId": "64ride123..."
 }
 ```
 
-**Success Response `200`**
-```json
-{
-  "statusCode": 200,
-  "success": true,
-  "message": "Ride status fetched successfully",
-  "data": "ongoing"
-}
-```
-
-> Possible status values: `pending` | `accepted` | `ongoing` | `completed` | `cancelled`
-
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | Ride ID is required |
-| `404` | Ride not found |
-
----
-
-## `POST /rides/makepayment` 🔒 (User)
-
-Create a Razorpay payment order for a completed ride.
-
-**Request Body**
-```json
-{
-  "rideId": "64ride123..."
-}
-```
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -1373,59 +1098,83 @@ Create a Razorpay payment order for a completed ride.
   }
 }
 ```
-
-> `amount` is in **paise** (1 INR = 100 paise)
-
-**Error Responses**
-
-| Status | Message |
-|--------|---------|
-| `400` | Ride ID is required |
-| `404` | Ride not found |
-| `502` | Payment gateway error. Please try again later |
+*(Note: amount is in paise, e.g. 25000 paise = ₹250.00)*
 
 ---
 
-## `POST /rides/verifypayment` 🔒 (User)
+## `POST /rides/verifypayment` 🔒 User
+Verify Razorpay payment signature & update ride payment status.
 
-Verify Razorpay payment status and update ride's payment record.
-
-**Request Body**
+**Request Body (`application/json`)**
 ```json
 {
   "order_id": "order_xyz123"
 }
 ```
 
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
   "success": true,
   "message": "Payment verified successfully",
-  "data": { }
+  "data": {}
 }
 ```
 
-**Error Responses**
+---
 
-| Status | Message |
-|--------|---------|
-| `400` | Order ID is required |
-| `402` | Payment not completed. Please try again |
-| `404` | Payment order not found |
+## `POST /rides/rate` 🔒 User
+Submit star rating for a completed ride.
+
+**Request Body (`application/json`)**
+```json
+{
+  "rideId": "64ride123...",
+  "rating": 5
+}
+```
+
+**Response `200 OK`**
+```json
+{
+  "statusCode": 200,
+  "success": true,
+  "message": "Rating submitted successfully",
+  "data": null
+}
+```
 
 ---
 
+## `POST /rides/ride-status` 🔒 User
+Query the current status string of a ride.
+
+**Request Body (`application/json`)**
+```json
+{
+  "rideId": "64ride123..."
+}
+```
+
+**Response `200 OK`**
+```json
+{
+  "statusCode": 200,
+  "success": true,
+  "message": "Ride status fetched successfully",
+  "data": "ongoing"
+}
+```
+
 ---
 
-# ❤️ Health Check
+# ❤️ Healthcheck Endpoint — `/`
 
 ## `GET /`
+Server readiness and status probe.
 
-Check if the server is up and running.
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "statusCode": 200,
@@ -1434,184 +1183,3 @@ Check if the server is up and running.
   "data": {}
 }
 ```
-
----
-
----
-
-# 🔌 Socket.IO Events
-
-The server uses **Socket.IO** for real-time communication between users and captains.
-
-## Client → Server
-
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `join` | `{ userId, userType: "user" \| "captain" }` | Register socket ID when user/captain connects |
-| `update-location-captain` | `{ userId, location: { ltd, lng } }` | Captain updates their idle location |
-| `update-captain-location-ride` | `{ userId, location: { ltd, lng }, rideId }` | Captain updates location during an active ride — user receives live tracking |
-
-## Server → Client
-
-| Event | Sent To | Description |
-|-------|---------|-------------|
-| `new-ride` | Nearby captains | New ride request is available |
-| `ride-confirmed` | User | Captain has accepted the ride |
-| `ride-started` | User | Captain has started the ride |
-| `ride-ended` | User | Ride has been completed |
-| `ride-cancelled` | User | Ride has been cancelled |
-| `ride-already-confirmed` | Other captains | Ride was taken by another captain |
-| `captain-location-update` | User | Captain's live location update during ride |
-| `error` | Requester | Socket operation failed |
-
----
-
----
-
----
-
-# 📋 Data Models
-
-## User Model
-```json
-{
-  "_id": "64abc123...",
-  "fullname": {
-    "firstname": "John",
-    "lastname": "Doe"
-  },
-  "email": "john@example.com",
-  "password": "<hashed - bcrypt>",
-  "mobile": "9876543210",
-  "image": "<cloudinary_url or base64 default>",
-  "socketId": "abc123...",
-  "refreshtoken": "<JWT>",
-  "createdAt": "2024-01-01T09:00:00.000Z",
-  "updatedAt": "2024-01-01T10:00:00.000Z"
-}
-```
-
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `fullname.firstname` | string | ✅ | min 3 characters |
-| `fullname.lastname` | string | ❌ | min 3 characters |
-| `email` | string | ✅ | unique |
-| `password` | string | ✅ | bcrypt hashed |
-| `mobile` | string | ✅ | unique |
-| `image` | string | ❌ | Cloudinary URL, has default avatar |
-| `socketId` | string | ❌ | updated on socket connect |
-| `refreshtoken` | string | ❌ | cleared on logout |
-
----
-
-## Captain Model
-```json
-{
-  "_id": "64cap123...",
-  "fullname": {
-    "firstname": "Raj",
-    "lastname": "Kumar"
-  },
-  "email": "raj@example.com",
-  "password": "<hashed - bcrypt>",
-  "mobile": "9876543210",
-  "status": "inactive",
-  "profilepic": "<cloudinary_url or base64 default>",
-  "socketId": "xyz456...",
-  "refreshtoken": "<JWT>",
-  "vehicle": {
-    "color": "Black",
-    "plate": "MH12AB1234",
-    "capacity": 4,
-    "vehicletype": "car"
-  },
-  "location": {
-    "ltd": 18.5204,
-    "lng": 73.8567
-  },
-  "createdAt": "2024-01-01T09:00:00.000Z",
-  "updatedAt": "2024-01-01T10:00:00.000Z"
-}
-```
-
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `fullname.firstname` | string | ✅ | min 3 characters |
-| `fullname.lastname` | string | ✅ | min 3 characters |
-| `email` | string | ✅ | unique, lowercase |
-| `password` | string | ✅ | bcrypt hashed |
-| `mobile` | string | ✅ | unique |
-| `status` | string | ❌ | `active` or `inactive`, default `inactive` |
-| `profilepic` | string | ❌ | Cloudinary URL, has default avatar |
-| `socketId` | string | ❌ | updated on socket connect |
-| `vehicle.color` | string | ✅ | min 3 characters |
-| `vehicle.plate` | string | ✅ | min 3 characters |
-| `vehicle.capacity` | number | ✅ | min 1 |
-| `vehicle.vehicletype` | string | ✅ | `car`, `auto`, `moto` |
-| `location.ltd` | number | ❌ | updated via socket |
-| `location.lng` | number | ❌ | updated via socket |
-| `refreshtoken` | string | ❌ | cleared on logout |
-
----
-
-## Ride Model
-```json
-{
-  "_id": "64ride123...",
-  "user": "64abc123...",
-  "captain": "64cap123...",
-  "pickup": "Shivaji Nagar, Pune",
-  "destination": "Hinjewadi, Pune",
-  "fare": 250.00,
-  "status": "completed",
-  "duration": 1800,
-  "distance": 15000,
-  "paymentID": "pay_xyz...",
-  "orderID": "order_xyz...",
-  "signature": "...",
-  "paymentStatus": false,
-  "rating": 4.5,
-  "isRated": true,
-  "rateTime": "2024-01-01T10:00:00.000Z",
-  "otp": "<hidden - select: false>",
-  "createdAt": "2024-01-01T09:00:00.000Z",
-  "updatedAt": "2024-01-01T10:00:00.000Z"
-}
-```
-
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `user` | ObjectId | ✅ | ref: User |
-| `captain` | ObjectId | ❌ | ref: Captain, set on confirm |
-| `pickup` | string | ✅ | |
-| `destination` | string | ✅ | |
-| `fare` | number | ✅ | in ₹ |
-| `status` | string | ❌ | `pending`, `accepted`, `ongoing`, `completed`, `cancelled` |
-| `duration` | number | ❌ | in seconds |
-| `distance` | number | ❌ | in meters |
-| `paymentID` | string | ❌ | Razorpay payment ID |
-| `orderID` | string | ❌ | Razorpay order ID |
-| `paymentStatus` | boolean | ❌ | default `false` |
-| `rating` | number | ❌ | default `0` |
-| `isRated` | boolean | ❌ | default `false` |
-| `rateTime` | Date | ❌ | when rating was submitted |
-| `otp` | string | ✅ | hidden from responses by default |
-
-**Ride Status Flow**
-```
-pending → accepted → ongoing → completed
-                  ↘ cancelled
-```
-
----
-
-## Notes
-
-- All timestamps follow **ISO 8601** format
-- `distance` is always in **meters**, `time`/`duration` in **seconds**
-- `totalDist` in captain stats is in **km**, `totalTime` in **hours**
-- Fare amounts are in **INR (₹)**
-- Payment `amount` from Razorpay is in **paise** (multiply fare × 100)
-- OTP is valid for **5 minutes** and hashed before storage
-- Captain stats are computed via MongoDB aggregation on the `Ride` collection
-- Ride history includes captain's average rating for completed/ongoing rides

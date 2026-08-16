@@ -1,67 +1,125 @@
-# 🤖 RideNow ML Backend — Fare Prediction Service
+# 🤖 RideNow ML Backend — Dynamic Fare Prediction Engine
 
-A lightweight Python Flask API that serves a Linear Regression model for dynamic ride fare prediction. Achieves **99.92% R² accuracy** on car fare prediction and derives auto/moto fares using vehicle multipliers.
+[![Python](https://img.shields.io/badge/Python-v3.13-yellow.svg)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-v3.0.3-lightgrey.svg)](https://flask.palletsprojects.com/)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-v1.5.2-orange.svg)](https://scikit-learn.org/)
+[![Gunicorn](https://img.shields.io/badge/WSGI-Gunicorn-green.svg)](https://gunicorn.org/)
+[![R2 Score](https://img.shields.io/badge/R%C2%B2%20Accuracy-99.92%25-brightgreen.svg)](#-model-performance--validation)
 
----
-
-## 🛠️ Tech Stack
-
-| Technology | Version | Usage |
-|-----------|---------|-------|
-| Python | 3.13 | Runtime |
-| Flask | 3.0.3 | REST API framework |
-| Flask-CORS | 4.0.1 | Cross-origin requests |
-| scikit-learn | 1.5.2 | Linear Regression model |
-| pandas | 2.2.3 | Data loading and processing |
-| numpy | 2.1.3 | Numerical operations |
-| joblib | 1.4.2 | Model serialization |
-| gunicorn | 23.0.0 | Production WSGI server |
+The **RideNow Machine Learning Service** is a lightweight, high-performance Python microservice that serves a trained **Linear Regression** model for dynamic ride fare estimation. Built with Flask and scikit-learn, it achieves an impressive **99.92% $R^2$ score** on base car pricing and scales fares for auto-rickshaws and motorbikes using dynamic vehicle multipliers.
 
 ---
 
-## 📁 Project Structure
+## 🏗️ Architecture & Processing Pipeline
+
+```
+                                 ┌───────────────────────────────────────────────┐
+                                 │              Node.js Express Server           │
+                                 └──────────────────────┬────────────────────────┘
+                                                        │
+                                                 HTTP POST /predict
+                                              { distance (m), time (s) }
+                                                        │
+                                 ┌──────────────────────▼────────────────────────┐
+                                 │             Flask REST API (app.py)           │
+                                 └──────────────────────┬────────────────────────┘
+                                                        │
+                                         Unit Conversion & Vector Normalization
+                                         dist_km = dist_m/1000, time_min = time_s/60
+                                                        │
+                                 ┌──────────────────────▼────────────────────────┐
+                                 │   Scikit-Learn Model (linear_car_model.pkl)   │
+                                 │   predict( [ [dist_km, time_min] ] )          │
+                                 └──────────────────────┬────────────────────────┘
+                                                        │
+                                            Car Fare Output: ₹car_fare
+                                                        │
+                                 ┌──────────────────────▼────────────────────────┐
+                                 │       Vehicle Multiplier Scaling Engine       │
+                                 │  - Car  : 1.00  -> ₹car_fare                 │
+                                 │  - Auto : 0.66  -> ₹car_fare * 0.66          │
+                                 │  - Moto : 0.50  -> ₹car_fare * 0.50          │
+                                 └──────────────────────┬────────────────────────┘
+                                                        │
+                                                JSON Response 200
+                                       { success: true, fares: { car, auto, moto } }
+```
+
+---
+
+## 📁 Repository Structure
 
 ```
 ml_backend/
-├── app.py                    # Flask API server
-├── train_linear_model.py     # Model training script
-├── generate_indian_data.py   # Synthetic training data generator
-├── car_rides_data.csv        # 50,000 synthetic training samples
-├── linear_car_model.pkl      # Trained model (joblib format)
+├── app.py                    # Flask API server & inference endpoints (/predict, /original, /)
+├── train_linear_model.py     # Pipeline script: dataset loading, 5-fold CV, model serialization
+├── generate_indian_data.py   # Data generator script for 50,000 synthetic Indian ride samples
+├── car_rides_data.csv        # Synthetic dataset (50,000 samples)
+├── linear_car_model.pkl      # Serialized scikit-learn Linear Regression model (joblib)
 ├── requirements.txt          # Python dependencies
-└── README.md                 # Accuracy report
+├── Procfile                  # Gunicorn deployment configuration for Render
+├── Model_Accuracy.md         # Detailed cross-validation evaluation report
+└── README.md                 # ML Backend Documentation
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🧮 Mathematical & Business Model
 
-```bash
-# Navigate to ml_backend folder
-cd ml_backend
+### 1. Underlying Business Formula
+Urban transit pricing in the Indian ride-hailing market follows a linear multi-variable function combining base fee, distance traveled, and trip duration:
 
-# Install dependencies
-pip install -r requirements.txt
+$$\text{Fare} = \text{BaseFare} + (\text{Distance}_{\text{km}} \times \text{Rate}_{\text{km}}) + (\text{Time}_{\text{min}} \times \text{Rate}_{\text{min}})$$
 
-# Start the server
-python app.py
-# Runs on http://localhost:5001
-```
+### 2. Vehicle Rate Matrix
 
-### Production (Gunicorn)
-```bash
-gunicorn -w 4 -b 0.0.0.0:5001 app:app
-```
+| Vehicle Type | Base Fare ($\text{Base}$) | Per KM Rate ($\text{Rate}_{\text{km}}$) | Per Min Rate ($\text{Rate}_{\text{min}}$) | Derived Multiplier |
+|--------------|---------------------------|----------------------------------------|------------------------------------------|--------------------|
+| **Car** | ₹50.00 | ₹15.00 / km | ₹3.00 / min | **1.00** (Base) |
+| **Auto** | ₹30.00 | ₹10.00 / km | ₹2.00 / min | **0.66** |
+| **Moto** | ₹20.00 | ₹8.00 / km | ₹1.50 / min | **0.50** |
+
+### 3. ML Regression Equation
+The model is trained strictly on Car ride parameters with 1% Gaussian noise ($\epsilon$) added to reflect real-world surge and traffic variance:
+
+$$\hat{y}_{\text{car}} = w_1 \cdot \text{Distance}_{\text{km}} + w_2 \cdot \text{Time}_{\text{min}} + b$$
+
+The learned parameters from training:
+- **Intercept ($b$):** ₹49.96 (Expected: ₹50.00)
+- **Distance Weight ($w_1$):** ₹15.00 / km (Expected: ₹15.00)
+- **Time Weight ($w_2$):** ₹3.00 / min (Expected: ₹3.00)
 
 ---
 
-## 🌐 API Endpoints
+## 📊 Model Performance & Validation
 
-### `GET /`
+Model accuracy was verified using **5-Fold Cross-Validation** over 50,000 ride samples.
 
-Check if the server and model are running.
+```
+====== K-FOLD CROSS-VALIDATION (K=5) ======
+  Fold        R2 Score         MAE (₹)       RMSE (₹)
+     1          0.9992           ₹4.97          ₹6.67
+     2          0.9992           ₹5.00          ₹6.68
+     3          0.9992           ₹4.93          ₹6.62
+     4          0.9992           ₹4.92          ₹6.62
+     5          0.9992           ₹4.88          ₹6.58
 
-**Response**
+====== FINAL ACCURACY SUMMARY ======
+R2 Score  : 0.9992 (99.92% Variance Explained)
+MAE       : ₹4.94 (Mean Absolute Error)
+RMSE      : ₹6.63 (Root Mean Squared Error)
+```
+
+> See [Model_Accuracy.md](./Model_Accuracy.md) for full statistical breakdown.
+
+---
+
+## 🌐 API Endpoint Specifications
+
+### 1. `GET /`
+Healthcheck & model status probe.
+
+**Response `200 OK`**
 ```json
 {
   "status": "OK",
@@ -71,56 +129,45 @@ Check if the server and model are running.
 
 ---
 
-### `POST /predict`
+### 2. `POST /predict`
+Predict fares for Car, Auto, and Moto using the trained Linear Regression model.
 
-Predict fares for all vehicle types using the trained ML model.
-
-**Request Body**
+**Request Body (`application/json`)**
 ```json
 {
   "distance": 15000,
   "time": 1800
 }
 ```
+- `distance` (number, meters — e.g. 15000 = 15 km)
+- `time` (number, seconds — e.g. 1800 = 30 minutes)
 
-| Field | Type | Unit | Description |
-|-------|------|------|-------------|
-| `distance` | number | meters | Distance of the route |
-| `time` | number | seconds | Estimated travel time |
-
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "success": true,
   "fares": {
-    "car": 250.50,
-    "auto": 165.33,
-    "moto": 125.25
+    "car": 364.96,
+    "auto": 240.87,
+    "moto": 182.48
   }
 }
 ```
 
-**Error Response `500`**
+**Errors `500 Internal Server Error`**
 ```json
 {
   "success": false,
-  "error": "error description"
+  "error": "Error message description"
 }
 ```
 
-**How it works:**
-1. Converts `distance` from meters → km, `time` from seconds → minutes
-2. Feeds into Linear Regression model → predicts car fare
-3. Applies vehicle multipliers to derive auto and moto fares
-4. Returns all three fares rounded to 2 decimal places
-
 ---
 
-### `POST /original`
+### 3. `POST /original`
+Fallback endpoint — calculates fares using direct mathematical business formula without invoking scikit-learn.
 
-Fallback endpoint — calculates fares using the original business formula directly. Used as backup if ML model fails and for validation purposes.
-
-**Request Body**
+**Request Body (`application/json`)**
 ```json
 {
   "distance": 15000,
@@ -128,168 +175,53 @@ Fallback endpoint — calculates fares using the original business formula direc
 }
 ```
 
-**Success Response `200`**
+**Response `200 OK`**
 ```json
 {
   "success": true,
   "fares": {
-    "car": 250.00,
-    "auto": 165.00,
-    "moto": 125.00
+    "auto": 240.00,
+    "car": 365.00,
+    "moto": 185.00
   }
 }
 ```
 
 ---
 
-## 🧮 Fare Calculation Logic
+## 🏋️ Training & Regenerating Model
 
-### Business Formula
-```
-Fare = Base Fare + (Distance in km × Per KM Rate) + (Time in min × Per Minute Rate)
-```
+If you wish to re-train the model or generate fresh training datasets:
 
-### Vehicle Rates
-
-| Vehicle | Base Fare | Per KM Rate | Per Min Rate | Multiplier |
-|---------|-----------|-------------|--------------|------------|
-| Car | ₹50 | ₹15/km | ₹3/min | 1.00 (base) |
-| Auto | ₹30 | ₹10/km | ₹2/min | 0.66 |
-| Moto | ₹20 | ₹8/km | ₹1.5/min | 0.50 |
-
-### ML Approach
-- Model is trained only on **car fares**
-- Auto and Moto fares derived by: `car_fare × vehicle_multiplier`
-- Multipliers calculated from average 10km, 20min ride ratio
-
----
-
-## 🏋️ Training the Model
-
-### Step 1 — Generate Training Data
 ```bash
+# 1. Navigate to ml_backend
+cd ml_backend
+
+# 2. Generate 50,000 synthetic Indian ride samples
 python generate_indian_data.py
-# Generates car_rides_data.csv with 50,000 samples
-```
+# Creates car_rides_data.csv
 
-**Data Generation Logic:**
-- Distance: 0.5 km to 50 km (random uniform)
-- Time: 5 min to 120 min (random uniform)
-- Fare: calculated from business formula + ±1% random noise
-- Minimum fare enforced: ₹50
-
-### Step 2 — Train the Model
-```bash
+# 3. Train model & run 5-fold cross-validation
 python train_linear_model.py
-# Trains model, runs K-Fold validation, saves linear_car_model.pkl
-```
-
-**Training Output:**
-```
-====== K-FOLD CROSS-VALIDATION (K=5) ======
-  Fold    R2         MAE        RMSE
-     1  0.9992   ₹4.97     ₹6.67
-     2  0.9992   ₹5.00     ₹6.68
-     3  0.9992   ₹4.93     ₹6.62
-     4  0.9992   ₹4.92     ₹6.62
-     5  0.9992   ₹4.88     ₹6.58
-
-====== FINAL ACCURACY REPORT ======
-R2 Score  : 0.9992  (± 0.0000)
-MAE       : ₹4.94   (± ₹0.04)
-RMSE      : ₹6.63   (± ₹0.04)
+# Outputs metrics and serializes linear_car_model.pkl
 ```
 
 ---
 
-## 📊 Model Performance
+## 🚀 Local Execution & Production Deployment
 
-### Accuracy Metrics
-
-| Metric | Value | Benchmark | Status |
-|--------|-------|-----------|--------|
-| R² Score | **0.9992** | > 0.95 excellent | ✅ Excellent |
-| MAE | **₹4.94** | < 1% of avg fare | ✅ Excellent |
-| RMSE | **₹6.63** | Close to MAE | ✅ Consistent |
-| Std Dev (R²) | **±0.0000** | Near zero | ✅ Stable |
-
-### Learned Parameters vs Expected
-
-| Parameter | Expected | Learned | Deviation |
-|-----------|----------|---------|-----------|
-| Base Fare | ₹50.00 | ₹49.96 | -₹0.04 |
-| Per KM Rate | ₹15.00 | ₹15.00 | ₹0.00 |
-| Per Min Rate | ₹3.00 | ₹3.00 | ₹0.00 |
-
-### Real-World Validation (27.57 km, 121.05 min)
-
-| Vehicle | ML Prediction | Formula | Error |
-|---------|--------------|---------|-------|
-| Car | ₹826.68 | ₹826.70 | 0.002% |
-| Auto | ₹545.61 | ₹547.80 | 0.40% |
-| Moto | ₹413.34 | ₹422.13 | 2.08% |
-
----
-
-## 🔗 Integration with Backend
-
-The Node.js backend calls `/predict` via axios:
-
-```js
-// ride.service.js
-const response = await axios.post(`${process.env.Model_link}/predict`, {
-  distance: distance,  // meters (from Google Maps)
-  time: time           // seconds (from Google Maps)
-});
-
-const fare = response.data.fares;
-// { car: 250.50, auto: 165.33, moto: 125.25 }
+### Local Development
+```bash
+pip install -r requirements.txt
+python app.py
+# Server listening at http://localhost:5001
 ```
 
-**Fallback behavior:** If the ML API call fails, the backend automatically falls back to the formula-based calculation — ensuring rides can always be created even if the ML service is down.
+### Production Execution (Gunicorn)
+```bash
+gunicorn -w 4 -b 0.0.0.0:5001 app:app
+```
 
----
-
-## 📈 Training Data Statistics
-
-| Metric | Distance (km) | Time (min) | Fare (₹) |
-|--------|--------------|------------|----------|
-| Samples | 50,000 | 50,000 | 50,000 |
-| Mean | 25.27 | 62.71 | ₹617.10 |
-| Std Dev | 14.29 | 33.13 | ₹236.48 |
-| Min | 0.50 | 5.00 | ₹75.55 |
-| Median | 25.31 | 63.05 | ₹618.19 |
-| Max | 50.00 | 120.00 | ₹1,172.33 |
-
----
-
-## 🔧 Deployment on Render
-
-1. Connect GitHub repo to Render
-2. Set root directory to `ml_backend`
-3. Build command: `pip install -r requirements.txt`
-4. Start command: `gunicorn -w 4 -b 0.0.0.0:$PORT app:app`
-5. Set environment variable `PORT` if needed
-
----
-
-## 🔮 Future Enhancements
-
-- Surge pricing based on time-of-day demand
-- Traffic data integration from Google Maps
-- Weather conditions as a feature
-- Real ride data collection for model retraining
-- Separate models per vehicle type for higher accuracy
-- Dynamic multipliers based on supply/demand ratio
-
----
-
-## 📄 Model Files
-
-| File | Description |
-|------|-------------|
-| `car_rides_data.csv` | 50,000 synthetic training samples |
-| `linear_car_model.pkl` | Serialized trained model (joblib) |
-| `train_linear_model.py` | Training + K-Fold validation script |
-| `generate_indian_data.py` | Synthetic data generator |
-| `app.py` | Flask API server |
+**Render Deployment:**
+- Build Command: `pip install -r requirements.txt`
+- Start Command: `gunicorn -w 4 -b 0.0.0.0:$PORT app:app`
